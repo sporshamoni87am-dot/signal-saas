@@ -30,33 +30,50 @@ const VERDICT_TITLE_COLOR: Record<string, string> = {
 
 function SignalTable({ signals }: { signals: SignalGrade[] }) {
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full min-w-[560px] text-left text-sm">
-        <thead>
-          <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
-            <th className="pb-2 pr-3 font-medium">Signal</th>
-            <th className="pb-2 pr-3 font-medium">Value</th>
-            <th className="pb-2 pr-3 font-medium">Status</th>
-            <th className="pb-2 font-medium">Why it matters</th>
-          </tr>
-        </thead>
-        <tbody>
-          {signals.map((s) => (
-            <tr key={s.key} className="border-b border-zinc-800/60 last:border-0">
-              <td className="py-3 pr-3 font-medium text-zinc-200">{s.label}</td>
-              <td className="py-3 pr-3 font-mono text-zinc-100">{s.display}</td>
-              <td className="py-3 pr-3">
-                <StatusPill status={s.status} />
-              </td>
-              <td className="py-3 text-[13px] leading-relaxed text-zinc-400">
-                {s.explanation}
-                <span className="mt-1 block text-xs text-zinc-500">Benchmark: {s.benchmark}</span>
-              </td>
+    <>
+      {/* Desktop: dense scannable table */}
+      <div className="hidden overflow-x-auto sm:block">
+        <table className="w-full min-w-[560px] text-left text-sm">
+          <thead>
+            <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+              <th className="pb-2 pr-3 font-medium">Signal</th>
+              <th className="pb-2 pr-3 font-medium">Value</th>
+              <th className="pb-2 pr-3 font-medium">Status</th>
+              <th className="pb-2 font-medium">Why it matters</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {signals.map((s) => (
+              <tr key={s.key} className="border-b border-zinc-800/60 last:border-0">
+                <td className="py-3 pr-3 font-medium text-zinc-200">{s.label}</td>
+                <td className="py-3 pr-3 font-mono text-zinc-100">{s.display}</td>
+                <td className="py-3 pr-3">
+                  <StatusPill status={s.status} />
+                </td>
+                <td className="py-3 text-[13px] leading-relaxed text-zinc-400">
+                  {s.explanation}
+                  <span className="mt-1 block text-xs text-zinc-500">Benchmark: {s.benchmark}</span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {/* Mobile: stacked cards, no horizontal scroll */}
+      <div className="space-y-3 sm:hidden">
+        {signals.map((s) => (
+          <div key={s.key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+            <div className="flex items-start justify-between gap-3">
+              <p className="text-sm font-semibold text-zinc-100">{s.label}</p>
+              <StatusPill status={s.status} />
+            </div>
+            <p className="mt-1.5 font-mono text-lg text-zinc-100">{s.display}</p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-400">{s.explanation}</p>
+            <p className="mt-1.5 text-xs text-zinc-500">Benchmark: {s.benchmark}</p>
+          </div>
+        ))}
+      </div>
+    </>
   );
 }
 

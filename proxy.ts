@@ -1,7 +1,9 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/proxy';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/diagnose', '/diagnoses', '/billing'];
+const PROTECTED_PREFIXES = ['/dashboard', '/diagnoses', '/billing'];
+// '/diagnose' is intentionally public: guests can run a full diagnosis without
+// an account. Saving stays account-gated inside the wizard UI.
 const AUTH_PAGES = ['/login', '/signup'];
 
 /**

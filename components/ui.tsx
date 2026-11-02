@@ -59,6 +59,25 @@ export function PrimaryButton({
   );
 }
 
+/** Same look as PrimaryButton, but a link (for CTAs like signup prompts). */
+export function PrimaryLink({
+  children,
+  className,
+  ...rest
+}: React.AnchorHTMLAttributes<HTMLAnchorElement>) {
+  return (
+    <a
+      className={cn(
+        'inline-flex items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300',
+        className,
+      )}
+      {...rest}
+    >
+      {children}
+    </a>
+  );
+}
+
 export function GhostButton({
   children,
   className,

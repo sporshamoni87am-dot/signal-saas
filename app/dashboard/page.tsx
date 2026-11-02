@@ -115,7 +115,7 @@ export default async function DashboardPage() {
             const roas = d.results?.adSignals?.find((s) => s.key === 'roas');
             const spend = (d.inputs?.adSpend as number | null) ?? null;
             return (
-              <Card key={d.id} className="flex flex-col">
+              <Card key={d.id} className="flex flex-col transition-colors hover:border-zinc-700">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="font-semibold text-zinc-100">{d.campaign_name}</h3>
                   <VerdictBadge verdict={d.verdict} size="sm" />

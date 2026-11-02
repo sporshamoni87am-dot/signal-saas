@@ -2,12 +2,18 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, Field, PrimaryButton, inputClassName } from '@/components/ui';
 
-export default function SignupPage() {
+function SignupForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  // Where to go after signup (e.g. ?next=/diagnose preserves guest progress
+  // stored in localStorage). Only allow same-origin paths.
+  const rawNext = searchParams.get('next') || '/dashboard';
+  const next = rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/dashboard';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -24,7 +30,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
         },
       });
       if (error) {
@@ -33,7 +39,7 @@ export default function SignupPage() {
       }
       // If email confirmation is off, a session exists immediately.
       if (data.session) {
-        router.push('/dashboard');
+        router.push(next);
         router.refresh();
       } else {
         setDone(true);
@@ -85,5 +91,13 @@ export default function SignupPage() {
         </p>
       </Card>
     </div>
+  );
+}
+
+export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
   );
 }

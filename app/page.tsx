@@ -50,12 +50,12 @@ export default function LandingPage() {
               scale, fix or wait — and exactly what to change in Ads Manager. No prompting
               skills required. No generic strategy fluff.
             </p>
-            <div className="mt-8 flex flex-wrap gap-3">
+            <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
-                href="/signup"
-                className="rounded-xl bg-lime-400 px-6 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300"
+                href="/diagnose"
+                className="rounded-xl bg-lime-400 px-6 py-3.5 text-sm font-semibold text-zinc-950 shadow-[0_0_28px_-8px] shadow-lime-400/40 transition hover:bg-lime-300"
               >
-                Diagnose my campaign — free
+                Try a free diagnosis — no sign-up
               </Link>
               <Link
                 href="#how"
@@ -63,9 +63,17 @@ export default function LandingPage() {
               >
                 How it works
               </Link>
+              <Link
+                href="/login"
+                className="px-2 py-3 text-sm font-medium text-zinc-400 transition hover:text-zinc-100"
+              >
+                Sign in
+              </Link>
             </div>
-            <p className="mt-4 text-xs text-zinc-500">
-              Free 30-day trial · No credit card required · Full access
+            <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+              Run your first diagnosis right now, no account needed.
+              <br className="hidden sm:block" />
+              Free 30-day trial when you create an account · No credit card required
             </p>
           </div>
 
@@ -157,8 +165,8 @@ export default function LandingPage() {
                 <li>✓ Creative analysis + Ads Manager action items</li>
                 <li>✓ Save history + old-vs-new comparison</li>
               </ul>
-              <Link href="/signup" className="mt-7 block rounded-xl bg-lime-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
-                Start my free trial
+              <Link href="/diagnose" className="mt-7 block rounded-xl bg-lime-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+                Try a free diagnosis — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
                 Paid plans are coming soon. Your saved diagnoses stay yours either way.
@@ -174,7 +182,10 @@ export default function LandingPage() {
           <h2 className="mx-auto max-w-2xl text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
             Your next campaign review takes two minutes. Make it decisive.
           </h2>
-          <Link href="/signup" className="mt-7 inline-block rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+          <p className="mx-auto mt-3 max-w-xl text-sm text-zinc-400">
+            No account, no credit card — just your numbers and an honest verdict.
+          </p>
+          <Link href="/diagnose" className="mt-7 inline-block rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
             Run your first diagnosis
           </Link>
         </div>

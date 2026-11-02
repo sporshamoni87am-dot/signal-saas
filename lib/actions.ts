@@ -31,11 +31,30 @@ async function requireUser() {
 }
 
 /**
+ * Same as requireUser but returns null instead of redirecting when logged
+ * out — for entry points that guests may call (getTrial, saveDiagnosis).
+ * Nothing here throws for anonymous callers.
+ */
+async function getOptionalUser() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  return { supabase, user };
+}
+
+/**
  * Trial status for the current user. This is the access-control source of
  * truth while BILLING_ENABLED=false (launch mode).
+ *
+ * Guests (logged out) get a neutral, non-expired state — they can always run
+ * diagnoses; saving is gated separately in the wizard UI.
  */
 export async function getTrial(): Promise<TrialInfo> {
-  const { supabase, user } = await requireUser();
+  const { supabase, user } = await getOptionalUser();
+  if (!user) {
+    return { trialEndsAt: null, daysLeft: TRIAL_DAYS, expired: false };
+  }
 
   const { data: profile } = await supabase
     .from('profiles')
@@ -89,7 +108,12 @@ export interface SaveDiagnosisArgs {
 export async function saveDiagnosis(
   args: SaveDiagnosisArgs,
 ): Promise<{ id?: string; error?: string }> {
-  const { supabase, user } = await requireUser();
+  // Guests can't save — the wizard shows a signup CTA instead, so this is
+  // only a safety net. Return a plain error, never redirect/throw.
+  const { supabase, user } = await getOptionalUser();
+  if (!user) {
+    return { error: 'NOT_SIGNED_IN' };
+  }
 
   if (BILLING_ENABLED) {
     // Stripe era: enforce the free-plan diagnosis cap server-side.

@@ -36,6 +36,26 @@ body {
   border-radius: 8px;
 }
 
+/* Wizard step transition: gentle fade + rise when the step changes */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.step-enter {
+  animation: step-in 0.28s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .step-enter {
+    animation: none;
+  }
+}
+
 /* Print: hide interactive chrome; the report renders its own light
    print-only document (see components/report-actions.tsx). */
 @media print {
