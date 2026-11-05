@@ -17,7 +17,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Subtle grid backdrop for the landing hero */
+/* Grid backdrop for the landing hero. WARNING: this class carries a
+   mask-image, and a mask applies to an element's CONTENT as well as its
+   background. Apply it ONLY to an empty, absolutely-positioned background
+   layer (see the hero in app/page.tsx) — never to an element that
+   contains text, or the text will be faded out along with the grid. */
 .hero-grid {
   background-image:
     linear-gradient(to right, rgb(255 255 255 / 0.04) 1px, transparent 1px),

@@ -33,8 +33,11 @@ export default function LandingPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="hero-grid relative overflow-hidden">
-        <div className="mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
+      <section className="relative overflow-hidden">
+        {/* Grid backdrop on its own layer: .hero-grid carries a mask-image,
+            which would mask the hero's text too if applied to the section. */}
+        <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
+        <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
           <div className="max-w-3xl">
             <p className="inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-3.5 py-1.5 text-xs font-semibold text-lime-300">
               <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
