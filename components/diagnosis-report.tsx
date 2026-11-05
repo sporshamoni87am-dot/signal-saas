@@ -231,7 +231,7 @@ export default function DiagnosisReport({
             <li key={idx} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
               <p className="text-sm font-semibold text-zinc-100">{r.rule}</p>
               <p className="mt-1 text-sm text-zinc-400">{r.detail}</p>
-              <p className="mt-2 font-mono text-xs text-lime-300/90">{r.math}</p>
+              <p className="mt-2 break-words font-mono text-xs text-lime-300/90">{r.math}</p>
             </li>
           ))}
         </ul>
@@ -268,13 +268,13 @@ export default function DiagnosisReport({
             Screenshot reference
           </SectionTitle>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={screenshotUrl} alt="Uploaded Ads Manager screenshot (reference only)" className="max-h-[480px] w-auto rounded-xl border border-zinc-800" />
+          <img src={screenshotUrl} alt="Uploaded Ads Manager screenshot (reference only)" className="max-h-[480px] w-auto max-w-full rounded-xl border border-zinc-800" />
         </Card>
       )}
 
       {/* Plain-language metric guide — beginner-proofing */}
       <details className="group rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:p-6">
-        <summary className="cursor-pointer list-none text-sm font-semibold text-zinc-200 transition hover:text-lime-300">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-zinc-200 transition hover:text-lime-300">
           <span className="mr-2 inline-block transition group-open:rotate-90">▸</span>
           New to these metrics? Read the plain-language guide
         </summary>

@@ -24,7 +24,7 @@ export default async function TrialBanner({ compact = false }: { compact?: boole
           </div>
           <Link
             href="/billing"
-            className="rounded-xl border border-amber-400/40 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-400/10"
+            className="inline-flex min-h-11 items-center rounded-xl border border-amber-400/40 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-400/10"
           >
             See plans
           </Link>
@@ -56,7 +56,7 @@ export default async function TrialBanner({ compact = false }: { compact?: boole
         </div>
       </div>
       {!compact && (
-        <div className="h-2 w-40 overflow-hidden rounded-full bg-zinc-800" title={`${TRIAL_DAYS}-day trial`}>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800 sm:w-40" title={`${TRIAL_DAYS}-day trial`}>
           <div
             className="h-full rounded-full bg-lime-400"
             style={{ width: `${Math.max(4, Math.min(100, (days / TRIAL_DAYS) * 100))}%` }}

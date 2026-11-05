@@ -41,7 +41,7 @@ function LoginForm() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+    <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
       <Card>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Welcome back</h1>
         <p className="mt-1.5 text-sm text-zinc-400">Sign in to your Signal Assistance account.</p>
@@ -61,7 +61,7 @@ function LoginForm() {
         </form>
         <p className="mt-5 text-center text-sm text-zinc-400">
           No account yet?{' '}
-          <Link href="/signup" className="font-medium text-lime-300 hover:text-lime-200">
+          <Link href="/signup" className="inline-block py-1.5 font-medium text-lime-300 hover:text-lime-200">
             Create one free
           </Link>
         </p>

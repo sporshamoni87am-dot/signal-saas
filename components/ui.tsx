@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:p-6', className)}>
+    <div className={cn('rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6', className)}>
       {children}
     </div>
   );
@@ -38,8 +38,10 @@ export function Field({
   );
 }
 
+/* Mobile: text-base (16px) so iOS Safari does not zoom on focus, and
+   py-3 so inputs are at least 44px tall. Desktop keeps the compact look. */
 export const inputClassName =
-  'w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3.5 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-lime-400/70 focus:ring-2 focus:ring-lime-400/20';
+  'w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3.5 py-3 text-base text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-lime-400/70 focus:ring-2 focus:ring-lime-400/20 sm:py-2.5 sm:text-sm';
 
 export function PrimaryButton({
   children,
@@ -49,7 +51,7 @@ export function PrimaryButton({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -68,7 +70,7 @@ export function PrimaryLink({
   return (
     <a
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300',
         className,
       )}
       {...rest}
@@ -86,7 +88,7 @@ export function GhostButton({
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -148,18 +150,20 @@ export function PageHeader({
 }) {
   return (
     <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>
+      <div className="min-w-0">
+        <h1 className="break-words text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>
         {sub && <p className="mt-1.5 max-w-2xl text-sm text-zinc-400">{sub}</p>}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {/* Mobile: actions stack full-width so buttons are thumb-sized and
+          never squeezed side-by-side; desktop keeps the inline row. */}
+      {actions && <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">{actions}</div>}
     </div>
   );
 }
 
 export function EmptyState({ title, sub, action }: { title: string; sub: string; action?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 px-6 py-14 text-center">
+    <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 px-4 py-10 text-center sm:px-6 sm:py-14">
       <p className="text-base font-semibold text-zinc-200">{title}</p>
       <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">{sub}</p>
       {action && <div className="mt-5">{action}</div>}

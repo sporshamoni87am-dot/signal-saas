@@ -60,14 +60,14 @@ export default function ReportActions({
         <button
           type="button"
           onClick={onCopy}
-          className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
         >
           {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
         </button>
         <button
           type="button"
           onClick={() => window.print()}
-          className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
         >
           ⎙ Print / save PDF
         </button>

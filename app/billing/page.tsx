@@ -62,7 +62,7 @@ export default async function BillingPage() {
       )}
 
       <p className="mt-6 text-center text-xs text-zinc-600">
-        <Link href="/dashboard" className="underline underline-offset-2 hover:text-zinc-400">
+        <Link href="/dashboard" className="inline-block py-2 underline underline-offset-2 hover:text-zinc-400">
           Back to dashboard
         </Link>
       </p>

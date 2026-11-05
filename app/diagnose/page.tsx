@@ -505,11 +505,11 @@ function DiagnoseWizard() {
             You can still view all your past diagnoses on the dashboard — nothing is locked
             away. Creating new diagnoses is paused until paid plans launch.
           </p>
-          <div className="mt-5 flex flex-wrap justify-center gap-3">
-            <Link href="/dashboard" className="rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+          <div className="mt-5 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
               View my diagnoses
             </Link>
-            <Link href="/billing" className="rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+            <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
               See plans
             </Link>
           </div>
@@ -519,9 +519,9 @@ function DiagnoseWizard() {
   }
 
   const saveCta = isGuest ? (
-    <PrimaryLink href="/signup?next=/diagnose">Create your free account to save this diagnosis</PrimaryLink>
+    <PrimaryLink href="/signup?next=/diagnose" className="w-full sm:w-auto">Create your free account to save this diagnosis</PrimaryLink>
   ) : (
-    <PrimaryButton onClick={onSave} disabled={saving}>
+    <PrimaryButton onClick={onSave} disabled={saving} className="w-full sm:w-auto">
       {saving ? 'Saving…' : 'Save diagnosis'}
     </PrimaryButton>
   );
@@ -540,8 +540,8 @@ function DiagnoseWizard() {
                 : 'Your diagnosis is ready. Save it to track this campaign over time.'
           }
           actions={
-            <div className="no-print flex flex-wrap items-center gap-2">
-              <GhostButton onClick={() => { setResults(null); scrollTop(); }}>Edit inputs</GhostButton>
+            <div className="no-print flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
+              <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
               {saveCta}
             </div>
           }
@@ -557,7 +557,7 @@ function DiagnoseWizard() {
               <strong className="text-lime-200">Keep this diagnosis.</strong>{' '}
               A free account saves it to your dashboard — your inputs are preserved, nothing to retype.
             </p>
-            <PrimaryLink href="/signup?next=/diagnose" className="shrink-0 px-4 py-2">
+            <PrimaryLink href="/signup?next=/diagnose" className="w-full shrink-0 px-4 py-2 sm:w-auto">
               Create free account
             </PrimaryLink>
           </div>
@@ -567,8 +567,8 @@ function DiagnoseWizard() {
         )}
         <ReportActions inputs={results.inputs} results={results.results} />
         <DiagnosisReport inputs={results.inputs} results={results.results} screenshotUrl={shotPreview} />
-        <div className="no-print mt-6 flex flex-wrap justify-end gap-2">
-          <GhostButton onClick={() => { setResults(null); scrollTop(); }}>Edit inputs</GhostButton>
+        <div className="no-print mt-6 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+          <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
           {saveCta}
         </div>
       </div>
@@ -613,7 +613,9 @@ function DiagnoseWizard() {
       <p className="mb-6 text-xs font-medium text-zinc-500 sm:hidden">
         Step {step + 1} of {STEP_TITLES.length} — {STEP_TITLES[step]}
       </p>
-      <div className="mb-6 hidden h-1 overflow-hidden rounded-full bg-zinc-800 sm:block" aria-hidden>
+      {/* Progress bar is always visible (was hidden on phones): the thin
+          bar is the clearest "where am I" signal on a small screen. */}
+      <div className="mb-6 h-1 overflow-hidden rounded-full bg-zinc-800" aria-hidden>
         <div
           className="h-full rounded-full bg-lime-400 transition-all duration-300"
           style={{ width: `${((step + 1) / STEP_TITLES.length) * 100}%` }}
@@ -751,14 +753,19 @@ function DiagnoseWizard() {
         )}
         </div>
 
-        <div className="mt-6 flex items-center justify-between border-t border-zinc-800 pt-5">
+        {/* Sticky on phones: Back / Continue stays pinned to the bottom of
+            the viewport while the step scrolls, so the next action is always
+            one thumb-tap away. Static on desktop. The bar bleeds to the
+            card's edges with a blurred backdrop and safe-area padding so it
+            never covers content unreadably or sits under the home indicator. */}
+        <div className="sticky bottom-0 z-20 -mx-4 -mb-4 mt-6 flex items-center justify-between gap-3 rounded-b-2xl border-t border-zinc-800 bg-zinc-900/95 px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4 backdrop-blur sm:static sm:z-auto sm:mx-0 sm:mb-0 sm:rounded-none sm:border-zinc-800 sm:bg-transparent sm:px-0 sm:pb-0 sm:pt-5 sm:backdrop-blur-none">
           <GhostButton onClick={back} disabled={step === 0}>
             ← Back
           </GhostButton>
           {step < 3 ? (
-            <PrimaryButton onClick={next}>Continue →</PrimaryButton>
+            <PrimaryButton onClick={next} className="flex-1 justify-center sm:flex-none">Continue →</PrimaryButton>
           ) : (
-            <PrimaryButton onClick={runDiagnosis}>Run diagnosis ⚡</PrimaryButton>
+            <PrimaryButton onClick={runDiagnosis} className="flex-1 justify-center sm:flex-none">Run diagnosis ⚡</PrimaryButton>
           )}
         </div>
       </Card>

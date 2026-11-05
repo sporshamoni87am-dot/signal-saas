@@ -137,7 +137,9 @@ export default function CompareClient({
 
   const comparison = fresh ? compareVerdicts(baseResults, fresh.results) : null;
 
-  function deltaRow(key: string) {
+  /** Shared old/new/delta math for one metric — drives both the desktop
+      table and the stacked mobile cards, so they can never drift apart. */
+  function deltaData(key: string) {
     const meta = DELTA_KEYS.find((d) => d.key === key)!;
     const oldSig = [...baseResults.adSignals, ...baseResults.businessMetrics].find((s) => s.key === key);
     const newSig = fresh ? [...fresh.results.adSignals, ...fresh.results.businessMetrics].find((s) => s.key === key) : undefined;
@@ -146,15 +148,45 @@ export default function CompareClient({
     const d = o !== null && n !== null ? n - o : null;
     const good = d !== null && (meta.higherBetter ? d > 0 : d < 0);
     const bad = d !== null && (meta.higherBetter ? d < 0 : d > 0);
+    const deltaText =
+      d === null
+        ? '—'
+        : `${d > 0 ? '+' : ''}${meta.money ? `$${d.toFixed(2)}` : meta.pct ? `${(d * 100).toFixed(2)}pp` : `${d.toFixed(2)}`}`;
+    return { meta, o, n, d, good, bad, deltaText };
+  }
+
+  function deltaRow(key: string) {
+    const { meta, o, n, good, bad, deltaText } = deltaData(key);
     return (
       <tr key={key} className="border-b border-zinc-800/60 last:border-0">
         <td className="py-2.5 pr-3 font-medium text-zinc-200">{meta.label}</td>
         <td className="py-2.5 pr-3 font-mono text-zinc-400">{fmtVal(o, meta)}</td>
         <td className="py-2.5 pr-3 font-mono text-zinc-100">{fmtVal(n, meta)}</td>
         <td className={cn('py-2.5 font-mono font-semibold', good && 'text-emerald-300', bad && 'text-red-300', !good && !bad && 'text-zinc-500')}>
-          {d === null ? '—' : `${d > 0 ? '+' : ''}${meta.money ? `$${d.toFixed(2)}` : meta.pct ? `${(d * 100).toFixed(2)}pp` : `${d.toFixed(2)}`}`}
+          {deltaText}
         </td>
       </tr>
+    );
+  }
+
+  function deltaCard(key: string) {
+    const { meta, o, n, good, bad, deltaText } = deltaData(key);
+    return (
+      <div key={key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm font-semibold text-zinc-100">{meta.label}</p>
+          <span className={cn('shrink-0 font-mono text-sm font-semibold', good && 'text-emerald-300', bad && 'text-red-300', !good && !bad && 'text-zinc-500')}>
+            {deltaText}
+          </span>
+        </div>
+        <p className="mt-2 font-mono text-sm">
+          <span className="text-zinc-500">Old </span>
+          <span className="text-zinc-400">{fmtVal(o, meta)}</span>
+          <span className="mx-2 text-zinc-600">→</span>
+          <span className="text-zinc-500">New </span>
+          <span className="text-zinc-100">{fmtVal(n, meta)}</span>
+        </p>
+      </div>
     );
   }
 
@@ -184,8 +216,8 @@ export default function CompareClient({
               </Field>
             ))}
           </div>
-          <div className="mt-6 flex justify-end">
-            <PrimaryButton onClick={run}>Compare old vs new ⚡</PrimaryButton>
+          <div className="mt-6 flex justify-end max-sm:[&>*]:w-full">
+            <PrimaryButton onClick={run} className="w-full sm:w-auto">Compare old vs new ⚡</PrimaryButton>
           </div>
         </Card>
       )}
@@ -211,7 +243,8 @@ export default function CompareClient({
             <SectionTitle hint="Old diagnosis vs fresh numbers. Green delta = moved the right way.">
               Metric deltas
             </SectionTitle>
-            <div className="overflow-x-auto">
+            {/* Desktop: dense table */}
+            <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead>
                   <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
@@ -223,6 +256,10 @@ export default function CompareClient({
                 </thead>
                 <tbody>{DELTA_KEYS.map((d) => deltaRow(d.key))}</tbody>
               </table>
+            </div>
+            {/* Mobile: stacked cards, no horizontal scroll */}
+            <div className="space-y-3 sm:hidden">
+              {DELTA_KEYS.map((d) => deltaCard(d.key))}
             </div>
           </Card>
 
@@ -245,12 +282,12 @@ export default function CompareClient({
           {limitHit && (
             <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
               Plan limit reached.{' '}
-              <Link href="/billing" className="font-semibold underline underline-offset-2">See plans</Link> for options.
+              <Link href="/billing" className="inline-block py-1 font-semibold underline underline-offset-2">See plans</Link> for options.
             </div>
           )}
-          <div className="flex flex-wrap justify-end gap-2">
-            <GhostButton onClick={() => { setRan(false); setFresh(null); }}>Edit numbers</GhostButton>
-            <PrimaryButton onClick={onSave} disabled={saving}>{saving ? 'Saving…' : 'Save as new diagnosis'}</PrimaryButton>
+          <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
+            <GhostButton onClick={() => { setRan(false); setFresh(null); }} className="w-full sm:w-auto">Edit numbers</GhostButton>
+            <PrimaryButton onClick={onSave} disabled={saving} className="w-full sm:w-auto">{saving ? 'Saving…' : 'Save as new diagnosis'}</PrimaryButton>
           </div>
         </>
       )}

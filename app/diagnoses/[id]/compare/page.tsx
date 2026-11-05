@@ -33,7 +33,7 @@ export default async function ComparePage({
         title="Compare old vs new"
         sub={`Baseline: “${row.campaign_name as string}” — enter fresh numbers to see what improved after your changes.`}
         actions={
-          <Link href={`/diagnoses/${id}`} className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+          <Link href={`/diagnoses/${id}`} className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
             ← Back to diagnosis
           </Link>
         }

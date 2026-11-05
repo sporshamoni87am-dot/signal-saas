@@ -53,22 +53,24 @@ export default function LandingPage() {
               scale, fix or wait — and exactly what to change in Ads Manager. No prompting
               skills required. No generic strategy fluff.
             </p>
+            {/* Mobile: primary CTA goes full-width first, then How it works +
+                Sign in share a row — big thumb targets, no crowding. */}
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/diagnose"
-                className="rounded-xl bg-lime-400 px-6 py-3.5 text-sm font-semibold text-zinc-950 shadow-[0_0_28px_-8px] shadow-lime-400/40 transition hover:bg-lime-300"
+                className="w-full justify-center rounded-xl bg-lime-400 px-6 py-3.5 text-center text-sm font-semibold text-zinc-950 shadow-[0_0_28px_-8px] shadow-lime-400/40 transition hover:bg-lime-300 sm:w-auto"
               >
                 Try a free diagnosis — no sign-up
               </Link>
               <Link
                 href="#how"
-                className="rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-3 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:flex-none"
               >
                 How it works
               </Link>
               <Link
                 href="/login"
-                className="px-2 py-3 text-sm font-medium text-zinc-400 transition hover:text-zinc-100"
+                className="inline-flex min-h-11 flex-1 items-center justify-center px-2 py-3 text-center text-sm font-medium text-zinc-400 transition hover:text-zinc-100 sm:flex-none"
               >
                 Sign in
               </Link>
@@ -153,7 +155,7 @@ export default function LandingPage() {
             One simple trial. Everything unlocked. Decide later.
           </p>
           <div className="mx-auto mt-10 max-w-xl">
-            <div className="rounded-2xl border border-lime-400/50 bg-zinc-900/60 p-8 text-center shadow-[0_0_40px_-12px] shadow-lime-400/20">
+            <div className="rounded-2xl border border-lime-400/50 bg-zinc-900/60 p-6 text-center shadow-[0_0_40px_-12px] shadow-lime-400/20 sm:p-8">
               <p className="inline-flex items-center gap-2 rounded-full bg-lime-400/15 px-3 py-1 text-xs font-bold text-lime-300">
                 <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
                 LAUNCH OFFER
@@ -168,7 +170,7 @@ export default function LandingPage() {
                 <li>✓ Creative analysis + Ads Manager action items</li>
                 <li>✓ Save history + old-vs-new comparison</li>
               </ul>
-              <Link href="/diagnose" className="mt-7 block rounded-xl bg-lime-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+              <Link href="/diagnose" className="mt-7 block min-h-11 rounded-xl bg-lime-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
                 Try a free diagnosis — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
@@ -188,7 +190,7 @@ export default function LandingPage() {
           <p className="mx-auto mt-3 max-w-xl text-sm text-zinc-400">
             No account, no credit card — just your numbers and an honest verdict.
           </p>
-          <Link href="/diagnose" className="mt-7 inline-block rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+          <Link href="/diagnose" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
             Run your first diagnosis
           </Link>
         </div>

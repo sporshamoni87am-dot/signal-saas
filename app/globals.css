@@ -10,6 +10,15 @@ html {
   color-scheme: dark;
 }
 
+/* Safety net: no page should ever scroll sideways on a phone. Real
+   overflow causes are fixed at their source; this only catches stragglers.
+   `clip` (not `hidden`) is deliberate — it does not create a scroll
+   container, so sticky elements (e.g. the wizard nav bar) keep working. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   background-color: #09090b;
   color: #f4f4f5;

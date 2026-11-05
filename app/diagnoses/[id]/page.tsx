@@ -40,10 +40,10 @@ export default async function DiagnosisDetailPage({
         sub={`Diagnosed ${fmtDateTime(row.created_at as string)}`}
         actions={
           <>
-            <Link href="/dashboard" className="rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
               ← Dashboard
             </Link>
-            <Link href={`/diagnoses/${id}/compare`} className="rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+            <Link href={`/diagnoses/${id}/compare`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
               Compare new data
             </Link>
             <DeleteButton id={id} campaignName={row.campaign_name as string} />
@@ -60,9 +60,9 @@ export default async function DiagnosisDetailPage({
         results={row.results as DiagnosisResults}
         screenshotUrl={screenshotUrl}
       />
-      <div className="no-print mt-6 flex justify-end">
-        <Link href={`/diagnoses/${id}/compare`}>
-          <GhostButton>Compare with fresh numbers →</GhostButton>
+      <div className="no-print mt-6 flex justify-end max-sm:[&>*]:w-full">
+        <Link href={`/diagnoses/${id}/compare`} className="max-sm:block">
+          <GhostButton className="w-full justify-center sm:w-auto">Compare with fresh numbers →</GhostButton>
         </Link>
       </div>
     </div>

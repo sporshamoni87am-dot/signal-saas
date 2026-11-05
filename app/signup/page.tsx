@@ -56,7 +56,7 @@ function SignupForm() {
   }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+    <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
       <Card>
         <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Create your account</h1>
         <p className="mt-1.5 text-sm text-zinc-400">
@@ -85,7 +85,7 @@ function SignupForm() {
         )}
         <p className="mt-5 text-center text-sm text-zinc-400">
           Already have an account?{' '}
-          <Link href="/login" className="font-medium text-lime-300 hover:text-lime-200">
+          <Link href="/login" className="inline-block py-1.5 font-medium text-lime-300 hover:text-lime-200">
             Sign in
           </Link>
         </p>
