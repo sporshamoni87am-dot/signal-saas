@@ -25,13 +25,20 @@ export default async function DiagnosisDetailPage({
 
   const { data: row } = await supabase
     .from('diagnoses')
-    .select('id, campaign_name, verdict, inputs, results, screenshot_path, created_at')
+    .select('id, campaign_name, verdict, inputs, results, screenshot_path, created_at, source, meta_campaign_id, meta_date_range')
     .eq('id', id)
     .maybeSingle();
 
   if (!row) notFound();
 
   const screenshotUrl = await getScreenshotUrl(row.screenshot_path as string | null);
+  const liveSource =
+    row.source === 'meta'
+      ? {
+          campaignName: (row.meta_campaign_id as string | null) ?? (row.campaign_name as string),
+          dateRange: row.meta_date_range as string | null,
+        }
+      : null;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -59,6 +66,7 @@ export default async function DiagnosisDetailPage({
         inputs={row.inputs as DiagnosisInputs}
         results={row.results as DiagnosisResults}
         screenshotUrl={screenshotUrl}
+        liveSource={liveSource}
       />
       <div className="no-print mt-6 flex justify-end max-sm:[&>*]:w-full">
         <Link href={`/diagnoses/${id}/compare`} className="max-sm:block">

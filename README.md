@@ -44,6 +44,10 @@ npm run build      # must pass with no errors before deploying
    - `supabase/migrations/002_trial.sql` — adds `trial_ends_at` to `profiles`
      (30 days from signup), backfills older profiles, and updates the signup
      trigger so every new user starts a trial automatically.
+   - `supabase/migrations/003_meta_accounts.sql` — `connected_accounts`
+     (encrypted Meta tokens, one row per user + ad account, RLS: own rows
+     only) and `source` / `meta_campaign_id` / `meta_date_range` columns on
+     `diagnoses` (so a saved diagnosis keeps its "Live data from Meta" badge).
 3. **Auth settings** (Authentication → Sign In / Up):
    - Enable the **Email** provider.
    - *Local dev:* you can turn **"Confirm email" OFF** to skip the confirmation
@@ -59,6 +63,9 @@ npm run build      # must pass with no errors before deploying
 | `NEXT_PUBLIC_SUPABASE_URL` | Supabase → Project Settings → API |
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Supabase → Project Settings → API |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` locally; your domain in prod |
+| `META_APP_ID` | Meta app dashboard (see section 9) — only for live Meta data |
+| `META_APP_SECRET` | Meta app dashboard → Settings → Basic (keep secret) |
+| `META_TOKEN_ENCRYPTION_KEY` | `openssl rand -hex 32` — encrypts stored Meta tokens |
 
 The `STRIPE_*` and `SUPABASE_SERVICE_ROLE_KEY` variables are only needed when
 `BILLING_ENABLED=true` (see "Billing (for later)").
@@ -91,7 +98,7 @@ The `STRIPE_*` and `SUPABASE_SERVICE_ROLE_KEY` variables are only needed when
 
 ## 7. What the founder must do to go live (checklist)
 
-- [ ] Create your **own** Supabase project (don't reuse anyone's keys) and run both migrations in order.
+- [ ] Create your **own** Supabase project (don't reuse anyone's keys) and run all three migrations in order.
 - [ ] Point a **custom domain** at the Netlify site; update `NEXT_PUBLIC_APP_URL` and Supabase redirect URLs.
 - [ ] Turn email confirmation **ON** in Supabase for production.
 - [ ] Have a lawyer review the **Privacy Policy** (`/privacy`) and **Terms** (`/terms`) templates — placeholders like `[your support email]` and `[date]` must be filled in.
@@ -101,7 +108,104 @@ The `STRIPE_*` and `SUPABASE_SERVICE_ROLE_KEY` variables are only needed when
       then confirm the dashboard shows the expired state and saving is blocked.
 - [ ] Add a real support email + update the footer/metadata domain (`NEXT_PUBLIC_APP_URL`).
 
-## 8. Billing (for later — Stripe is coded, disabled)
+## 8. Meta Marketing API (Phase 1 — read-only live data)
+
+The wizard can pull live numbers straight from a user's Meta ad account
+instead of typed numbers. **Read-only:** the code only ever reads accounts,
+campaigns and insights — it never creates, edits, pauses or changes anything
+in the ad account. No write calls exist in `lib/meta.ts`.
+
+What it does: a logged-in user connects their Meta account once (dashboard
+or wizard), picks an ad account + campaign + date range, and "Use live data"
+pre-fills the wizard (spend, impressions, reach, link clicks, add-to-carts,
+checkouts, purchases, attributed revenue, video metrics, frequency, days
+running, daily budget). Business numbers Meta doesn't know — breakeven ROAS,
+AOV, gross margin, total business revenue — are still typed by the user.
+Reports from live data carry a "Live data from Meta" badge (persisted in
+`diagnoses.source`). Guests cannot connect — same rule as saving.
+
+### 8a. How it works (the moving parts)
+
+- **OAuth** (Facebook Login, manual server flow): user → Facebook dialog
+  (`ads_read` scope only) → one-time code → short-lived token (~1–2 h) →
+  long-lived token (~60 days) → token validated via `debug_token`.
+  State is a random value in an httpOnly cookie (CSRF protection).
+- **Tokens** are AES-256-GCM encrypted with `META_TOKEN_ENCRYPTION_KEY`
+  and stored in `connected_accounts` (one row per user + ad account, RLS:
+  own rows only). Decryption happens only inside API routes; tokens are
+  never sent to the browser or stored in localStorage.
+- **Insights** come from `GET /{object}/insights` (Graph API v26.0, pinned
+  in `lib/meta.ts` as `META_API_VERSION` — one constant to bump). Fields:
+  spend, impressions, reach, clicks, inline_link_clicks, actions,
+  action_values, ctr, cpc, cpm, frequency, purchase_roas, plus video
+  metrics in a separate defensive call (if Meta drops a video field, core
+  metrics still load). Attribution uses the account's own setting
+  (`use_account_attribution_setting=true`). Missing data stays null and is
+  flagged in the UI — numbers are never invented.
+- **Routes** (`app/api/meta/`): `status`, `auth` (start OAuth), `callback`
+  (exchange + save), `accounts` (list / disconnect), `campaigns` (picker),
+  `insights` (fetch + map to engine inputs). Every route requires a
+  logged-in user and checks ownership.
+- **Rate limits** are tiered per app / account / user. The code keeps calls
+  minimal (one insights call per fetch, paging capped) and maps Meta error
+  80004 to "try again in a few minutes" and error 190 to "reconnect".
+  Long-lived tokens expire after ~60 days — the UI shows the remaining
+  days and the user reconnects (automatic refresh is a Phase 2 job).
+
+### 8b. Setup — what the founder must do (Meta side)
+
+1. **Create the Meta app:** https://developers.facebook.com/apps → Create
+   App → use case **"Authenticate and request data from users with Facebook
+   Login"** → app type Business.
+2. **Add the Marketing API product:** App Dashboard → Add product →
+   Marketing API. (Facebook Login is added by the use case above.)
+3. **Register the redirect URI:** Facebook Login → Settings → Valid OAuth
+   Redirect URIs → add exactly
+   `https://YOUR-DOMAIN/api/meta/callback` (and `http://localhost:3000/api/meta/callback`
+   for local testing). It must match byte-for-byte — the app derives it from
+   `NEXT_PUBLIC_APP_URL`, no separate env var.
+4. **Env vars** (Netlify Site settings → Environment variables, then redeploy):
+   `META_APP_ID` (App Dashboard → Settings → Basic → App ID),
+   `META_APP_SECRET` (same page → App Secret → Show), and
+   `META_TOKEN_ENCRYPTION_KEY` (generate with `openssl rand -hex 32`).
+   Without these, the Meta UI shows "not set up yet" and manual entry keeps
+   working.
+5. **Run migration** `supabase/migrations/003_meta_accounts.sql` in the
+   Supabase SQL Editor (after 001 and 002).
+6. **Test with your own account first:** in Development mode the app can
+   only be used by people with a role on the app (you). Connect your ad
+   account from the dashboard, run a diagnosis with live data, and check the
+   numbers match Ads Manager for the same date range.
+
+### 8c. Going live — App Review (do NOT skip)
+
+Development mode is fine for testing, but real users cannot connect until
+the app is Live. That needs **App Review** for the `ads_read` permission
+plus **Business Verification**:
+
+1. App Dashboard → App Review → Permissions and Features → request
+   `ads_read` (Advanced Access). Meta asks for a screencast showing the
+   connect flow and how the data is used — record the dashboard → Connect →
+   wizard → live-data diagnosis flow.
+2. Complete **Business Verification** (Business Settings → Business Info)
+   with a legal business document. This is usually the slowest step.
+3. Add the **Data Deletion** callback URL and a **Privacy Policy** URL in
+   App Dashboard → Settings → Basic (the app's own /privacy page works).
+4. Switch the app to **Live** mode. Until then, only app-role users can connect.
+5. Keep the app in scope: only `ads_read` is requested. Asking for write
+   permissions would need a separate review and is out of scope for this tool.
+
+### 8d. What is NOT in Phase 1
+
+- Automatic token refresh (tokens last ~60 days; users reconnect — a
+  scheduled refresh job is Phase 2).
+- Ad-set / ad-level pickers in the wizard (the insights API supports
+  `level=adset|ad`; the wizard currently picks at campaign level only).
+- Any write access to ad accounts (deliberately out of scope).
+- The founder's D2C metrics matrix is not yet wired in — the engine rules
+  are unchanged in this phase; the matrix review is a separate step.
+
+## 9. Billing (for later — Stripe is coded, disabled)
 
 All Stripe code is in the codebase and untouched: `lib/stripe.ts`,
 `app/api/stripe/*` (checkout, portal, webhook), `components/billing-buttons.tsx`,
@@ -122,7 +226,7 @@ To turn billing on when paid plans are ready:
 5. Decide the real price (the old placeholder was $29/mo) and switch to live keys.
 6. Legal pages must be finalized before going live with payments.
 
-## 9. Key product decisions baked in
+## 10. Key product decisions baked in
 
 - **Trial = 30 days, unlimited diagnoses**, enforced server-side. Change
   `TRIAL_DAYS` in `lib/actions.ts` and the interval in `002_trial.sql` together.

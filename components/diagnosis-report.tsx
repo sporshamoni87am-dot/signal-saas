@@ -77,16 +77,25 @@ function SignalTable({ signals }: { signals: SignalGrade[] }) {
   );
 }
 
+export interface LiveSourceBadge {
+  accountName?: string | null;
+  campaignName?: string | null;
+  dateRange?: string | null;
+}
+
 export default function DiagnosisReport({
   inputs,
   results,
   screenshotUrl,
   compact = false,
+  liveSource,
 }: {
   inputs: DiagnosisInputs;
   results: DiagnosisResults;
   screenshotUrl?: string | null;
   compact?: boolean;
+  /** When the inputs came from the Meta API, show the live-data badge. */
+  liveSource?: LiveSourceBadge | null;
 }) {
   const progress = results.dataSufficiency.spendProgress;
   return (
@@ -106,7 +115,15 @@ export default function DiagnosisReport({
             <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-zinc-500">
               D2C diagnosis · rule-based · transparent
             </span>
-            <VerdictBadge verdict={results.verdict} size="sm" />
+            <div className="flex flex-wrap items-center gap-2">
+              {liveSource && (
+                <span className="inline-flex items-center rounded-full border border-sky-400/40 bg-sky-400/10 px-3 py-1 text-[11px] font-bold tracking-wide text-sky-300">
+                  ⚡ Live data from Meta
+                  {liveSource.dateRange ? ` · ${liveSource.dateRange}` : ''}
+                </span>
+              )}
+              <VerdictBadge verdict={results.verdict} size="sm" />
+            </div>
           </div>
           <h2 className={cn('mt-4 text-4xl font-black tracking-tight sm:text-5xl', VERDICT_TITLE_COLOR[results.verdict])}>
             {VERDICT_META[results.verdict].title}

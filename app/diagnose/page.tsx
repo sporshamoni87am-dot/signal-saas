@@ -140,7 +140,62 @@ function sampleToForm(): FormState {
   };
 }
 
-type PersistedResults = { inputs: DiagnosisInputs; results: DiagnosisResults };
+type PersistedResults = { inputs: DiagnosisInputs; results: DiagnosisResults; liveSource?: LiveSourceInfo | null };
+
+/** Live Meta data that pre-filled this diagnosis (for the report badge + save). */
+interface LiveSourceInfo {
+  provider: 'meta';
+  accountId: string;
+  accountName: string | null;
+  objectId: string;
+  objectName: string | null;
+  level: string;
+  since: string;
+  until: string;
+  currency: string | null;
+}
+
+interface MetaAccountOption {
+  id: string;
+  adAccountId: string;
+  name: string;
+  status: string | null;
+  currency: string | null;
+  tokenExpiresAt: string | null;
+}
+
+interface MetaCampaignOption {
+  id: string;
+  name: string;
+  status: string;
+  objective: string | null;
+  dailyBudget: number | null;
+}
+
+const META_ERROR_TEXT: Record<string, string> = {
+  not_configured: 'Meta connection is not set up on this site yet — the app keys are missing. Manual entry still works.',
+  denied: 'You cancelled the Meta connection. Nothing was connected.',
+  bad_state: 'The connection did not complete (the security check failed). Try again.',
+  session_expired: 'Your session expired while connecting. Try again.',
+  no_accounts: 'Meta connected, but no ad accounts were found on that Facebook user.',
+  token: 'Your Meta connection expired or was revoked. Reconnect from the dashboard.',
+  permission: 'Meta refused the request — the app may be missing a permission.',
+  rate_limit: 'Meta is rate-limiting requests right now. Wait a few minutes and try again.',
+  api: 'Something went wrong talking to Meta. Try again.',
+};
+
+function isoDate(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+/** Date range ending yesterday — today's Meta data is still partial. */
+function presetRange(days: number): { since: string; until: string } {
+  const until = new Date();
+  until.setUTCDate(until.getUTCDate() - 1);
+  const since = new Date(until);
+  since.setUTCDate(since.getUTCDate() - (days - 1));
+  return { since: isoDate(since), until: isoDate(until) };
+}
 
 function readStorage<T>(key: string): T | null {
   if (typeof window === 'undefined') return null;
@@ -235,6 +290,20 @@ function DiagnoseWizard() {
 
   const [trialState, setTrialState] = useState<'loading' | 'active' | 'expired'>('loading');
 
+  // ---------------- Meta live data ----------------
+  const [metaStatus, setMetaStatus] = useState<{ configured: boolean; connected: boolean; accounts: MetaAccountOption[] } | null>(null);
+  const [selectedAccount, setSelectedAccount] = useState('');
+  const [campaigns, setCampaigns] = useState<MetaCampaignOption[]>([]);
+  const [campaignsLoading, setCampaignsLoading] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState('');
+  const [datePreset, setDatePreset] = useState<'7' | '14' | '30' | 'custom'>('30');
+  const [customSince, setCustomSince] = useState('');
+  const [customUntil, setCustomUntil] = useState('');
+  const [liveLoading, setLiveLoading] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const [liveFlags, setLiveFlags] = useState<string[]>([]);
+  const [liveSource, setLiveSource] = useState<LiveSourceInfo | null>(null);
+
   // Tracks whether the current upload was consumed by a successful save,
   // so the orphan-cleanup below doesn't delete a saved screenshot.
   const savedRef = useRef(false);
@@ -254,8 +323,50 @@ function DiagnoseWizard() {
     const savedResults = readStorage<PersistedResults>(WIZARD_RESULTS_KEY);
     if (savedResults && savedResults.inputs && savedResults.results) {
       setResults(savedResults);
+      if (savedResults.liveSource) setLiveSource(savedResults.liveSource);
     }
   }, []);
+
+  // Meta connection status (logged-in users only — guests can't connect).
+  useEffect(() => {
+    if (!authReady || !uid) return;
+    fetch('/api/meta/status', { cache: 'no-store' })
+      .then((r) => r.json())
+      .then((j) => {
+        setMetaStatus(j);
+        if (Array.isArray(j.accounts) && j.accounts.length === 1) {
+          setSelectedAccount(j.accounts[0].adAccountId);
+        }
+      })
+      .catch(() => setMetaStatus({ configured: false, connected: false, accounts: [] }));
+  }, [authReady, uid]);
+
+  // Campaigns for the chosen ad account.
+  useEffect(() => {
+    if (!selectedAccount || !uid) {
+      setCampaigns([]);
+      setSelectedCampaign('');
+      return;
+    }
+    let cancelled = false;
+    setCampaignsLoading(true);
+    fetch(`/api/meta/campaigns?account_id=${encodeURIComponent(selectedAccount)}`)
+      .then((r) => r.json())
+      .then((j) => {
+        if (cancelled) return;
+        if (Array.isArray(j.campaigns)) setCampaigns(j.campaigns);
+        if (j.error) setLiveError(j.error as string);
+      })
+      .catch(() => {
+        if (!cancelled) setLiveError('Could not load campaigns from Meta.');
+      })
+      .finally(() => {
+        if (!cancelled) setCampaignsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedAccount, uid]);
 
   // Persist progress so nothing is lost across signup / refresh.
   useEffect(() => {
@@ -310,6 +421,7 @@ function DiagnoseWizard() {
       ranSample.current = true;
       setForm(sampleToForm());
       setIsSample(true);
+      setLiveSource(null);
       setResults({ inputs: SAMPLE_CAMPAIGN, results: diagnose(SAMPLE_CAMPAIGN) });
       window.scrollTo({ top: 0 });
     }
@@ -431,8 +543,78 @@ function DiagnoseWizard() {
   function runDiagnosis() {
     const inputs = buildInputs();
     setIsSample(false);
-    setResults({ inputs, results: diagnose(inputs) });
+    setResults({ inputs, results: diagnose(inputs), liveSource });
     scrollTop();
+  }
+
+  /**
+   * Pull live numbers from Meta for the chosen campaign + date range and
+   * pre-fill the wizard. Only the fields Meta provides are overwritten —
+   * business numbers (breakeven ROAS, AOV, margin) still come from you,
+   * because Meta doesn't know them.
+   */
+  async function useLiveData() {
+    if (!selectedAccount || !selectedCampaign) return;
+    setLiveLoading(true);
+    setLiveError(null);
+    setLiveFlags([]);
+    try {
+      const range =
+        datePreset === 'custom'
+          ? { since: customSince, until: customUntil }
+          : presetRange(Number(datePreset));
+      if (!range.since || !range.until || range.until < range.since) {
+        throw new Error('Pick a valid date range first.');
+      }
+      const qs = new URLSearchParams({
+        account_id: selectedAccount,
+        object_id: selectedCampaign,
+        level: 'campaign',
+        since: range.since,
+        until: range.until,
+      });
+      const res = await fetch(`/api/meta/insights?${qs.toString()}`);
+      const json = (await res.json()) as {
+        inputs?: Record<string, number | string | null>;
+        flags?: string[];
+        source?: LiveSourceInfo;
+        error?: string;
+      };
+      if (!res.ok) throw new Error(json.error ?? 'Could not fetch live data.');
+      const m = json.inputs ?? {};
+      const metaFields: (keyof FormState)[] = [
+        'campaignName',
+        'dailyBudget',
+        'adSpend',
+        'impressions',
+        'reach',
+        'linkClicks',
+        'addToCarts',
+        'checkoutsInitiated',
+        'purchases',
+        'attributedRevenue',
+        'videoViews3s',
+        'videoThruplays',
+        'frequency',
+        'daysRunning',
+      ];
+      const next: FormState = { ...form };
+      for (const f of metaFields) {
+        const v = m[f];
+        if (v !== null && v !== undefined && v !== '') next[f] = String(v);
+      }
+      setForm(next);
+      if (json.source) setLiveSource(json.source);
+      setLiveFlags(Array.isArray(json.flags) ? json.flags : []);
+      setErrors([]);
+      // Jump to step 1 so the filled ad numbers are visible immediately.
+      setStep(1);
+      scrollTop();
+    } catch (e) {
+      setLiveError(e instanceof Error ? e.message : 'Could not fetch live data.');
+    } finally {
+      setLiveLoading(false);
+    }
   }
 
   function clearPreserved() {
@@ -456,6 +638,10 @@ function DiagnoseWizard() {
       inputs: results.inputs,
       results: results.results,
       screenshotPath: shotPath,
+      source: liveSource ? 'meta' : 'manual',
+      metaCampaignId: liveSource?.objectId ?? null,
+      metaDateRange:
+        liveSource ? `${liveSource.since} → ${liveSource.until}` : null,
     });
     if (res.error === 'NOT_SIGNED_IN') {
       setSaving(false);
@@ -526,6 +712,10 @@ function DiagnoseWizard() {
     </PrimaryButton>
   );
 
+  // Result of a Meta connect attempt while on this page (?meta=connected / ?meta_error=…).
+  const connectError = searchParams.get('meta_error');
+  const connectDone = searchParams.get('meta') === 'connected';
+
   // ---------------- results view ----------------
   if (results) {
     return (
@@ -566,7 +756,7 @@ function DiagnoseWizard() {
           <p className="no-print mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{saveError}</p>
         )}
         <ReportActions inputs={results.inputs} results={results.results} />
-        <DiagnosisReport inputs={results.inputs} results={results.results} screenshotUrl={shotPreview} />
+        <DiagnosisReport inputs={results.inputs} results={results.results} screenshotUrl={shotPreview} liveSource={liveSource} />
         <div className="no-print mt-6 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
           {saveCta}
@@ -587,6 +777,157 @@ function DiagnoseWizard() {
           and your inputs are kept, so nothing is lost if you sign up after.
         </div>
       )}
+
+      {/* Live data from Meta — pull real numbers instead of typing them.
+          Guests can't connect (needs a free account, same as saving). */}
+      <div className="no-print mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-5">
+        <p className="text-sm font-semibold text-zinc-100">⚡ Live data from Meta</p>
+        <p className="mt-1 text-[13px] leading-relaxed text-zinc-400">
+          Pull spend, clicks, purchases and revenue straight from your ad account — no typing,
+          no stale numbers. Read-only: it can never change anything in Ads Manager.
+        </p>
+
+        {connectDone && (
+          <p className="mt-3 rounded-xl border border-lime-400/40 bg-lime-400/5 px-3.5 py-2.5 text-sm text-lime-200">
+            ✓ Meta account connected — pick an ad account and campaign below.
+          </p>
+        )}
+        {connectError && (
+          <p className="mt-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300" role="alert">
+            {META_ERROR_TEXT[connectError] ?? 'The Meta connection did not complete. Try again.'}
+          </p>
+        )}
+
+        {isGuest && (
+          <p className="mt-3 text-sm text-zinc-300">
+            Live data needs a free account.{' '}
+            <Link href="/signup?next=/diagnose" className="font-semibold text-lime-300 underline underline-offset-2">
+              Create one
+            </Link>{' '}
+            to connect your Meta ad account — manual entry works right now.
+          </p>
+        )}
+
+        {!isGuest && metaStatus && !metaStatus.configured && (
+          <p className="mt-3 text-sm text-zinc-400">
+            Meta connection is not set up on this site yet — the app keys are missing. Manual
+            entry works for every diagnosis.
+          </p>
+        )}
+
+        {!isGuest && metaStatus?.configured && !metaStatus.connected && (
+          <div className="mt-3">
+            <PrimaryLink href="/api/meta/auth?next=/diagnose" className="w-full sm:w-auto">
+              Connect Meta account
+            </PrimaryLink>
+            <p className="mt-2 text-xs text-zinc-500">
+              You approve this on Facebook. The app only asks for read access (ads_read).
+            </p>
+          </div>
+        )}
+
+        {!isGuest && metaStatus?.configured && metaStatus.connected && (
+          <div className="mt-4 space-y-3">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Ad account</span>
+                <select
+                  value={selectedAccount}
+                  onChange={(e) => {
+                    setSelectedAccount(e.target.value);
+                    setSelectedCampaign('');
+                    setLiveError(null);
+                  }}
+                  className={inputClassName}
+                >
+                  {metaStatus.accounts.map((a) => (
+                    <option key={a.id} value={a.adAccountId}>
+                      {a.name} ({a.adAccountId})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Campaign</span>
+                <select
+                  value={selectedCampaign}
+                  onChange={(e) => setSelectedCampaign(e.target.value)}
+                  disabled={!selectedAccount || campaignsLoading}
+                  className={inputClassName}
+                >
+                  <option value="">
+                    {campaignsLoading ? 'Loading campaigns…' : 'Pick a campaign'}
+                  </option>
+                  {campaigns.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} · {c.status}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Date range</span>
+                <select
+                  value={datePreset}
+                  onChange={(e) => setDatePreset(e.target.value as '7' | '14' | '30' | 'custom')}
+                  className={inputClassName}
+                >
+                  <option value="7">Last 7 days</option>
+                  <option value="14">Last 14 days</option>
+                  <option value="30">Last 30 days</option>
+                  <option value="custom">Custom range…</option>
+                </select>
+              </label>
+              {datePreset === 'custom' && (
+                <div className="grid grid-cols-2 gap-3">
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-zinc-300">From</span>
+                    <input type="date" value={customSince} onChange={(e) => setCustomSince(e.target.value)} className={inputClassName} />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1.5 block text-sm font-medium text-zinc-300">To</span>
+                    <input type="date" value={customUntil} onChange={(e) => setCustomUntil(e.target.value)} className={inputClassName} />
+                  </label>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center">
+              <PrimaryButton onClick={useLiveData} disabled={!selectedCampaign || liveLoading} className="w-full sm:w-auto">
+                {liveLoading ? 'Pulling live data…' : 'Use live data'}
+              </PrimaryButton>
+              <p className="text-xs text-zinc-500">
+                Ranges end yesterday — today&apos;s Meta data is still partial. This replaces the ad
+                numbers below with live values.
+              </p>
+            </div>
+            {liveError && (
+              <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300" role="alert">
+                {liveError}
+              </p>
+            )}
+            {liveSource && (
+              <div className="rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3">
+                <p className="text-sm font-semibold text-lime-200">
+                  ✓ Live data loaded — {liveSource.objectName ?? 'campaign'} · {liveSource.since} → {liveSource.until}
+                </p>
+                <p className="mt-1 text-[13px] text-zinc-400">
+                  Ad numbers are filled from Meta. Still needed from you: breakeven ROAS, AOV and
+                  gross margin — Meta doesn&apos;t know your business numbers.
+                </p>
+                {liveFlags.length > 0 && (
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] text-amber-200/90">
+                    {liveFlags.map((f) => (
+                      <li key={f}>{f}</li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Step indicator */}
       <nav aria-label="Diagnosis steps" className="mb-2 flex items-center gap-2">

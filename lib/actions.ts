@@ -103,6 +103,10 @@ export interface SaveDiagnosisArgs {
   inputs: DiagnosisInputs;
   results: DiagnosisResults;
   screenshotPath: string | null;
+  /** 'meta' when the inputs were pulled live from the Meta API. */
+  source?: 'manual' | 'meta';
+  metaCampaignId?: string | null;
+  metaDateRange?: string | null;
 }
 
 export async function saveDiagnosis(
@@ -139,6 +143,9 @@ export async function saveDiagnosis(
       inputs: args.inputs,
       results: args.results,
       screenshot_path: args.screenshotPath,
+      source: args.source ?? 'manual',
+      meta_campaign_id: args.metaCampaignId ?? null,
+      meta_date_range: args.metaDateRange ?? null,
     })
     .select('id')
     .single();

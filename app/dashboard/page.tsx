@@ -1,5 +1,6 @@
 export const instant = false;
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { getTrial } from '@/lib/actions';
@@ -7,6 +8,7 @@ import { Card, EmptyState, PageHeader, VerdictBadge } from '@/components/ui';
 import DeleteButton from '@/components/delete-button';
 import SignOutButton from '@/components/signout-button';
 import TrialBanner from '@/components/trial-banner';
+import MetaConnect from '@/components/meta-connect';
 import { fmtDateTime, fmtMoney } from '@/lib/format';
 import type { DiagnosisResults, Verdict } from '@/lib/engine';
 
@@ -75,6 +77,20 @@ export default async function DashboardPage() {
       />
 
       <TrialBanner />
+
+      {/* Meta connection (read-only live data). Suspense: MetaConnect reads
+          search params (?meta=connected / ?meta_error=…). */}
+      <div className="mb-6">
+        <Suspense
+          fallback={
+            <Card>
+              <p className="animate-pulse text-sm text-zinc-500">Checking Meta connection…</p>
+            </Card>
+          }
+        >
+          <MetaConnect next="/dashboard" />
+        </Suspense>
+      </div>
 
       {diagnoses.length === 0 ? (
         <div>
