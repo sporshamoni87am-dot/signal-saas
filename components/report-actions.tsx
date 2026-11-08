@@ -7,7 +7,22 @@ import {
   type DiagnosisResults,
 } from '@/lib/engine';
 import { buildSummaryText } from '@/lib/report-summary';
+import {
+  buildDiagnosisCsv,
+  buildDiagnosisSections,
+  diagnosisExportBaseName,
+} from '@/lib/report-export';
 import { fmtDateTime } from '@/lib/format';
+
+/** Trigger a browser file download (same Blob + anchor pattern as forecast CSV). */
+function triggerDownload(filename: string, blob: Blob) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
 
 const STATUS_LABEL: Record<string, string> = {
   good: 'Good',
@@ -39,6 +54,7 @@ export default function ReportActions({
   generatedAt?: string | null;
 }) {
   const [copied, setCopied] = useState(false);
+  const [xlsxBusy, setXlsxBusy] = useState(false);
 
   async function onCopy() {
     try {
@@ -51,6 +67,46 @@ export default function ReportActions({
     }
   }
 
+  function onCsv() {
+    const base = diagnosisExportBaseName(inputs, generatedAt);
+    const csv = buildDiagnosisCsv(inputs, results, generatedAt);
+    triggerDownload(
+      `${base}.csv`,
+      new Blob([csv], { type: 'text/csv;charset=utf-8' }),
+    );
+  }
+
+  async function onXlsx() {
+    // SheetJS is loaded on demand only — it never enters the initial bundle.
+    setXlsxBusy(true);
+    try {
+      const XLSX = await import('xlsx');
+      const wb = XLSX.utils.book_new();
+      for (const section of buildDiagnosisSections(inputs, results, generatedAt)) {
+        const rows = [section.header, ...section.rows];
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+        // Readable column widths from the longest cell in each column.
+        ws['!cols'] = section.header.map((_, col) => {
+          const longest = rows.reduce(
+            (max, row) => Math.max(max, (row[col] ?? '').length),
+            section.header[col].length,
+          );
+          return { wch: Math.min(64, Math.max(12, longest + 2)) };
+        });
+        XLSX.utils.book_append_sheet(wb, ws, section.title);
+      }
+      const bytes = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+      triggerDownload(
+        `${diagnosisExportBaseName(inputs, generatedAt)}.xlsx`,
+        new Blob([bytes], {
+          type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        }),
+      );
+    } finally {
+      setXlsxBusy(false);
+    }
+  }
+
   const meta = VERDICT_META[results.verdict];
 
   return (
@@ -60,16 +116,31 @@ export default function ReportActions({
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:w-auto"
         >
           {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
         </button>
         <button
           type="button"
           onClick={() => window.print()}
-          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:w-auto"
         >
           ⎙ Print / save PDF
+        </button>
+        <button
+          type="button"
+          onClick={onCsv}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:w-auto"
+        >
+          ↓ Download CSV
+        </button>
+        <button
+          type="button"
+          onClick={onXlsx}
+          disabled={xlsxBusy}
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 disabled:opacity-60 sm:w-auto"
+        >
+          {xlsxBusy ? 'Preparing…' : '↓ Download XLSX'}
         </button>
       </div>
 
