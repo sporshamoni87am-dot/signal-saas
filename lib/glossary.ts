@@ -80,6 +80,12 @@ export const GLOSSARY: GlossaryEntry[] = [
     goodLooksLike: 'Above ~20% is strong; below ~10% means the middle of the video loses people.',
   },
   {
+    term: 'Landing page views',
+    what: 'People who actually loaded your landing page after clicking — Meta counts it as landing_page_views.',
+    why: 'Clicks that never load the page are wasted spend: slow pages, accidental taps, or app-to-browser friction.',
+    goodLooksLike: 'Above ~80% of link clicks is healthy. Below ~60% — check page speed on mobile first.',
+  },
+  {
     term: 'Click → ATC rate',
     what: '% of link clicks that added something to cart.',
     why: 'Good CTR but weak ATC = the ad sold a click the landing page couldn’t cash.',

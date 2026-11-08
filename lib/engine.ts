@@ -28,6 +28,8 @@ export interface DiagnosisInputs {
   impressions: number | null;
   reach: number | null;
   linkClicks: number | null;
+  /** People who actually loaded the landing page (Meta: landing_page_views). */
+  landingPageViews: number | null;
   addToCarts: number | null;
   checkoutsInitiated: number | null;
   purchases: number | null;
@@ -66,6 +68,34 @@ export interface FunnelStage {
   rateFromPrev: string;
 }
 
+/**
+ * One funnel transition ranked by money lost, not by rate.
+ * Every person lost after clicking cost one click's worth of spend
+ * (CPC = ad spend ÷ link clicks), so wastedSpend is the dollars that
+ * died at that transition. shareOfWaste is the fraction of the total
+ * computable waste (0..1) — transitions that can't be computed because
+ * a stage count is missing are skipped, so the shares always sum to 1
+ * over the transitions shown.
+ */
+export interface LeakStep {
+  fromStage: string;
+  toStage: string;
+  /** People who entered the transition and never came out the other side. */
+  lost: number;
+  wastedSpend: number;
+  shareOfWaste: number;
+}
+
+export interface LeakRanking {
+  /** Biggest money-loser first. */
+  steps: LeakStep[];
+  biggestLeak: LeakStep;
+  /** Sum of wastedSpend over the ranked transitions. When every funnel
+      stage is provided this equals (linkClicks − purchases) × CPC. */
+  totalWastedSpend: number;
+  totalSpend: number;
+}
+
 export interface CreativeAnalysis {
   hookRate: number | null;
   holdRate: number | null;
@@ -90,6 +120,12 @@ export interface DiagnosisResults {
   businessMetrics: SignalGrade[];
   creative: CreativeAnalysis;
   funnel: FunnelStage[];
+  /**
+   * Spend-weighted leak ranking, or null when it can't be computed
+   * (ad spend or link clicks missing/zero). Purely informational —
+   * it never changes the verdict, rules, or action items.
+   */
+  leakRanking: LeakRanking | null;
   rulesFired: RuleFired[];
   actionItems: ActionItem[];
   /** Rank used for old-vs-new improvement comparison (higher = better). */
@@ -179,6 +215,7 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
   const grossMarginPct = num(i.grossMarginPct);
   const impressions = num(i.impressions);
   const linkClicks = num(i.linkClicks);
+  const landingPageViews = num(i.landingPageViews);
   const addToCarts = num(i.addToCarts);
   const checkoutsInitiated = num(i.checkoutsInitiated);
   const videoViews3s = num(i.videoViews3s);
@@ -194,6 +231,8 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
   const cpc = div(adSpend, linkClicks);
   const cpm = impressions ? (adSpend / impressions) * 1000 : null;
   const clickToAtc = div(addToCarts, linkClicks);
+  const clickToLpv = div(landingPageViews, linkClicks);
+  const lpvToAtc = div(addToCarts, landingPageViews);
   const atcToCheckout = div(checkoutsInitiated, addToCarts);
   const checkoutToPurchase = div(purchases, checkoutsInitiated);
   const cvr = div(purchases, linkClicks);
@@ -447,13 +486,73 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
   };
 
   // ---------------- funnel ----------------
+  // Landing page views sits between clicks and carts: the click→page
+  // drop (slow page, accidental taps, app-to-browser friction) was
+  // invisible before. When LPV wasn't provided, its rate is '—' and
+  // the report hides the row; the ATC rate then falls back to % of
+  // clicks, exactly as before. There is deliberately NO leak rule for
+  // click→LPV: the engine has no benchmark for it, and this feature
+  // must not change any verdict or action item.
   const funnel: FunnelStage[] = [
     { stage: 'Impressions', count: impressions, rateFromPrev: '—' },
     { stage: 'Link clicks', count: linkClicks, rateFromPrev: ctr !== null ? `${(ctr * 100).toFixed(2)}% CTR` : '—' },
-    { stage: 'Add to carts', count: addToCarts, rateFromPrev: clickToAtc !== null ? `${(clickToAtc * 100).toFixed(1)}% of clicks` : '—' },
+    { stage: 'Landing page views', count: landingPageViews, rateFromPrev: clickToLpv !== null ? `${(clickToLpv * 100).toFixed(1)}% of clicks` : '—' },
+    {
+      stage: 'Add to carts',
+      count: addToCarts,
+      rateFromPrev:
+        landingPageViews !== null
+          ? lpvToAtc !== null
+            ? `${(lpvToAtc * 100).toFixed(1)}% of page views`
+            : '—'
+          : clickToAtc !== null
+            ? `${(clickToAtc * 100).toFixed(1)}% of clicks`
+            : '—',
+    },
     { stage: 'Checkouts', count: checkoutsInitiated, rateFromPrev: atcToCheckout !== null ? `${(atcToCheckout * 100).toFixed(1)}% of ATCs` : '—' },
     { stage: 'Purchases', count: purchases, rateFromPrev: checkoutToPurchase !== null ? `${(checkoutToPurchase * 100).toFixed(1)}% of checkouts` : '—' },
   ];
+
+  // ---------------- spend-weighted leak ranking ----------------
+  // Rate-based flags say a stage is weak; this says which weak stage
+  // is actually eating the budget. Built only from the funnel stages
+  // provided, starting at link clicks — people who never clicked cost
+  // nothing, so the impressions→clicks drop is not a spend leak.
+  // Raw values (not the ?? 0 fallbacks above): a missing purchase
+  // count must not read as "every checkout was lost".
+  const spendRaw = num(i.adSpend);
+  const purchasesRaw = num(i.purchases);
+  let leakRanking: LeakRanking | null = null;
+  if (spendRaw !== null && spendRaw > 0 && linkClicks !== null && linkClicks > 0) {
+    const cpcValue = spendRaw / linkClicks;
+    const chain = [
+      { stage: 'Link clicks', count: linkClicks },
+      { stage: 'Landing page views', count: landingPageViews },
+      { stage: 'Add to carts', count: addToCarts },
+      { stage: 'Checkouts', count: checkoutsInitiated },
+      { stage: 'Purchases', count: purchasesRaw },
+    ].filter((s): s is { stage: string; count: number } => s.count !== null);
+    const steps: LeakStep[] = [];
+    for (let k = 0; k < chain.length - 1; k++) {
+      const lost = chain[k].count - chain[k + 1].count;
+      if (lost <= 0) continue; // downstream counts that rise = noisy data, not a leak
+      steps.push({
+        fromStage: chain[k].stage,
+        toStage: chain[k + 1].stage,
+        lost,
+        wastedSpend: lost * cpcValue,
+        shareOfWaste: 0,
+      });
+    }
+    if (steps.length > 0) {
+      const totalWastedSpend = steps.reduce((s, x) => s + x.wastedSpend, 0);
+      for (const s of steps) {
+        s.shareOfWaste = totalWastedSpend > 0 ? s.wastedSpend / totalWastedSpend : 0;
+      }
+      steps.sort((a, b) => b.wastedSpend - a.wastedSpend);
+      leakRanking = { steps, biggestLeak: steps[0], totalWastedSpend, totalSpend: spendRaw };
+    }
+  }
 
   // ---------------- signal-driven action items (RUN / FIX) ----------------
   if (verdict === 'RUN' || verdict === 'FIX') {
@@ -542,6 +641,7 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     businessMetrics,
     creative,
     funnel,
+    leakRanking,
     rulesFired,
     actionItems: actionItems.sort((a, b) => a.priority - b.priority),
   };

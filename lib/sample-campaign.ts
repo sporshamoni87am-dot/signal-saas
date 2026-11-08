@@ -22,6 +22,7 @@ export const SAMPLE_CAMPAIGN: DiagnosisInputs = {
   impressions: 94000,
   reach: 61000,
   linkClicks: 1150,
+  landingPageViews: 920,
   addToCarts: 68,
   checkoutsInitiated: 60,
   purchases: 19,

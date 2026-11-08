@@ -44,6 +44,7 @@ type FormState = {
   impressions: string;
   reach: string;
   linkClicks: string;
+  landingPageViews: string;
   addToCarts: string;
   checkoutsInitiated: string;
   purchases: string;
@@ -66,6 +67,7 @@ const EMPTY: FormState = {
   impressions: '',
   reach: '',
   linkClicks: '',
+  landingPageViews: '',
   addToCarts: '',
   checkoutsInitiated: '',
   purchases: '',
@@ -90,6 +92,7 @@ const AD_FIELDS: NumFieldDef[] = [
   { name: 'impressions', label: 'Impressions' },
   { name: 'reach', label: 'Reach' },
   { name: 'linkClicks', label: 'Link clicks', helpTerm: 'Link CTR' },
+  { name: 'landingPageViews', label: 'Landing page views', hint: 'People who actually loaded your page — find it in Ads Manager under landing page views.', helpTerm: 'Landing page views' },
   { name: 'addToCarts', label: 'Add to carts' },
   { name: 'checkoutsInitiated', label: 'Checkouts initiated' },
   { name: 'purchases', label: 'Purchases', required: true },
@@ -130,6 +133,7 @@ function sampleToForm(): FormState {
     impressions: str(s.impressions),
     reach: str(s.reach),
     linkClicks: str(s.linkClicks),
+    landingPageViews: str(s.landingPageViews),
     addToCarts: str(s.addToCarts),
     checkoutsInitiated: str(s.checkoutsInitiated),
     purchases: str(s.purchases),
@@ -530,6 +534,7 @@ function DiagnoseWizard() {
       impressions: parseNum(form.impressions),
       reach: parseNum(form.reach),
       linkClicks: parseNum(form.linkClicks),
+      landingPageViews: parseNum(form.landingPageViews),
       addToCarts: parseNum(form.addToCarts),
       checkoutsInitiated: parseNum(form.checkoutsInitiated),
       purchases: parseNum(form.purchases),
@@ -589,6 +594,7 @@ function DiagnoseWizard() {
         'impressions',
         'reach',
         'linkClicks',
+        'landingPageViews',
         'addToCarts',
         'checkoutsInitiated',
         'purchases',

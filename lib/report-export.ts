@@ -79,6 +79,7 @@ export function buildDiagnosisSections(
       ['Impressions', int(inputs.impressions)],
       ['Reach', int(inputs.reach)],
       ['Link clicks', int(inputs.linkClicks)],
+      ['Landing page views', int(inputs.landingPageViews)],
       ['Add to carts', int(inputs.addToCarts)],
       ['Checkouts initiated', int(inputs.checkoutsInitiated)],
       ['Purchases', int(inputs.purchases)],
@@ -104,6 +105,28 @@ export function buildDiagnosisSections(
     title: 'Funnel',
     header: ['Stage', 'Count', 'Rate from previous'],
     rows: results.funnel.map((f) => [f.stage, int(f.count), f.rateFromPrev]),
+  };
+
+  const leaks: DiagnosisExportSection = {
+    title: 'Budget leaks',
+    header: ['From stage', 'To stage', 'People lost', 'Spend wasted', 'Share of waste'],
+    rows: results.leakRanking
+      ? results.leakRanking.steps.map((s) => [
+          s.fromStage,
+          s.toStage,
+          int(s.lost),
+          money(s.wastedSpend),
+          pct(s.shareOfWaste, 1),
+        ])
+      : [
+          [
+            'Not available — this diagnosis has no budget-leak ranking (older save, or ad spend / link clicks missing).',
+            '',
+            '',
+            '',
+            '',
+          ],
+        ],
   };
 
   const creative: DiagnosisExportSection = {
@@ -139,6 +162,7 @@ export function buildDiagnosisSections(
     { title: 'Ad signals', header: ['Signal', 'Value', 'Status', 'Benchmark', 'Why it matters'], rows: signalRows(results.adSignals) },
     { title: 'Business metrics', header: ['Signal', 'Value', 'Status', 'Benchmark', 'Why it matters'], rows: signalRows(results.businessMetrics) },
     funnel,
+    leaks,
     creative,
     rules,
     actions,

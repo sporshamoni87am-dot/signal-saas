@@ -1,6 +1,7 @@
 import type { DiagnosisInputs, DiagnosisResults, SignalGrade } from '@/lib/engine';
 import { VERDICT_META } from '@/lib/engine';
 import { GLOSSARY } from '@/lib/glossary';
+import { fmtInt, fmtMoney } from '@/lib/format';
 import { Card, SectionTitle, StatusPill, VerdictBadge } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
@@ -217,7 +218,11 @@ export default function DiagnosisReport({
       <Card>
         <SectionTitle hint="Where the funnel leaks — fix the biggest drop first.">Funnel</SectionTitle>
         <div className="space-y-2.5">
-          {results.funnel.map((f) => {
+          {results.funnel
+            // The landing-page-views row only exists once you've entered it —
+            // without it the funnel reads exactly as before.
+            .filter((f) => !(f.stage === 'Landing page views' && f.count === null))
+            .map((f) => {
             const max = results.funnel[0].count ?? 1;
             const pct = f.count !== null && max > 0 ? Math.max(2, (f.count / max) * 100) : 0;
             return (
@@ -236,6 +241,60 @@ export default function DiagnosisReport({
             );
           })}
         </div>
+      </Card>
+
+      {/* Budget leaks — the same funnel, ranked by money lost, not by rate */}
+      <Card>
+        <SectionTitle hint="Every person lost at a stage cost one click's worth of spend — so the stage where the most dollars die is the one to fix first.">
+          Where your budget is leaking
+        </SectionTitle>
+        {results.leakRanking === undefined ? (
+          <p className="text-sm leading-relaxed text-zinc-400">
+            This diagnosis was saved before the leak ranking existed — re-run it to see where
+            your budget is leaking.
+          </p>
+        ) : results.leakRanking === null ? (
+          <p className="text-sm leading-relaxed text-zinc-400">
+            Add ad spend and link clicks to see which funnel stage wastes the most money.
+          </p>
+        ) : (
+          <>
+            <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-200">
+              <strong>#1 focus: fix {results.leakRanking.biggestLeak.fromStage} → {results.leakRanking.biggestLeak.toStage} first</strong>
+              {' — '}
+              {fmtMoney(results.leakRanking.biggestLeak.wastedSpend)} of your {fmtMoney(results.leakRanking.totalSpend)} spend
+              died here ({fmtInt(results.leakRanking.biggestLeak.lost)} people).
+            </p>
+            <div className="mt-4 space-y-2.5">
+              {results.leakRanking.steps.map((s) => (
+                <div key={`${s.fromStage}→${s.toStage}`}>
+                  <div className="mb-1 flex items-center justify-between gap-3 text-sm">
+                    <span className="font-medium text-zinc-200">
+                      {s.fromStage} → {s.toStage}
+                    </span>
+                    <span className="shrink-0 font-mono text-zinc-100">
+                      {fmtMoney(s.wastedSpend)}
+                      <span className="ml-2 text-xs text-zinc-500">
+                        {fmtInt(s.lost)} lost · {(s.shareOfWaste * 100).toFixed(0)}% of waste
+                      </span>
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+                    <div
+                      className="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400"
+                      style={{ width: `${Math.max(2, s.shareOfWaste * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+              {fmtMoney(results.leakRanking.totalWastedSpend)} of {fmtMoney(results.leakRanking.totalSpend)} spend
+              never became a purchase across the funnel stages you entered. Fix the biggest
+              bar first — it moves the most money.
+            </p>
+          </>
+        )}
       </Card>
 
       {/* Rules fired */}
