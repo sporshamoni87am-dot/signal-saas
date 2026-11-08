@@ -37,6 +37,12 @@ export default function LandingPage() {
         {/* Grid backdrop on its own layer: .hero-grid carries a mask-image,
             which would mask the hero's text too if applied to the section. */}
         <div aria-hidden="true" className="hero-grid pointer-events-none absolute inset-0" />
+        {/* Subtle radial lime glow behind the headline — background layer only. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{ background: 'radial-gradient(60% 45% at 50% 0%, rgb(163 230 53 / 0.09), transparent 70%)' }}
+        />
         <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
           <div className="max-w-3xl">
             <p className="inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-3.5 py-1.5 text-xs font-semibold text-lime-300">
@@ -58,7 +64,7 @@ export default function LandingPage() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/diagnose"
-                className="w-full justify-center rounded-xl bg-lime-400 px-6 py-3.5 text-center text-sm font-semibold text-zinc-950 shadow-[0_0_28px_-8px] shadow-lime-400/40 transition hover:bg-lime-300 sm:w-auto"
+                className="w-full justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-6 py-3.5 text-center text-sm font-semibold text-zinc-950 shadow-[0_0_32px_-6px] shadow-lime-400/50 transition hover:from-lime-300 hover:to-emerald-300 sm:w-auto"
               >
                 Try a free diagnosis — no sign-up
               </Link>
@@ -87,7 +93,7 @@ export default function LandingPage() {
             {SIGNALS.map((s) => (
               <div
                 key={s}
-                className="rounded-xl border border-zinc-800 bg-zinc-900/70 px-4 py-3 text-[13px] font-medium text-zinc-300"
+                className="rounded-xl border border-zinc-800/70 bg-zinc-900/70 px-4 py-3 text-[13px] font-medium text-zinc-300 shadow-[0_1px_2px_rgb(0_0_0/0.4)]"
               >
                 <span className="mr-2 text-lime-400">✓</span>
                 {s}
@@ -106,7 +112,7 @@ export default function LandingPage() {
           </p>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {STEPS.map((s) => (
-              <div key={s.n} className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-6">
+              <div key={s.n} className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.4)] transition-all hover:-translate-y-0.5 hover:border-zinc-700/80">
                 <p className="font-mono text-sm font-bold text-lime-400">{s.n}</p>
                 <h3 className="mt-3 text-lg font-semibold text-zinc-100">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-400">{s.body}</p>
@@ -167,7 +173,7 @@ export default function LandingPage() {
                 judged: until Meta&apos;s learning phase is over (about 50 optimisation events
                 in a week), every verdict is provisional — too early to scale or pause.
               </p>
-              <Link href="/forecast" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+              <Link href="/forecast" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-7 py-3 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
                 Try the forecast — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
@@ -210,7 +216,7 @@ export default function LandingPage() {
                 <li>✓ Creative analysis + Ads Manager action items</li>
                 <li>✓ Save history + old-vs-new comparison</li>
               </ul>
-              <Link href="/diagnose" className="mt-7 block min-h-11 rounded-xl bg-lime-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+              <Link href="/diagnose" className="mt-7 block min-h-11 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
                 Try a free diagnosis — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
@@ -230,7 +236,7 @@ export default function LandingPage() {
           <p className="mx-auto mt-3 max-w-xl text-sm text-zinc-400">
             No account, no credit card — just your numbers and an honest verdict.
           </p>
-          <Link href="/diagnose" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+          <Link href="/diagnose" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-7 py-3 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
             Run your first diagnosis
           </Link>
         </div>

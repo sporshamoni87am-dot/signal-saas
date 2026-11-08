@@ -226,7 +226,7 @@ export default function CompareClient({
         <>
           <div className={cn('rounded-2xl border p-6', comparison.improved ? 'border-lime-400/50 bg-lime-400/5' : 'border-red-500/50 bg-red-500/5')}>
             <div className="flex flex-wrap items-center gap-3">
-              <span className={cn('rounded-full px-4 py-1.5 text-sm font-bold', comparison.improved ? 'bg-lime-400 text-zinc-950' : 'bg-red-500 text-white')}>
+              <span className={cn('rounded-full px-4 py-1.5 text-sm font-bold', comparison.improved ? 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950' : 'bg-gradient-to-r from-red-500 to-rose-500 text-white')}>
                 {comparison.improved ? '✓ IMPROVED' : '✗ NOT IMPROVED'}
               </span>
               <div className="flex items-center gap-2 text-sm">

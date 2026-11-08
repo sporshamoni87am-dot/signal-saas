@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { updateSession } from '@/lib/supabase/proxy';
 
-const PROTECTED_PREFIXES = ['/dashboard', '/diagnoses', '/forecasts', '/billing'];
+const PROTECTED_PREFIXES = ['/dashboard', '/diagnoses', '/forecasts', '/billing', '/compare'];
 // '/diagnose' and '/forecast' are intentionally public: guests can run a full
 // diagnosis or forecast without an account. Saving stays account-gated
 // inside the wizard UI. ('/forecasts' — the saved-forecast list/detail —

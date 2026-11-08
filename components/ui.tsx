@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-6', className)}>
+    <div className={cn('rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-4 shadow-[0_1px_2px_rgb(0_0_0/0.4)] sm:p-6', className)}>
       {children}
     </div>
   );
@@ -51,7 +51,7 @@ export function PrimaryButton({
   return (
     <button
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300 disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -70,7 +70,7 @@ export function PrimaryLink({
   return (
     <a
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300 active:scale-[0.98]',
         className,
       )}
       {...rest}
@@ -88,7 +88,7 @@ export function GhostButton({
   return (
     <button
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-zinc-700/70 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -99,11 +99,11 @@ export function GhostButton({
 }
 
 const VERDICT_STYLES: Record<Verdict, string> = {
-  SCALE: 'bg-lime-400/15 text-lime-300 border-lime-400/40',
-  RUN: 'bg-sky-400/15 text-sky-300 border-sky-400/40',
-  FIX: 'bg-amber-400/15 text-amber-300 border-amber-400/40',
-  WAIT: 'bg-zinc-400/15 text-zinc-300 border-zinc-400/40',
-  KILL: 'bg-red-500/15 text-red-300 border-red-500/40',
+  SCALE: 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950 border-transparent',
+  RUN: 'bg-gradient-to-r from-sky-400 to-cyan-400 text-zinc-950 border-transparent',
+  FIX: 'bg-gradient-to-r from-amber-400 to-orange-400 text-zinc-950 border-transparent',
+  WAIT: 'bg-gradient-to-r from-zinc-400 to-zinc-500 text-zinc-950 border-transparent',
+  KILL: 'bg-gradient-to-r from-red-500 to-rose-500 text-white border-transparent',
 };
 
 export function VerdictBadge({ verdict, size = 'md' }: { verdict: Verdict; size?: 'sm' | 'md' | 'lg' }) {
@@ -149,14 +149,24 @@ export function PageHeader({
   actions?: ReactNode;
 }) {
   return (
-    <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-      <div className="min-w-0">
-        <h1 className="break-words text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>
-        {sub && <p className="mt-1.5 max-w-2xl text-sm text-zinc-400">{sub}</p>}
+    <div className="relative mb-6">
+      {/* Subtle radial lime glow behind the headline — a background layer
+          only. The content below is `relative`, so it paints above the glow
+          and the text is never tinted. */}
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute -left-8 -top-12 h-44 w-80"
+        style={{ background: 'radial-gradient(closest-side, rgb(163 230 53 / 0.07), transparent)' }}
+      />
+      <div className="relative flex flex-wrap items-start justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="break-words text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>
+          {sub && <p className="mt-1.5 max-w-2xl text-sm text-zinc-400">{sub}</p>}
+        </div>
+        {/* Mobile: actions stack full-width so buttons are thumb-sized and
+            never squeezed side-by-side; desktop keeps the inline row. */}
+        {actions && <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">{actions}</div>}
       </div>
-      {/* Mobile: actions stack full-width so buttons are thumb-sized and
-          never squeezed side-by-side; desktop keeps the inline row. */}
-      {actions && <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:items-center">{actions}</div>}
     </div>
   );
 }

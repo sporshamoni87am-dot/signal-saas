@@ -10,6 +10,7 @@ import DeleteForecastButton from '@/components/delete-forecast-button';
 import SignOutButton from '@/components/signout-button';
 import TrialBanner from '@/components/trial-banner';
 import MetaConnect from '@/components/meta-connect';
+import WorkflowSection from '@/components/workflow-section';
 import { fmtDateTime, fmtMoney } from '@/lib/format';
 import type { DiagnosisResults, Verdict } from '@/lib/engine';
 import type { ForecastResults } from '@/lib/forecast';
@@ -95,13 +96,18 @@ export default async function DashboardPage({
           <>
             {!trial.expired && (
               <>
-                <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+                <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
                   + New diagnosis
                 </Link>
                 <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-lime-400/60 bg-lime-400/10 px-5 py-2.5 text-sm font-semibold text-lime-200 transition hover:bg-lime-400/20">
                   + New forecast
                 </Link>
               </>
+            )}
+            {diagnoses.length > 0 && (
+              <Link href="/compare" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+                ⇄ Compare diagnoses
+              </Link>
             )}
             <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
               Plans
@@ -140,7 +146,7 @@ export default async function DashboardPage({
             sub="No numbers to type yet? Start with the sample campaign — a realistic D2C example that shows you exactly what the diagnosis tells you."
             action={
               <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <Link href="/diagnose?sample=1" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+                <Link href="/diagnose?sample=1" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
                   ⚡ Try with a sample campaign
                 </Link>
                 <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
@@ -172,7 +178,7 @@ export default async function DashboardPage({
             const roas = d.results?.adSignals?.find((s) => s.key === 'roas');
             const spend = (d.inputs?.adSpend as number | null) ?? null;
             return (
-              <Card key={d.id} className="flex flex-col transition-colors hover:border-zinc-700">
+              <Card key={d.id} className="flex flex-col transition-all hover:-translate-y-0.5 hover:border-zinc-700/80">
                 <div className="flex items-start justify-between gap-2">
                   <h3 className="min-w-0 break-words font-semibold text-zinc-100">{d.campaign_name}</h3>
                   <span className="shrink-0">
@@ -197,6 +203,9 @@ export default async function DashboardPage({
                   <Link href={`/diagnoses/${d.id}/compare`} className="inline-flex min-h-11 items-center rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500">
                     Compare new data
                   </Link>
+                  <Link href={`/compare?later=${d.id}`} className="inline-flex min-h-11 items-center rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500">
+                    ⇄ Compare
+                  </Link>
                   <span className="ml-auto">
                     <DeleteButton id={d.id} campaignName={d.campaign_name} />
                   </span>
@@ -206,6 +215,9 @@ export default async function DashboardPage({
           })}
         </div>
       )}
+
+      {/* How it works — always visible, not only when the dashboard is empty. */}
+      <WorkflowSection />
 
       {/* Saved forecasts */}
       <div className="mt-10">
@@ -241,7 +253,7 @@ export default async function DashboardPage({
               const fullRoas = f.results?.fullRoas;
               const fullPurchases = f.results?.fullPurchases;
               return (
-                <Card key={f.id} className="flex flex-col transition-colors hover:border-zinc-700">
+                <Card key={f.id} className="flex flex-col transition-all hover:-translate-y-0.5 hover:border-zinc-700/80">
                   <h3 className="min-w-0 break-words font-semibold text-zinc-100">{f.campaign_name}</h3>
                   <p className="mt-1 break-words text-xs text-zinc-500">{fmtDateTime(f.created_at)}</p>
                   <p className="mt-3 text-sm font-medium text-zinc-200">{f.results?.guidance?.headline ?? 'Forecast'}</p>

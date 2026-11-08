@@ -146,7 +146,7 @@ export default function DiagnosisReport({
         <div className="flex items-center gap-4">
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
             <div
-              className={cn('h-full rounded-full', results.dataSufficiency.sufficient ? 'bg-lime-400' : 'bg-amber-400')}
+              className={cn('h-full rounded-full', results.dataSufficiency.sufficient ? 'bg-gradient-to-r from-lime-400 to-emerald-400' : 'bg-gradient-to-r from-amber-400 to-orange-400')}
               style={{ width: `${Math.min(100, (progress ?? 0) * 100)}%` }}
             />
           </div>

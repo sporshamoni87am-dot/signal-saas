@@ -23,7 +23,13 @@ import MetricHelp from '@/components/metric-help';
 import { Card, Field, GhostButton, PageHeader, PrimaryButton, PrimaryLink, SectionTitle, inputClassName } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
-const STEP_TITLES = ['Campaign setup', 'Ad metrics', 'Creative + screenshot', 'Review & run'];
+/** Wizard steps: short label + one line saying what happens in each step. */
+const STEP_META = [
+  { title: 'Campaign setup', desc: 'Breakeven ROAS, budget and business numbers.' },
+  { title: 'Ad metrics', desc: 'Spend, clicks and purchases from Ads Manager.' },
+  { title: 'Creative + screenshot', desc: 'Hook, hold and fatigue — plus an optional screenshot.' },
+  { title: 'Review & run', desc: 'Check everything, then get your verdict.' },
+];
 
 /** localStorage keys for preserving guest (and logged-in) progress across signup. */
 const WIZARD_STATE_KEY = 'signal:wizard-state:v1';
@@ -1011,37 +1017,41 @@ function DiagnoseWizard() {
         )}
       </div>
 
-      {/* Step indicator */}
-      <nav aria-label="Diagnosis steps" className="mb-2 flex items-center gap-2">
-        {STEP_TITLES.map((t, idx) => (
-          <div key={t} className="flex flex-1 items-center gap-2">
-            <div className="flex flex-col gap-1.5">
+      {/* Step indicator — each step shows its number, a short label AND a
+          one-line description; completed steps show a checkmark, the current
+          step is highlighted. On phones only the current step's label +
+          description show, so the row never crowds. */}
+      <nav aria-label="Diagnosis steps" className="mb-2 flex items-start gap-2">
+        {STEP_META.map((s, idx) => (
+          <div key={s.title} className="flex flex-1 items-start gap-2">
+            <div className="flex min-w-0 flex-col gap-1.5">
               <span
                 aria-current={idx === step ? 'step' : undefined}
                 className={cn(
-                  'flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                  idx < step && 'bg-lime-400 text-zinc-950',
+                  'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors',
+                  idx < step && 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950',
                   idx === step && 'bg-lime-400/20 text-lime-300 ring-2 ring-lime-400/60',
                   idx > step && 'bg-zinc-800 text-zinc-500',
                 )}
               >
                 {idx < step ? '✓' : idx + 1}
               </span>
-              <span className={cn('hidden text-[11px] font-medium sm:block', idx === step ? 'text-zinc-200' : 'text-zinc-500')}>{t}</span>
+              <span className={cn('hidden text-xs font-semibold sm:block', idx === step ? 'text-zinc-100' : 'text-zinc-500')}>{s.title}</span>
+              <span className={cn('hidden text-[11px] leading-snug sm:block', idx === step ? 'text-zinc-400' : 'text-zinc-500')}>{s.desc}</span>
             </div>
-            {idx < STEP_TITLES.length - 1 && <div className={cn('mb-5 h-px flex-1 transition-colors', idx < step ? 'bg-lime-400/60' : 'bg-zinc-800')} />}
+            {idx < STEP_META.length - 1 && <div className={cn('mt-4 h-px flex-1 transition-colors', idx < step ? 'bg-gradient-to-r from-lime-400 to-emerald-400' : 'bg-zinc-800')} />}
           </div>
         ))}
       </nav>
       <p className="mb-6 text-xs font-medium text-zinc-500 sm:hidden">
-        Step {step + 1} of {STEP_TITLES.length} — {STEP_TITLES[step]}
+        Step {step + 1} of {STEP_META.length} — {STEP_META[step].title}: {STEP_META[step].desc}
       </p>
       {/* Progress bar is always visible (was hidden on phones): the thin
           bar is the clearest "where am I" signal on a small screen. */}
-      <div className="mb-6 h-1 overflow-hidden rounded-full bg-zinc-800" aria-hidden>
+      <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-zinc-800" aria-hidden>
         <div
-          className="h-full rounded-full bg-lime-400 transition-all duration-300"
-          style={{ width: `${((step + 1) / STEP_TITLES.length) * 100}%` }}
+          className="h-full rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 transition-all duration-300"
+          style={{ width: `${((step + 1) / STEP_META.length) * 100}%` }}
         />
       </div>
 
@@ -1050,7 +1060,7 @@ function DiagnoseWizard() {
         {step === 0 && (
           <div>
             <SectionTitle hint="The basics. Breakeven ROAS is required — everything is graded against it.">
-              {STEP_TITLES[0]}
+              {STEP_META[0].title}
             </SectionTitle>
             <div className="grid gap-4 sm:grid-cols-2">
               {SETUP_FIELDS.map((def) => (
@@ -1082,7 +1092,7 @@ function DiagnoseWizard() {
         {step === 1 && (
           <div>
             <SectionTitle hint="Copy these from Ads Manager (lifetime or your date range). Leave blank anything you don’t track — tap ⓘ on any metric for a plain-language explainer.">
-              {STEP_TITLES[1]}
+              {STEP_META[1].title}
             </SectionTitle>
             {/* Optional context: sharpens the grades (CPM varies ~12× by
                 country, CTR ~3× by industry). Skipping either — or both —
@@ -1146,7 +1156,7 @@ function DiagnoseWizard() {
 
         {step === 2 && (
           <div>
-            <SectionTitle hint="Video health + an optional screenshot for reference.">{STEP_TITLES[2]}</SectionTitle>
+            <SectionTitle hint="Video health + an optional screenshot for reference.">{STEP_META[2].title}</SectionTitle>
             <div className="grid gap-4 sm:grid-cols-3">
               {CREATIVE_FIELDS.map((def) => (
                 <NumField key={def.name} def={def} value={form[def.name]} onChange={(v) => set(def.name, v)} />
@@ -1191,7 +1201,7 @@ function DiagnoseWizard() {
         {step === 3 && (
           <div>
             <SectionTitle hint="Check the essentials, then run. The engine shows every rule and its math.">
-              {STEP_TITLES[3]}
+              {STEP_META[3].title}
             </SectionTitle>
             <dl className="grid gap-3 sm:grid-cols-2">
               {[

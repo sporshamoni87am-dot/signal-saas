@@ -64,7 +64,7 @@ export const metadata: Metadata = {
 function Logo() {
   return (
     <a href="/" className="flex min-h-11 shrink-0 items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-lime-400 text-lg font-black text-zinc-950">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-lime-400 to-emerald-400 text-lg font-black text-zinc-950">
         ∿
       </span>
       {/* Wordmark hidden on narrow phones: icon + nav links alone fit 360px;
@@ -100,7 +100,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <a href="/#pricing" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
                 Pricing
               </a>
-              <a href="/login" className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-lime-400 px-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300 sm:px-4">
+              <a href="/login" className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-3 text-sm font-semibold text-zinc-950 shadow-[0_0_20px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300 sm:px-4">
                 Sign in
               </a>
             </nav>
