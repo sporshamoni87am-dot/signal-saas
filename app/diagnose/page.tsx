@@ -5,6 +5,14 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { diagnose, type DiagnosisInputs, type DiagnosisResults } from '@/lib/engine';
+import {
+  MARKET_REGIONS,
+  PRODUCT_CATEGORIES,
+  categoryLabel,
+  isMarketRegion,
+  isProductCategory,
+  regionLabel,
+} from '@/lib/benchmarks';
 import { getTrial, saveDiagnosis } from '@/lib/actions';
 import { parseNum } from '@/lib/format';
 import { SAMPLE_CAMPAIGN, SAMPLE_NOTE } from '@/lib/sample-campaign';
@@ -52,6 +60,9 @@ type FormState = {
   videoViews3s: string;
   videoThruplays: string;
   frequency: string;
+  /** Optional context that sharpens the grades ('' = skipped). */
+  marketRegion: string;
+  productCategory: string;
 };
 
 const EMPTY: FormState = {
@@ -75,6 +86,8 @@ const EMPTY: FormState = {
   videoViews3s: '',
   videoThruplays: '',
   frequency: '',
+  marketRegion: '',
+  productCategory: '',
 };
 
 const SETUP_FIELDS: NumFieldDef[] = [
@@ -141,6 +154,8 @@ function sampleToForm(): FormState {
     videoViews3s: str(s.videoViews3s),
     videoThruplays: str(s.videoThruplays),
     frequency: str(s.frequency),
+    marketRegion: '',
+    productCategory: '',
   };
 }
 
@@ -542,6 +557,8 @@ function DiagnoseWizard() {
       videoViews3s: parseNum(form.videoViews3s),
       videoThruplays: parseNum(form.videoThruplays),
       frequency: parseNum(form.frequency),
+      marketRegion: isMarketRegion(form.marketRegion) ? form.marketRegion : null,
+      productCategory: isProductCategory(form.productCategory) ? form.productCategory : null,
     };
   }
 
@@ -1008,6 +1025,51 @@ function DiagnoseWizard() {
             <SectionTitle hint="Copy these from Ads Manager (lifetime or your date range). Leave blank anything you don’t track — tap ⓘ on any metric for a plain-language explainer.">
               {STEP_TITLES[1]}
             </SectionTitle>
+            {/* Optional context: sharpens the grades (CPM varies ~12× by
+                country, CTR ~3× by industry). Skipping either — or both —
+                keeps the generic D2C benchmarks, and the report says so. */}
+            <div className="mb-4 grid gap-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4 sm:grid-cols-2">
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-zinc-300">
+                  Where do you sell? <span className="font-normal text-zinc-500">(optional)</span>
+                </span>
+                <select
+                  value={form.marketRegion}
+                  onChange={(e) => set('marketRegion', e.target.value)}
+                  className={inputClassName}
+                >
+                  <option value="">Skip — use generic benchmarks</option>
+                  {MARKET_REGIONS.map((r) => (
+                    <option key={r.value} value={r.value}>
+                      {r.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className="block">
+                <span className="mb-1.5 block text-sm font-medium text-zinc-300">
+                  What do you sell? <span className="font-normal text-zinc-500">(optional)</span>
+                </span>
+                <select
+                  value={form.productCategory}
+                  onChange={(e) => set('productCategory', e.target.value)}
+                  className={inputClassName}
+                >
+                  <option value="">Skip — use generic benchmarks</option>
+                  {PRODUCT_CATEGORIES.map((c) => (
+                    <option key={c.value} value={c.value}>
+                      {c.label}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <p className="text-xs leading-relaxed text-zinc-500 sm:col-span-2">
+                CPM is set by where your audience lives, CTR and CPC by what you sell.
+                Adding them grades your numbers against your market and category instead of
+                one generic table. The verdict never changes — it comes from your own
+                breakeven ROAS and target CPA.
+              </p>
+            </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {AD_FIELDS.map((def) => (
                 <NumField
@@ -1080,6 +1142,8 @@ function DiagnoseWizard() {
                 ['Purchases', form.purchases || '—'],
                 ['Attributed revenue', form.attributedRevenue ? `$${form.attributedRevenue}` : '—'],
                 ['AOV', form.aov ? `$${form.aov}` : '—'],
+                ['Market', regionLabel(isMarketRegion(form.marketRegion) ? form.marketRegion : null) ?? 'Not given — generic benchmarks'],
+                ['Category', categoryLabel(isProductCategory(form.productCategory) ? form.productCategory : null) ?? 'Not given — generic benchmarks'],
               ].map(([k, v]) => (
                 <div key={k} className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
                   <dt className="text-xs text-zinc-500">{k}</dt>

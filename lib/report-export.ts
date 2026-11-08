@@ -3,6 +3,7 @@ import {
   type DiagnosisInputs,
   type DiagnosisResults,
 } from '@/lib/engine';
+import { categoryLabel, regionLabel } from '@/lib/benchmarks';
 import { fmtInt, fmtMoney } from '@/lib/format';
 
 const STATUS_LABEL: Record<string, string> = {
@@ -64,6 +65,10 @@ export function buildDiagnosisSections(
       ['Campaign', inputs.campaignName || 'Untitled campaign'],
       ['Generated', generatedAt ?? 'Just now'],
       ['Campaign type', inputs.campaignType],
+      ['Market region', regionLabel(inputs.marketRegion) ?? 'Not given — generic benchmarks'],
+      ['Product category', categoryLabel(inputs.productCategory) ?? 'Not given — generic benchmarks'],
+      ['Benchmark set', results.benchmarkLabel ?? 'Generic D2C benchmarks'],
+      ['Benchmark sources', results.benchmarkSource ?? '—'],
       ['Verdict', meta.title],
       ['Verdict reason', results.verdictReason],
       ['Enough data?', ds.sufficient ? 'Yes' : 'No'],

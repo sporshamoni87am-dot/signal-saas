@@ -171,6 +171,19 @@ export default function DiagnosisReport({
         <SectionTitle hint="Every ad-platform signal, graded against adjustable D2C starting benchmarks.">
           Ad signals
         </SectionTitle>
+        <p className="mb-4 text-xs leading-relaxed text-zinc-500">
+          {results.benchmarkSegmented ? (
+            <>
+              Graded against{' '}
+              <span className="font-medium text-zinc-300">
+                {results.benchmarkLabel ?? 'Generic D2C benchmarks'}
+              </span>{' '}
+              benchmarks. {results.benchmarkSource ?? ''}
+            </>
+          ) : (
+            'Graded against generic D2C benchmarks — add your market and category for a sharper read.'
+          )}
+        </p>
         <SignalTable signals={results.adSignals} />
       </Card>
 

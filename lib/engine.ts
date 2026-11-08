@@ -11,6 +11,12 @@
 
 export type CampaignType = 'D2C';
 
+import {
+  resolveBenchmarks,
+  type MarketRegion,
+  type ProductCategory,
+} from './benchmarks';
+
 export type Verdict = 'SCALE' | 'KILL' | 'FIX' | 'RUN' | 'WAIT';
 export type SignalStatus = 'good' | 'warn' | 'bad' | 'na';
 
@@ -37,6 +43,12 @@ export interface DiagnosisInputs {
   videoViews3s: number | null;
   videoThruplays: number | null;
   frequency: number | null;
+  /**
+   * Optional context that sharpens the grades only — the verdict never
+   * depends on these. Null when the user skipped the question.
+   */
+  marketRegion: MarketRegion | null;
+  productCategory: ProductCategory | null;
 }
 
 export interface SignalGrade {
@@ -128,6 +140,11 @@ export interface DiagnosisResults {
   leakRanking: LeakRanking | null;
   rulesFired: RuleFired[];
   actionItems: ActionItem[];
+  /** Which benchmark set graded the signals (label + sources). */
+  benchmarkLabel: string;
+  benchmarkSource: string;
+  /** True when a market/category table sharpened at least one grade. */
+  benchmarkSegmented: boolean;
   /** Rank used for old-vs-new improvement comparison (higher = better). */
   verdictRank: number;
 }
@@ -206,6 +223,15 @@ const ADJUSTABLE = 'Adjustable starting benchmark — tune it to your account hi
 
 export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
   const i: DiagnosisInputs = { ...raw, campaignType: 'D2C' };
+
+  // Segment benchmarks: market + category sharpen the CTR/CPC/CPM grades
+  // only. The verdict, data-sufficiency gate, leak ranking and every other
+  // threshold never see these values. Skipped or unknown context resolves
+  // to the generic table, exactly as before.
+  const bench = resolveBenchmarks(
+    i.marketRegion ?? null,
+    i.productCategory ?? null,
+  );
 
   const adSpend = num(i.adSpend) ?? 0;
   const purchases = num(i.purchases) ?? 0;
@@ -293,10 +319,10 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
       'Stop the bleed. Do not "give it one more day" — the kill threshold already accounts for variance.',
       'Ads Manager → toggle the campaign off. Keep the ad account data for the post-mortem below.',
     );
-    if (ctr !== null && ctr < BENCH.ctrWarn) {
+    if (ctr !== null && ctr < bench.ctrWarn) {
       addAction(
         'Post-mortem: the creative never stopped the scroll',
-        `Link CTR of ${(ctr * 100).toFixed(2)}% is below the ${(BENCH.ctrWarn * 100).toFixed(1)}% floor. The hook failed before the offer ever got a chance.`,
+        `Link CTR of ${(ctr * 100).toFixed(2)}% is below the ${(bench.ctrWarn * 100).toFixed(1)}% floor. The hook failed before the offer ever got a chance.`,
         'Ads Manager → Columns → customize with 3-sec video views to confirm hook rate, then rebuild hooks (below) before relaunching.',
       );
     } else if (clickToAtc !== null && clickToAtc < BENCH.clickAtcWarn) {
@@ -383,14 +409,14 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     explanation: 'What you actually pay per order. Compare against target CPA, not against your feelings.',
   });
 
-  const ctrStatus = grade(ctr, BENCH.ctrGood, BENCH.ctrWarn);
+  const ctrStatus = grade(ctr, bench.ctrGood, bench.ctrWarn);
   adSignals.push({
     key: 'ctr',
     label: 'Link CTR',
     value: ctr,
     display: ctr !== null ? `${(ctr * 100).toFixed(2)}%` : '—',
     status: ctrStatus,
-    benchmark: `Good ≥ ${(BENCH.ctrGood * 100).toFixed(1)}% · Watch ≥ ${(BENCH.ctrWarn * 100).toFixed(1)}%. ${ADJUSTABLE}`,
+    benchmark: `Good ≥ ${(bench.ctrGood * 100).toFixed(1)}% · Watch ≥ ${(bench.ctrWarn * 100).toFixed(1)}%. ${ADJUSTABLE}`,
     explanation: 'Measures creative + audience fit. Low CTR = the scroll didn’t stop. This is almost always creative, not budget.',
   });
 
@@ -399,8 +425,8 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     label: 'CPC (link)',
     value: cpc,
     display: cpc !== null ? `$${cpc.toFixed(2)}` : '—',
-    status: gradeLow(cpc, BENCH.cpcGood, BENCH.cpcWarn),
-    benchmark: `Good ≤ $${BENCH.cpcGood.toFixed(2)} · Watch ≤ $${BENCH.cpcWarn.toFixed(2)}. ${ADJUSTABLE}`,
+    status: gradeLow(cpc, bench.cpcGood, bench.cpcWarn),
+    benchmark: `Good ≤ $${bench.cpcGood.toFixed(2)} · Watch ≤ $${bench.cpcWarn.toFixed(2)}. ${ADJUSTABLE}`,
     explanation: 'Price of each visitor. High CPC with low CTR = weak creative in a competitive auction.',
   });
 
@@ -409,8 +435,8 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     label: 'CPM',
     value: cpm,
     display: cpm !== null ? `$${cpm.toFixed(2)}` : '—',
-    status: gradeLow(cpm, BENCH.cpmGood, BENCH.cpmWarn),
-    benchmark: `Good ≤ $${BENCH.cpmGood.toFixed(0)} · Watch ≤ $${BENCH.cpmWarn.toFixed(0)}. ${ADJUSTABLE}`,
+    status: gradeLow(cpm, bench.cpmGood, bench.cpmWarn),
+    benchmark: `Good ≤ $${bench.cpmGood.toFixed(0)} · Watch ≤ $${bench.cpmWarn.toFixed(0)}. ${ADJUSTABLE}`,
     explanation: 'Auction price for your audience. High CPM = narrow or contested audience; fix with broader targeting, not higher bids.',
   });
 
@@ -560,7 +586,7 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
       rulesFired.push({
         rule: 'Creative weakness detected',
         detail: 'CTR and/or hook rate below floor — the ad isn’t earning attention.',
-        math: `CTR ${ctr !== null ? (ctr * 100).toFixed(2) + '%' : 'n/a'} < ${(BENCH.ctrWarn * 100).toFixed(1)}%${hookRate !== null ? ` · hook ${(hookRate * 100).toFixed(1)}% < ${(BENCH.hookWarn * 100).toFixed(0)}%` : ''}`,
+        math: `CTR ${ctr !== null ? (ctr * 100).toFixed(2) + '%' : 'n/a'} < ${(bench.ctrWarn * 100).toFixed(1)}%${hookRate !== null ? ` · hook ${(hookRate * 100).toFixed(1)}% < ${(BENCH.hookWarn * 100).toFixed(0)}%` : ''}`,
       });
       addAction(
         'Fix the first 3 seconds — launch 3 new hooks',
@@ -642,6 +668,9 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     creative,
     funnel,
     leakRanking,
+    benchmarkLabel: bench.label,
+    benchmarkSource: bench.source,
+    benchmarkSegmented: bench.segmented,
     rulesFired,
     actionItems: actionItems.sort((a, b) => a.priority - b.priority),
   };

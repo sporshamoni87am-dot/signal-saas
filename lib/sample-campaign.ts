@@ -30,6 +30,9 @@ export const SAMPLE_CAMPAIGN: DiagnosisInputs = {
   videoViews3s: 15000,
   videoThruplays: 2600,
   frequency: 1.9,
+  /** No market/category given — the sample is graded on generic benchmarks. */
+  marketRegion: null,
+  productCategory: null,
 };
 
 export const SAMPLE_NOTE =
