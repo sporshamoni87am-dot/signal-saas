@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import AuthCodeHandler from "@/components/auth-code-handler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,6 +80,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="flex min-h-full flex-col bg-zinc-950 text-zinc-100">
+        {/* Exchanges a stray `?code=` confirmation code landing on any page
+            (safety net if Supabase ever redirects to the site root again);
+            renders nothing and does nothing without a code in the URL. */}
+        <AuthCodeHandler />
         <header className="no-print border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur pt-[env(safe-area-inset-top)]">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
             <Logo />

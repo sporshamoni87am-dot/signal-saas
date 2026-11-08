@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Suspense } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { POST_CONFIRM_NEXT_COOKIE } from '@/lib/auth-redirect';
 import { Card, Field, PrimaryButton, inputClassName } from '@/components/ui';
 
 function SignupForm() {
@@ -26,11 +27,17 @@ function SignupForm() {
     setLoading(true);
     try {
       const supabase = createClient();
+      // Where to go after confirming is kept in a short-lived cookie, NOT
+      // on the redirect URL: emailRedirectTo must match the Supabase
+      // Redirect URL allowlist exactly (no query string), or Supabase
+      // silently falls back to the project's Site URL and the code is
+      // dropped somewhere no app exists to exchange it.
+      document.cookie = `${POST_CONFIRM_NEXT_COOKIE}=${encodeURIComponent(next)}; Max-Age=600; Path=/; SameSite=Lax`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
         },
       });
       if (error) {
