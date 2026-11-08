@@ -72,7 +72,12 @@ function SignupForm() {
         {done ? (
           <div className="mt-6 rounded-xl border border-lime-400/40 bg-lime-400/10 px-4 py-4 text-sm leading-relaxed text-lime-200">
             Check your inbox — we sent a confirmation link to <strong>{email}</strong>. Click it
-            to activate your account, then sign in.
+            to activate your account, then sign in. If this email already has an account, no new
+            email is sent —{' '}
+            <Link href="/login" className="font-medium text-lime-100 underline hover:text-white">
+              sign in instead
+            </Link>
+            .
           </div>
         ) : (
           <form onSubmit={onSubmit} className="mt-6 space-y-4">

@@ -52,6 +52,11 @@ function LoginForm() {
           <Field label="Password">
             <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClassName} placeholder="••••••••" autoComplete="current-password" />
           </Field>
+          <p className="text-right text-sm">
+            <Link href="/forgot-password" className="inline-block py-1 font-medium text-lime-300 hover:text-lime-200">
+              Forgot password?
+            </Link>
+          </p>
           {error && (
             <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300">{error}</p>
           )}
