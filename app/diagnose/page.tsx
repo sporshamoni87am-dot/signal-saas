@@ -443,11 +443,7 @@ function DiagnoseWizard() {
   useEffect(() => {
     if (searchParams.get('sample') === '1' && !ranSample.current) {
       ranSample.current = true;
-      setForm(sampleToForm());
-      setIsSample(true);
-      setLiveSource(null);
-      setResults({ inputs: SAMPLE_CAMPAIGN, results: diagnose(SAMPLE_CAMPAIGN) });
-      window.scrollTo({ top: 0 });
+      loadSample();
     }
   }, [searchParams]);
 
@@ -571,6 +567,15 @@ function DiagnoseWizard() {
     const inputs = buildInputs();
     setIsSample(false);
     setResults({ inputs, results: diagnose(inputs), liveSource });
+    scrollTop();
+  }
+
+  /** One-click sample campaign: fills the form and runs the full diagnosis. */
+  function loadSample() {
+    setForm(sampleToForm());
+    setIsSample(true);
+    setLiveSource(null);
+    setResults({ inputs: SAMPLE_CAMPAIGN, results: diagnose(SAMPLE_CAMPAIGN) });
     scrollTop();
   }
 
@@ -794,6 +799,7 @@ function DiagnoseWizard() {
           actions={
             <div className="no-print flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
               <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
+              <GhostButton onClick={loadSample} className="w-full sm:w-auto">Load sample</GhostButton>
               <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
               {saveCta}
             </div>
@@ -822,6 +828,7 @@ function DiagnoseWizard() {
         <DiagnosisReport inputs={results.inputs} results={results.results} screenshotUrl={shotPreview} liveSource={liveSource} />
         <div className="no-print mt-6 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
+          <GhostButton onClick={loadSample} className="w-full sm:w-auto">Load sample</GhostButton>
           <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
           {saveCta}
         </div>
@@ -835,10 +842,11 @@ function DiagnoseWizard() {
       <PageHeader title="New diagnosis" sub="D2C campaign · about 2 minutes · no sign-up needed to try" />
 
       {/* Fresh visits start with an EMPTY form — the sample stays one click
-          away (?sample=1) as the worked example, and the manual explains
+          away ("Load sample") as the worked example, and the manual explains
           every step. */}
       <div className="no-print mb-6 flex flex-wrap items-center gap-2">
         <GhostButton onClick={startFresh}>↺ Start fresh</GhostButton>
+        <GhostButton onClick={loadSample}>Load sample</GhostButton>
         <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200">
           How it works →
         </Link>
