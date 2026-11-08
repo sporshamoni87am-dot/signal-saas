@@ -1,10 +1,25 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { deleteForecast } from '@/lib/actions';
 
 /** Delete button for a saved forecast (dashboard list + detail page). */
-export default function DeleteForecastButton({ id }: { id: string }) {
+export default function DeleteForecastButton({
+  id,
+  redirectTo,
+}: {
+  id: string;
+  /**
+   * Where to go after a successful delete. Detail pages pass
+   * "/dashboard?deleted=forecast" so the user lands back on the list
+   * instead of a 404 (the detail page 404s once the row is gone).
+   * The dashboard passes nothing and keeps router.refresh() — the row
+   * just disappears from the list.
+   */
+  redirectTo?: string;
+}) {
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -16,6 +31,10 @@ export default function DeleteForecastButton({ id }: { id: string }) {
     if (res.error) {
       setErr(res.error);
       setBusy(false);
+    } else if (redirectTo) {
+      router.push(redirectTo);
+    } else {
+      router.refresh();
     }
   }
 

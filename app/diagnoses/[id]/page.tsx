@@ -53,7 +53,7 @@ export default async function DiagnosisDetailPage({
             <Link href={`/diagnoses/${id}/compare`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
               Compare new data
             </Link>
-            <DeleteButton id={id} campaignName={row.campaign_name as string} />
+            <DeleteButton id={id} campaignName={row.campaign_name as string} redirectTo="/dashboard?deleted=diagnosis" />
           </>
         }
       />

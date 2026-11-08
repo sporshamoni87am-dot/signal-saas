@@ -94,6 +94,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <a href="/forecast" className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:px-3">
                 Forecast
               </a>
+              <a href="/how-it-works" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
+                How it works
+              </a>
               <a href="/#pricing" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
                 Pricing
               </a>

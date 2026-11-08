@@ -4,7 +4,22 @@ import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { deleteDiagnosis } from '@/lib/actions';
 
-export default function DeleteButton({ id, campaignName }: { id: string; campaignName: string }) {
+export default function DeleteButton({
+  id,
+  campaignName,
+  redirectTo,
+}: {
+  id: string;
+  campaignName: string;
+  /**
+   * Where to go after a successful delete. Detail pages pass
+   * "/dashboard?deleted=diagnosis" so the user lands back on the list
+   * instead of a 404 (the detail page 404s once the row is gone).
+   * The dashboard passes nothing and keeps router.refresh() — the row
+   * just disappears from the list.
+   */
+  redirectTo?: string;
+}) {
   const [confirming, setConfirming] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -17,6 +32,8 @@ export default function DeleteButton({ id, campaignName }: { id: string; campaig
       if (res.error) {
         setError(res.error);
         setConfirming(false);
+      } else if (redirectTo) {
+        router.push(redirectTo);
       } else {
         router.refresh();
       }

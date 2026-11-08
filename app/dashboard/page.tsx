@@ -52,7 +52,18 @@ const FIRST_STEPS = [
   },
 ];
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ deleted?: string }>;
+}) {
+  const { deleted } = await searchParams;
+  const deletedNote =
+    deleted === 'diagnosis'
+      ? 'Diagnosis deleted.'
+      : deleted === 'forecast'
+        ? 'Forecast deleted.'
+        : null;
   const supabase = await createClient();
   const {
     data: { user },
@@ -101,6 +112,12 @@ export default async function DashboardPage() {
       />
 
       <TrialBanner />
+
+      {deletedNote && (
+        <p className="mb-6 rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3 text-sm text-lime-200">
+          ✓ {deletedNote}
+        </p>
+      )}
 
       {/* Meta connection (read-only live data). Suspense: MetaConnect reads
           search params (?meta=connected / ?meta_error=…). */}

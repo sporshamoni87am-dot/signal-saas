@@ -13,6 +13,7 @@ import {
 import { SAMPLE_FORECAST, SAMPLE_FORECAST_NOTE } from '@/lib/forecast-sample';
 import { getTrial, saveForecast } from '@/lib/actions';
 import { parseNum } from '@/lib/format';
+import { clearRestoreFlag, consumeRestore, markRestore } from '@/lib/restore';
 import ForecastReport from '@/components/forecast-report';
 import MetricHelp from '@/components/metric-help';
 import { Card, Field, GhostButton, PageHeader, PrimaryButton, PrimaryLink, SectionTitle, inputClassName } from '@/components/ui';
@@ -328,11 +329,15 @@ function ForecastPage() {
   const [liveFlags, setLiveFlags] = useState<string[]>([]);
   const [liveSource, setLiveSource] = useState<LiveSourceInfo | null>(null);
 
-  // Restore preserved progress (e.g. after returning from signup).
+  // Restore preserved progress ONLY when returning from the signup flow
+  // (the "Create your free account to save" CTAs set a sessionStorage
+  // flag first). A plain visit, reload or navigation starts with an EMPTY
+  // form — stale fields from a previous run are confusing, not helpful.
   const restoredRef = useRef(false);
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
+    if (!consumeRestore('forecast')) return;
     const saved = readStorage<{ form: FormState }>(FORECAST_STATE_KEY);
     if (saved) setForm({ ...EMPTY, ...saved.form });
     const savedResults = readStorage<PersistedResults>(FORECAST_RESULTS_KEY);
@@ -594,10 +599,29 @@ function ForecastPage() {
     } catch {}
   }
 
+  /**
+   * Start fresh: empty form, no results, and all preserved state
+   * (localStorage + the signup-return flag) cleared, so a return visit
+   * can't resurrect the old run either.
+   */
+  function startFresh() {
+    setForm(EMPTY);
+    setResults(null);
+    setIsSample(false);
+    setErrors([]);
+    setLiveSource(null);
+    setLiveFlags([]);
+    clearPreserved();
+    clearRestoreFlag();
+    scrollTop();
+  }
+
   async function onSave() {
     if (!results) return;
     if (isGuest) {
       // Safety net — guests see a signup CTA instead of this button.
+      // Mark the return so the forecast restores afterwards.
+      markRestore('forecast');
       router.push('/signup?next=/forecast');
       return;
     }
@@ -672,7 +696,7 @@ function ForecastPage() {
   }
 
   const saveCta = isGuest ? (
-    <PrimaryLink href="/signup?next=/forecast" className="w-full sm:w-auto">Create your free account to save this forecast</PrimaryLink>
+    <PrimaryLink href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="w-full sm:w-auto">Create your free account to save this forecast</PrimaryLink>
   ) : (
     <PrimaryButton onClick={onSave} disabled={saving} className="w-full sm:w-auto">
       {saving ? 'Saving…' : 'Save forecast'}
@@ -699,6 +723,7 @@ function ForecastPage() {
           actions={
             <div className="no-print flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
               <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
+              <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
               {saveCta}
             </div>
           }
@@ -714,7 +739,7 @@ function ForecastPage() {
               <strong className="text-lime-200">Keep this forecast.</strong>{' '}
               A free account saves it to your dashboard — your inputs are preserved, nothing to retype.
             </p>
-            <PrimaryLink href="/signup?next=/forecast" className="w-full shrink-0 px-4 py-2 sm:w-auto">
+            <PrimaryLink href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="w-full shrink-0 px-4 py-2 sm:w-auto">
               Create free account
             </PrimaryLink>
           </div>
@@ -730,6 +755,7 @@ function ForecastPage() {
         />
         <div className="no-print mt-6 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
+          <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
           {saveCta}
         </div>
       </div>
@@ -740,6 +766,16 @@ function ForecastPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <PageHeader title="Early-stage forecast" sub="How will this campaign land? · no sign-up needed to try" />
+
+      {/* Fresh visits start with an EMPTY form — the sample stays one click
+          away ("Load sample" below) as the worked example, and the manual
+          explains every step. */}
+      <div className="no-print mb-6 flex flex-wrap items-center gap-2">
+        <GhostButton onClick={startFresh}>↺ Start fresh</GhostButton>
+        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200">
+          How it works →
+        </Link>
+      </div>
 
       {isGuest && (
         <div className="no-print mb-6 rounded-xl border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm leading-relaxed text-sky-200">
@@ -772,7 +808,7 @@ function ForecastPage() {
         {isGuest && (
           <p className="mt-3 text-sm text-zinc-300">
             Live data needs a free account.{' '}
-            <Link href="/signup?next=/forecast" className="font-semibold text-lime-300 underline underline-offset-2">
+            <Link href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="font-semibold text-lime-300 underline underline-offset-2">
               Create one
             </Link>{' '}
             to connect your Meta ad account — manual entry works right now.
@@ -1027,6 +1063,9 @@ function ForecastPage() {
               className="w-full sm:w-auto"
             >
               Load sample
+            </GhostButton>
+            <GhostButton onClick={startFresh} className="w-full sm:w-auto">
+              ↺ Start fresh
             </GhostButton>
           </div>
           <p className="text-center text-xs text-zinc-500 sm:text-right">

@@ -15,6 +15,7 @@ import {
 } from '@/lib/benchmarks';
 import { getTrial, saveDiagnosis } from '@/lib/actions';
 import { parseNum } from '@/lib/format';
+import { clearRestoreFlag, consumeRestore, markRestore } from '@/lib/restore';
 import { SAMPLE_CAMPAIGN, SAMPLE_NOTE } from '@/lib/sample-campaign';
 import DiagnosisReport from '@/components/diagnosis-report';
 import ReportActions from '@/components/report-actions';
@@ -329,11 +330,15 @@ function DiagnoseWizard() {
   const shotPathRef = useRef<string | null>(null);
   shotPathRef.current = shotPath;
 
-  // Restore preserved progress (e.g. after returning from signup).
+  // Restore preserved progress ONLY when returning from the signup flow
+  // (the "Create your free account to save" CTAs set a sessionStorage
+  // flag first). A plain visit, reload or navigation starts with an EMPTY
+  // form — stale fields from a previous run are confusing, not helpful.
   const restoredRef = useRef(false);
   useEffect(() => {
     if (restoredRef.current) return;
     restoredRef.current = true;
+    if (!consumeRestore('diagnose')) return;
     const saved = readStorage<{ form: FormState; step: number }>(WIZARD_STATE_KEY);
     if (saved) {
       setForm({ ...EMPTY, ...saved.form });
@@ -648,10 +653,44 @@ function DiagnoseWizard() {
     } catch {}
   }
 
+  /**
+   * Start fresh: empty form, no results, wizard back to step 0, and all
+   * preserved state (localStorage + the signup-return flag) cleared, so a
+   * return visit can't resurrect the old run either.
+   */
+  function startFresh() {
+    // An uploaded-but-unsaved screenshot is deleted so it can't orphan.
+    if (shotPath) {
+      fetch('/api/screenshots/cleanup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ path: shotPath }),
+        keepalive: true,
+      }).catch(() => {});
+    }
+    if (shotPreview) URL.revokeObjectURL(shotPreview);
+    setForm(EMPTY);
+    setStep(0);
+    setResults(null);
+    setIsSample(false);
+    setErrors([]);
+    setLiveSource(null);
+    setLiveFlags([]);
+    setShotFile(null);
+    setShotPreview(null);
+    setShotPath(null);
+    setShotError(null);
+    clearPreserved();
+    clearRestoreFlag();
+    scrollTop();
+  }
+
   async function onSave() {
     if (!results) return;
     if (isGuest) {
       // Safety net — guests see a signup CTA instead of this button.
+      // Mark the return so the wizard restores this diagnosis afterwards.
+      markRestore('diagnose');
       router.push('/signup?next=/diagnose');
       return;
     }
@@ -728,7 +767,7 @@ function DiagnoseWizard() {
   }
 
   const saveCta = isGuest ? (
-    <PrimaryLink href="/signup?next=/diagnose" className="w-full sm:w-auto">Create your free account to save this diagnosis</PrimaryLink>
+    <PrimaryLink href="/signup?next=/diagnose" onClick={() => markRestore('diagnose')} className="w-full sm:w-auto">Create your free account to save this diagnosis</PrimaryLink>
   ) : (
     <PrimaryButton onClick={onSave} disabled={saving} className="w-full sm:w-auto">
       {saving ? 'Saving…' : 'Save diagnosis'}
@@ -755,6 +794,7 @@ function DiagnoseWizard() {
           actions={
             <div className="no-print flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
               <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
+              <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
               {saveCta}
             </div>
           }
@@ -770,7 +810,7 @@ function DiagnoseWizard() {
               <strong className="text-lime-200">Keep this diagnosis.</strong>{' '}
               A free account saves it to your dashboard — your inputs are preserved, nothing to retype.
             </p>
-            <PrimaryLink href="/signup?next=/diagnose" className="w-full shrink-0 px-4 py-2 sm:w-auto">
+            <PrimaryLink href="/signup?next=/diagnose" onClick={() => markRestore('diagnose')} className="w-full shrink-0 px-4 py-2 sm:w-auto">
               Create free account
             </PrimaryLink>
           </div>
@@ -782,6 +822,7 @@ function DiagnoseWizard() {
         <DiagnosisReport inputs={results.inputs} results={results.results} screenshotUrl={shotPreview} liveSource={liveSource} />
         <div className="no-print mt-6 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
+          <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
           {saveCta}
         </div>
       </div>
@@ -792,6 +833,16 @@ function DiagnoseWizard() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
       <PageHeader title="New diagnosis" sub="D2C campaign · about 2 minutes · no sign-up needed to try" />
+
+      {/* Fresh visits start with an EMPTY form — the sample stays one click
+          away (?sample=1) as the worked example, and the manual explains
+          every step. */}
+      <div className="no-print mb-6 flex flex-wrap items-center gap-2">
+        <GhostButton onClick={startFresh}>↺ Start fresh</GhostButton>
+        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200">
+          How it works →
+        </Link>
+      </div>
 
       {isGuest && (
         <div className="no-print mb-6 rounded-xl border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm leading-relaxed text-sky-200">
@@ -824,7 +875,7 @@ function DiagnoseWizard() {
         {isGuest && (
           <p className="mt-3 text-sm text-zinc-300">
             Live data needs a free account.{' '}
-            <Link href="/signup?next=/diagnose" className="font-semibold text-lime-300 underline underline-offset-2">
+            <Link href="/signup?next=/diagnose" onClick={() => markRestore('diagnose')} className="font-semibold text-lime-300 underline underline-offset-2">
               Create one
             </Link>{' '}
             to connect your Meta ad account — manual entry works right now.
