@@ -6,6 +6,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server';
 import { BILLING_ENABLED, FREE_DIAGNOSIS_LIMIT } from '@/lib/stripe';
 import { TRIAL_DAYS } from '@/lib/trial';
 import type { DiagnosisInputs, DiagnosisResults, Verdict } from '@/lib/engine';
+import type { ForecastInputs, ForecastResults } from '@/lib/forecast';
 
 export interface PlanInfo {
   plan: 'free' | 'pro';
@@ -180,6 +181,82 @@ export async function deleteDiagnosis(id: string): Promise<{ error?: string }> {
   if (row?.screenshot_path) {
     await supabase.storage.from('screenshots').remove([row.screenshot_path as string]);
   }
+
+  revalidatePath('/dashboard');
+  return {};
+}
+
+// ---------------------------------------------------------------------------
+// Saved forecasts — mirrors the diagnoses pattern exactly, including the
+// trial gate: guests can't save, expired trials can't create new rows,
+// viewing past forecasts always works.
+// ---------------------------------------------------------------------------
+
+export interface SaveForecastArgs {
+  inputs: ForecastInputs;
+  results: ForecastResults;
+  /** 'meta' when the inputs were pulled live from the Meta API. */
+  source?: 'manual' | 'meta';
+  metaCampaignId?: string | null;
+  metaDateRange?: string | null;
+}
+
+export async function saveForecast(
+  args: SaveForecastArgs,
+): Promise<{ id?: string; error?: string }> {
+  // Guests can't save — the forecast page shows a signup CTA instead, so
+  // this is only a safety net. Return a plain error, never redirect/throw.
+  const { supabase, user } = await getOptionalUser();
+  if (!user) {
+    return { error: 'NOT_SIGNED_IN' };
+  }
+
+  if (BILLING_ENABLED) {
+    // Stripe era: forecasts share the free-plan diagnosis cap.
+    const plan = await getPlan();
+    if (plan.limit !== null && plan.used >= plan.limit) {
+      return { error: 'FREE_LIMIT_REACHED' };
+    }
+  } else {
+    // Trial launch: unlimited saves while the trial is active.
+    const trial = await getTrial();
+    if (trial.expired) {
+      return { error: 'TRIAL_EXPIRED' };
+    }
+  }
+
+  const { data, error } = await supabase
+    .from('forecasts')
+    .insert({
+      user_id: user.id,
+      campaign_name: args.inputs.campaignName || 'Untitled forecast',
+      inputs: args.inputs,
+      results: args.results,
+      source: args.source ?? 'manual',
+      meta_campaign_id: args.metaCampaignId ?? null,
+      meta_date_range: args.metaDateRange ?? null,
+    })
+    .select('id')
+    .single();
+
+  if (error || !data) {
+    return { error: error?.message ?? 'Could not save the forecast.' };
+  }
+
+  revalidatePath('/dashboard');
+  return { id: data.id as string };
+}
+
+export async function deleteForecast(id: string): Promise<{ error?: string }> {
+  const { supabase, user } = await requireUser();
+
+  const { error } = await supabase
+    .from('forecasts')
+    .delete()
+    .eq('id', id)
+    .eq('user_id', user.id);
+
+  if (error) return { error: error.message };
 
   revalidatePath('/dashboard');
   return {};

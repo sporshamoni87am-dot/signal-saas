@@ -429,6 +429,7 @@ export interface InsightRow {
   reach?: string;
   clicks?: string;
   inline_link_clicks?: string;
+  landing_page_views?: string;
   ctr?: string;
   cpc?: string;
   cpm?: string;
@@ -455,6 +456,7 @@ const CORE_FIELDS = [
   'inline_link_clicks',
   'actions',
   'action_values',
+  'landing_page_views',
   'ctr',
   'cpc',
   'cpm',
@@ -568,6 +570,7 @@ export interface MappedLiveData {
     impressions: number | null;
     reach: number | null;
     linkClicks: number | null;
+    landingPageViews: number | null;
     addToCarts: number | null;
     checkoutsInitiated: number | null;
     purchases: number | null;
@@ -705,6 +708,7 @@ export function mapInsightsToInputs(
       reach,
       linkClicks:
         sumField(rows, 'inline_link_clicks') ?? sumField(rows, 'clicks'),
+      landingPageViews: sumField(rows, 'landing_page_views'),
       addToCarts: sumAction(rows, 'actions', ['add_to_cart', 'offsite_conversion.fb_pixel_add_to_cart']),
       checkoutsInitiated: sumAction(rows, 'actions', [
         'initiate_checkout',

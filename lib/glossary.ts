@@ -103,6 +103,24 @@ export const GLOSSARY: GlossaryEntry[] = [
     why: 'It sets your breakeven ROAS and powers POAS — the two numbers that decide if ads are truly profitable.',
     goodLooksLike: 'Know your real number (not a guess). Higher margin = more room to scale.',
   },
+  {
+    term: 'Contribution margin',
+    what: 'The % of each sale left after product cost AND variable costs (fulfilment, payment fees, shipping subsidy, expected returns) — before ad spend.',
+    why: 'Break-even ROAS and break-even CPA are built on this. Using gross margin instead understates what a sale must earn.',
+    goodLooksLike: 'Know your real number. If those variable costs are still excluded, your break-even is wrong.',
+  },
+  {
+    term: 'Learning phase',
+    what: 'The period after a new ad set launches (or after a big edit) while Meta explores who to show it to. The Delivery column reads "Learning".',
+    why: 'Costs and ROAS swing while Meta is still learning — judging a campaign now is judging noise.',
+    goodLooksLike: 'Exited after about 50 optimisation events in a week. Below that pace, expect "Learning Limited".',
+  },
+  {
+    term: 'Attribution window',
+    what: 'How long after a click or view a purchase still counts for your ad. Meta’s default is 7-day click + 1-day view (plus a 1-day engage-through leg).',
+    why: 'It decides which purchases Meta claims — and therefore what ROAS you see. A longer window always reports more purchases.',
+    goodLooksLike: 'Label the window on every report. Compare like with like — never mix windows.',
+  },
 ];
 
 export function glossaryFor(term: string): GlossaryEntry | undefined {

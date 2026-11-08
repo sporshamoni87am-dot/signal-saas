@@ -147,6 +147,45 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Forecast — early-stage planning model */}
+      <section className="border-t border-zinc-800/80 bg-zinc-900/30">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-lime-300">NEW · EARLY-STAGE FORECAST</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
+                $5,000 budget, $550 spent. How will it land?
+              </h2>
+              <p className="mt-4 leading-relaxed text-zinc-400">
+                The forecast projects the rest of your budget at today&apos;s rates — expected
+                purchases, revenue, CPA and ROAS at full spend — and shows the funnel leak,
+                step by step, so you can see <em className="text-zinc-300">where</em> it breaks,
+                not just that it does.
+              </p>
+              <p className="mt-4 leading-relaxed text-zinc-400">
+                Most importantly, it refuses to judge a campaign that isn&apos;t ready to be
+                judged: until Meta&apos;s learning phase is over (about 50 optimisation events
+                in a week), every verdict is provisional — too early to scale or pause.
+              </p>
+              <Link href="/forecast" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-7 py-3 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+                Try the forecast — no sign-up
+              </Link>
+              <p className="mt-3 text-xs text-zinc-500">
+                A planning model built on your numbers — not a Meta prediction, and not affiliated with Meta.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-[13px] leading-relaxed">
+              <p className="text-zinc-500">{'// what the forecast shows you'}</p>
+              <p className="mt-2 text-zinc-300">learning: <span className="font-bold text-amber-300">LIMITED RISK · 11 / 50 events · ~7/week</span></p>
+              <p className="text-zinc-300">guidance: <span className="text-zinc-100">too early to scale or pause — verdicts are provisional</span></p>
+              <p className="text-zinc-300">full budget: <span className="text-zinc-100">~99 purchases · CPA $50.28 · ROAS 1.37×</span></p>
+              <p className="mt-3 text-zinc-300">leak: <span className="text-zinc-100">checkout → purchase 45.0% · watch</span></p>
+              <p className="text-zinc-500">min daily budget to exit learning: (target CPA × 50) ÷ 7</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing — trial launch: free 30 days, no card, no paywall */}
       <section id="pricing" className="border-t border-zinc-800/80">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
@@ -166,6 +205,7 @@ export default function LandingPage() {
               <ul className="mx-auto mt-6 max-w-sm space-y-2.5 text-left text-sm text-zinc-300">
                 <li>✓ Unlimited diagnoses for 30 days</li>
                 <li>✓ Full D2C diagnosis engine</li>
+                <li>✓ Early-stage forecast with learning-phase gate</li>
                 <li>✓ Business metrics (MER, POAS)</li>
                 <li>✓ Creative analysis + Ads Manager action items</li>
                 <li>✓ Save history + old-vs-new comparison</li>

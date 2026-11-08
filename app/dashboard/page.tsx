@@ -6,11 +6,13 @@ import { createClient } from '@/lib/supabase/server';
 import { getTrial } from '@/lib/actions';
 import { Card, EmptyState, PageHeader, VerdictBadge } from '@/components/ui';
 import DeleteButton from '@/components/delete-button';
+import DeleteForecastButton from '@/components/delete-forecast-button';
 import SignOutButton from '@/components/signout-button';
 import TrialBanner from '@/components/trial-banner';
 import MetaConnect from '@/components/meta-connect';
 import { fmtDateTime, fmtMoney } from '@/lib/format';
 import type { DiagnosisResults, Verdict } from '@/lib/engine';
+import type { ForecastResults } from '@/lib/forecast';
 
 interface DiagnosisRow {
   id: string;
@@ -18,6 +20,14 @@ interface DiagnosisRow {
   verdict: Verdict;
   inputs: Record<string, unknown>;
   results: DiagnosisResults;
+  created_at: string;
+}
+
+interface ForecastRow {
+  id: string;
+  campaign_name: string;
+  inputs: Record<string, unknown>;
+  results: ForecastResults;
   created_at: string;
 }
 
@@ -53,8 +63,17 @@ export default async function DashboardPage() {
     .select('id, campaign_name, verdict, inputs, results, created_at')
     .order('created_at', { ascending: false });
 
+  // The forecasts table lands with migration 004 — until it has run, this
+  // query errors and the section simply renders empty instead of breaking
+  // the dashboard.
+  const { data: forecastRows, error: forecastError } = await supabase
+    .from('forecasts')
+    .select('id, campaign_name, inputs, results, created_at')
+    .order('created_at', { ascending: false });
+
   const trial = await getTrial();
   const diagnoses = (rows ?? []) as DiagnosisRow[];
+  const forecasts = (forecastError ? [] : (forecastRows ?? [])) as ForecastRow[];
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
@@ -64,9 +83,14 @@ export default async function DashboardPage() {
         actions={
           <>
             {!trial.expired && (
-              <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
-                + New diagnosis
-              </Link>
+              <>
+                <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+                  + New diagnosis
+                </Link>
+                <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-lime-400/60 bg-lime-400/10 px-5 py-2.5 text-sm font-semibold text-lime-200 transition hover:bg-lime-400/20">
+                  + New forecast
+                </Link>
+              </>
             )}
             <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
               Plans
@@ -165,6 +189,77 @@ export default async function DashboardPage() {
           })}
         </div>
       )}
+
+      {/* Saved forecasts */}
+      <div className="mt-10">
+        <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-semibold tracking-tight text-zinc-100">Forecasts</h2>
+            <p className="mt-0.5 text-sm text-zinc-500">
+              Early-stage projections — how a young campaign is likely to land at full budget.
+            </p>
+          </div>
+          {!trial.expired && (
+            <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-lime-400/60 bg-lime-400/10 px-4 py-2 text-sm font-semibold text-lime-200 transition hover:bg-lime-400/20">
+              + New forecast
+            </Link>
+          )}
+        </div>
+
+        {forecasts.length === 0 ? (
+          <Card>
+            <p className="text-sm font-semibold text-zinc-100">No forecasts saved yet</p>
+            <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+              Spent $500 of a $5,000 budget and wondering how it lands? Run a forecast — the
+              learning-phase gate tells you whether the numbers are even ready to judge yet.
+            </p>
+            <Link href="/forecast?sample=1" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+              Try the sample forecast →
+            </Link>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {forecasts.map((f) => {
+              const spend = (f.inputs?.spentSoFar as number | null) ?? null;
+              const fullRoas = f.results?.fullRoas;
+              const fullPurchases = f.results?.fullPurchases;
+              return (
+                <Card key={f.id} className="flex flex-col transition-colors hover:border-zinc-700">
+                  <h3 className="min-w-0 break-words font-semibold text-zinc-100">{f.campaign_name}</h3>
+                  <p className="mt-1 break-words text-xs text-zinc-500">{fmtDateTime(f.created_at)}</p>
+                  <p className="mt-3 text-sm font-medium text-zinc-200">{f.results?.guidance?.headline ?? 'Forecast'}</p>
+                  <div className="mt-4 flex gap-6 text-sm">
+                    <div>
+                      <p className="text-xs text-zinc-500">Full-budget ROAS</p>
+                      <p className="font-mono font-semibold text-zinc-100">
+                        {fullRoas !== null && fullRoas !== undefined ? `${fullRoas.toFixed(2)}×` : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-500">Full-budget purchases</p>
+                      <p className="font-mono font-semibold text-zinc-100">
+                        {fullPurchases !== null && fullPurchases !== undefined ? fullPurchases.toFixed(1) : '—'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-zinc-500">Spent</p>
+                      <p className="font-mono font-semibold text-zinc-100">{fmtMoney(spend)}</p>
+                    </div>
+                  </div>
+                  <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-zinc-800 pt-4">
+                    <Link href={`/forecasts/${f.id}`} className="inline-flex min-h-11 items-center rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700">
+                      View
+                    </Link>
+                    <span className="ml-auto">
+                      <DeleteForecastButton id={f.id} />
+                    </span>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
