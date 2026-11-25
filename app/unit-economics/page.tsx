@@ -75,6 +75,23 @@ function OutputRow({ label, value, formula, note }: { label: string; value: stri
 
 const INPUT_GREEN = 'border-lime-400/60 bg-lime-400/5';
 
+/** Ben's Key box, as it appears on both of his sheets (rows 14–15 / 19–20). */
+function KeyLegend() {
+  return (
+    <div className="mt-4 inline-flex flex-col gap-1.5 rounded-xl border border-zinc-800 px-3 py-2 text-xs text-zinc-400">
+      <p className="font-semibold text-zinc-200">Key:</p>
+      <p className="flex items-center gap-2">
+        <span className="inline-block h-4 w-8 rounded-sm border border-lime-400/60 bg-lime-400/20" />
+        Input required
+      </p>
+      <p className="flex items-center gap-2">
+        <span className="inline-block h-4 w-8 rounded-sm border border-zinc-700 bg-zinc-950" />
+        Calculated — do not type here
+      </p>
+    </div>
+  );
+}
+
 export default function UnitEconomicsPage() {
   // ---- Section 1: Heath's Sheet 1, pre-filled with his base example ----
   const [aov, setAov] = useState('200');
@@ -295,6 +312,7 @@ export default function UnitEconomicsPage() {
         {!sheet1Valid && (
           <p className="mt-3 text-sm text-amber-300">Fill in all 5 inputs above to see the answers.</p>
         )}
+        <KeyLegend />
       </Card>
 
       {/* ============ SECTION 2 — Heath's break-even sheet ============ */}
@@ -370,6 +388,7 @@ export default function UnitEconomicsPage() {
           <OutputRow label="Gross Profit on 1st transaction" value={money(beLead.grossProfitFirst)} formula="= 1st transaction value × Gross Profit Margin  (inferred)" note="His sheet: $500 at $1,000 × 50%" />
           <OutputRow label="Acceptable cost per lead" value={money(beLead.acceptableCpl)} formula="= Gross Profit on 1st transaction × lead-to-client conversion  (inferred)" note="His sheet: $100 at 20% close rate — $75 at 10%, $225 at 30%" />
         </div>
+        <KeyLegend />
       </Card>
 
       {/* ============ EXTRAS — NOT part of Ben Heath's calculator ============ */}
