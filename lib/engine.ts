@@ -1,5 +1,5 @@
 /**
- * Meta Ads Signal Assistance — D2C diagnosis engine.
+ * AdSignal Pro — D2C diagnosis engine.
  *
  * Pure, transparent, rule-based logic. No AI, no hidden scoring.
  * Every verdict and action item traces back to a rule whose math is shown.
@@ -176,6 +176,13 @@ const BENCH = {
   freqWarn: 4.0,
   clickAtcGood: 0.08,
   clickAtcWarn: 0.04,
+  // Add-to-cart per LANDING PAGE VIEW — the denominator the funnel uses
+  // when LPV was entered. Derived from click→ATC (8%/4%) at the typical
+  // ~80% click→LPV rate: 8% of clicks ≈ 10% of page views. Used for the
+  // "Landing page views → Add to cart" signal; the click-based thresholds
+  // above still apply when no LPV was entered.
+  lpvAtcGood: 0.1,
+  lpvAtcWarn: 0.05,
   checkoutPurchaseGood: 0.6,
   checkoutPurchaseWarn: 0.35,
   hookGood: 0.3,
@@ -451,14 +458,23 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     explanation: 'How often the same people see your ad. Rising frequency + falling CTR = fatigue setting in.',
   });
 
-  const clickAtcStatus = grade(clickToAtc, BENCH.clickAtcGood, BENCH.clickAtcWarn);
+  // Add-to-cart rate — ONE denominator, the same rule the funnel uses:
+  // landing page views when LPV was entered, clicks when it wasn't.
+  // The funnel and this signal now always agree on the rate and its label.
+  const hasLpv = landingPageViews !== null;
+  const atcRate = hasLpv ? lpvToAtc : clickToAtc;
+  const atcStatus = hasLpv
+    ? grade(lpvToAtc, BENCH.lpvAtcGood, BENCH.lpvAtcWarn)
+    : grade(clickToAtc, BENCH.clickAtcGood, BENCH.clickAtcWarn);
   adSignals.push({
     key: 'clickToAtc',
-    label: 'Click → Add to cart',
-    value: clickToAtc,
-    display: clickToAtc !== null ? `${(clickToAtc * 100).toFixed(1)}%` : '—',
-    status: clickAtcStatus,
-    benchmark: `Good ≥ ${(BENCH.clickAtcGood * 100).toFixed(0)}% · Watch ≥ ${(BENCH.clickAtcWarn * 100).toFixed(0)}%. ${ADJUSTABLE}`,
+    label: hasLpv ? 'Landing page views → Add to cart' : 'Click → Add to cart',
+    value: atcRate,
+    display: atcRate !== null ? `${(atcRate * 100).toFixed(1)}%` : '—',
+    status: atcStatus,
+    benchmark: hasLpv
+      ? `Good ≥ ${(BENCH.lpvAtcGood * 100).toFixed(0)}% · Watch ≥ ${(BENCH.lpvAtcWarn * 100).toFixed(0)}% of page views. ${ADJUSTABLE}`
+      : `Good ≥ ${(BENCH.clickAtcGood * 100).toFixed(0)}% · Watch ≥ ${(BENCH.clickAtcWarn * 100).toFixed(0)}% of clicks. ${ADJUSTABLE}`,
     explanation: 'Landing page verdict. Clicks were interested — did the page sell? Low rate = message mismatch, slow page, or weak offer.',
   });
 
@@ -583,10 +599,20 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
   // ---------------- signal-driven action items (RUN / FIX) ----------------
   if (verdict === 'RUN' || verdict === 'FIX') {
     if (ctrStatus === 'bad' || hookStatus === 'bad') {
+      // Print ONLY the conditions that actually failed — the guard is an
+      // OR, so printing both would state false maths (e.g. "CTR 1.22% <
+      // 0.7%" when CTR is graded Good and only the hook failed).
+      const failedParts: string[] = [];
+      if (ctrStatus === 'bad' && ctr !== null) {
+        failedParts.push(`CTR ${(ctr * 100).toFixed(2)}% < ${(bench.ctrWarn * 100).toFixed(1)}%`);
+      }
+      if (hookStatus === 'bad' && hookRate !== null) {
+        failedParts.push(`hook ${(hookRate * 100).toFixed(1)}% < ${(BENCH.hookWarn * 100).toFixed(0)}%`);
+      }
       rulesFired.push({
         rule: 'Creative weakness detected',
         detail: 'CTR and/or hook rate below floor — the ad isn’t earning attention.',
-        math: `CTR ${ctr !== null ? (ctr * 100).toFixed(2) + '%' : 'n/a'} < ${(bench.ctrWarn * 100).toFixed(1)}%${hookRate !== null ? ` · hook ${(hookRate * 100).toFixed(1)}% < ${(BENCH.hookWarn * 100).toFixed(0)}%` : ''}`,
+        math: failedParts.join(' · ') || 'creative signal below floor',
       });
       addAction(
         'Fix the first 3 seconds — launch 3 new hooks',
@@ -594,11 +620,13 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
         'Ads Manager → Ad level → Duplicate the ad 3× → swap only the first 3 seconds → publish into the same ad set. Judge after each hook spends ~0.5× target CPA.',
       );
     }
-    if (clickAtcStatus === 'bad') {
+    if (atcStatus === 'bad') {
       rulesFired.push({
         rule: 'Landing page leak detected',
         detail: 'Clicks arrive but don’t add to cart — page/offer mismatch.',
-        math: `click→ATC ${clickToAtc !== null ? (clickToAtc * 100).toFixed(1) + '%' : 'n/a'} < ${(BENCH.clickAtcWarn * 100).toFixed(0)}%`,
+        math: hasLpv
+          ? `LPV→ATC ${lpvToAtc !== null ? (lpvToAtc * 100).toFixed(1) + '%' : 'n/a'} < ${(BENCH.lpvAtcWarn * 100).toFixed(0)}% of page views`
+          : `click→ATC ${clickToAtc !== null ? (clickToAtc * 100).toFixed(1) + '%' : 'n/a'} < ${(BENCH.clickAtcWarn * 100).toFixed(0)}% of clicks`,
       });
       addAction(
         'Fix the landing page before touching ads',
@@ -615,7 +643,7 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
       addAction(
         'Remove checkout friction',
         'They wanted to buy. Suspects: surprise shipping costs, forced account creation, limited payment options, missing trust signals.',
-        'Store settings → enable guest checkout + show shipping costs early + add reviews/trust badges on the cart page.',
+        'In your store platform (Shopify / WooCommerce): enable guest checkout + show shipping costs early + add reviews/trust badges on the cart page.',
       );
     }
     if (cpa !== null && targetCpa !== null && cpa > targetCpa * 1.3) {

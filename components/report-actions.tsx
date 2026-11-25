@@ -197,7 +197,7 @@ export default function ReportActions({
                 <li key={a.priority} style={{ marginBottom: 8 }}>
                   <strong>{a.title}.</strong> {a.detail}
                   <br />
-                  <em>In Ads Manager: {a.adsManagerStep}</em>
+                  <em>Do this: {a.adsManagerStep}</em>
                 </li>
               ))}
             </ol>

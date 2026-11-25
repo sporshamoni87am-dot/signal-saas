@@ -121,7 +121,7 @@ const AD_FIELDS: NumFieldDef[] = [
 
 const CREATIVE_FIELDS: NumFieldDef[] = [
   { name: 'videoViews3s', label: '3-sec video views', hint: 'From Ads Manager video metrics.', helpTerm: 'Hook rate' },
-  { name: 'videoThruplays', label: 'Video thruplays / completions', helpTerm: 'Hold rate' },
+  { name: 'videoThruplays', label: 'Video thruplays', helpTerm: 'Hold rate' },
   { name: 'frequency', label: 'Frequency', hint: 'Average impressions per person.', helpTerm: 'Frequency' },
 ];
 
@@ -161,8 +161,8 @@ function sampleToForm(): FormState {
     videoViews3s: str(s.videoViews3s),
     videoThruplays: str(s.videoThruplays),
     frequency: str(s.frequency),
-    marketRegion: '',
-    productCategory: '',
+    marketRegion: s.marketRegion ?? '',
+    productCategory: s.productCategory ?? '',
   };
 }
 
@@ -250,8 +250,8 @@ function NumField({
   return (
     <Field
       label={
-        <span>
-          {def.label + (def.required ? ' *' : '')}
+        <span className="inline-flex items-center gap-1">
+          <span className="whitespace-nowrap">{def.label + (def.required ? ' *' : '')}</span>
           {def.helpTerm && <MetricHelp term={def.helpTerm} />}
         </span>
       }
@@ -268,6 +268,7 @@ function NumField({
             onChange={(e) => onChange(e.target.value)}
             className={cn(inputClassName, error && 'border-red-500/70')}
             placeholder={def.label}
+            aria-label={def.label}
             aria-invalid={error}
           />
         ) : (
@@ -280,6 +281,7 @@ function NumField({
             onChange={(e) => onChange(e.target.value)}
             className={cn(inputClassName, def.prefix && 'pl-8', def.suffix && 'pr-10', error && 'border-red-500/70')}
             placeholder="0"
+            aria-label={def.label}
             aria-invalid={error}
           />
         )}
@@ -670,6 +672,13 @@ function DiagnoseWizard() {
    * return visit can't resurrect the old run either.
    */
   function startFresh() {
+    // Clearing is destructive — confirm when there is work to lose. A
+    // fresh empty form clears silently (nothing to lose).
+    const dirty =
+      (Object.keys(EMPTY) as (keyof FormState)[]).some((k) => form[k] !== EMPTY[k]) ||
+      results !== null ||
+      shotFile !== null;
+    if (dirty && !window.confirm('Start fresh? This clears your inputs and results.')) return;
     // An uploaded-but-unsaved screenshot is deleted so it can't orphan.
     if (shotPath) {
       fetch('/api/screenshots/cleanup', {
@@ -765,7 +774,7 @@ function DiagnoseWizard() {
             away. Creating new diagnoses is paused until paid plans launch.
           </p>
           <div className="mt-5 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500">
               View my diagnoses
             </Link>
             <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
@@ -807,7 +816,9 @@ function DiagnoseWizard() {
               <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
               <GhostButton onClick={loadSample} className="w-full sm:w-auto">Load sample</GhostButton>
               <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
-              {saveCta}
+              {/* One save prompt per report: guests get the banner below,
+                  logged-in users get the Save button here (and only here). */}
+              {!isGuest && saveCta}
             </div>
           }
         />
@@ -817,9 +828,9 @@ function DiagnoseWizard() {
           </p>
         )}
         {isGuest && (
-          <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3">
+          <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3">
             <p className="text-sm text-zinc-300">
-              <strong className="text-lime-200">Keep this diagnosis.</strong>{' '}
+              <strong className="text-violet-200">Keep this diagnosis.</strong>{' '}
               A free account saves it to your dashboard — your inputs are preserved, nothing to retype.
             </p>
             <PrimaryLink href="/signup?next=/diagnose" onClick={() => markRestore('diagnose')} className="w-full shrink-0 px-4 py-2 sm:w-auto">
@@ -836,7 +847,6 @@ function DiagnoseWizard() {
           <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
           <GhostButton onClick={loadSample} className="w-full sm:w-auto">Load sample</GhostButton>
           <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
-          {saveCta}
         </div>
       </div>
     );
@@ -853,7 +863,7 @@ function DiagnoseWizard() {
       <div className="no-print mb-6 flex flex-wrap items-center gap-2">
         <GhostButton onClick={startFresh}>↺ Start fresh</GhostButton>
         <GhostButton onClick={loadSample}>Load sample</GhostButton>
-        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200">
+        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-violet-300 transition hover:text-violet-200">
           How it works →
         </Link>
       </div>
@@ -876,7 +886,7 @@ function DiagnoseWizard() {
         </p>
 
         {connectDone && (
-          <p className="mt-3 rounded-xl border border-lime-400/40 bg-lime-400/5 px-3.5 py-2.5 text-sm text-lime-200">
+          <p className="mt-3 rounded-xl border border-violet-500/40 bg-violet-500/5 px-3.5 py-2.5 text-sm text-violet-200">
             ✓ Meta account connected — pick an ad account and campaign below.
           </p>
         )}
@@ -889,7 +899,7 @@ function DiagnoseWizard() {
         {isGuest && (
           <p className="mt-3 text-sm text-zinc-300">
             Live data needs a free account.{' '}
-            <Link href="/signup?next=/diagnose" onClick={() => markRestore('diagnose')} className="font-semibold text-lime-300 underline underline-offset-2">
+            <Link href="/signup?next=/diagnose" onClick={() => markRestore('diagnose')} className="font-semibold text-violet-300 underline underline-offset-2">
               Create one
             </Link>{' '}
             to connect your Meta ad account — manual entry works right now.
@@ -996,8 +1006,8 @@ function DiagnoseWizard() {
               </p>
             )}
             {liveSource && (
-              <div className="rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3">
-                <p className="text-sm font-semibold text-lime-200">
+              <div className="rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3">
+                <p className="text-sm font-semibold text-violet-200">
                   ✓ Live data loaded — {liveSource.objectName ?? 'campaign'} · {liveSource.since} → {liveSource.until}
                 </p>
                 <p className="mt-1 text-[13px] text-zinc-400">
@@ -1029,8 +1039,8 @@ function DiagnoseWizard() {
                 aria-current={idx === step ? 'step' : undefined}
                 className={cn(
                   'flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors',
-                  idx < step && 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950',
-                  idx === step && 'bg-lime-400/20 text-lime-300 ring-2 ring-lime-400/60',
+                  idx < step && 'bg-gradient-to-r from-violet-600 to-indigo-600 text-white',
+                  idx === step && 'bg-violet-500/20 text-violet-300 ring-2 ring-violet-500/60',
                   idx > step && 'bg-zinc-800 text-zinc-500',
                 )}
               >
@@ -1039,7 +1049,7 @@ function DiagnoseWizard() {
               <span className={cn('hidden text-xs font-semibold sm:block', idx === step ? 'text-zinc-100' : 'text-zinc-500')}>{s.title}</span>
               <span className={cn('hidden text-[11px] leading-snug sm:block', idx === step ? 'text-zinc-400' : 'text-zinc-500')}>{s.desc}</span>
             </div>
-            {idx < STEP_META.length - 1 && <div className={cn('mt-4 h-px flex-1 transition-colors', idx < step ? 'bg-gradient-to-r from-lime-400 to-emerald-400' : 'bg-zinc-800')} />}
+            {idx < STEP_META.length - 1 && <div className={cn('mt-4 h-px flex-1 transition-colors', idx < step ? 'bg-gradient-to-r from-violet-600 to-indigo-600' : 'bg-zinc-800')} />}
           </div>
         ))}
       </nav>
@@ -1050,7 +1060,7 @@ function DiagnoseWizard() {
           bar is the clearest "where am I" signal on a small screen. */}
       <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-zinc-800" aria-hidden>
         <div
-          className="h-full rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 transition-all duration-300"
+          className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 transition-all duration-300"
           style={{ width: `${((step + 1) / STEP_META.length) * 100}%` }}
         />
       </div>

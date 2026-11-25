@@ -3,7 +3,7 @@ import { Card, PageHeader } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'How Meta Ads Signal Assistance collects, uses, and protects your data.',
+  description: 'How AdSignal Pro collects, uses, and protects your data.',
 };
 
 export default function PrivacyPage() {
@@ -75,11 +75,14 @@ export default function PrivacyPage() {
           <h2 className="text-base font-semibold text-zinc-100">5. Contact</h2>
           <p className="mt-1.5">
             For privacy questions or deletion requests, contact:{' '}
-            <span className="font-mono text-zinc-100">[your support email]</span>.
+            <a href="mailto:radichowdhury2017@gmail.com" className="font-mono text-zinc-100 underline underline-offset-2">
+              radichowdhury2017@gmail.com
+            </a>
+            .
           </p>
         </section>
 
-        <p className="text-xs text-zinc-500">Last updated: [date] · Version: template v1</p>
+        <p className="text-xs text-zinc-500">Last updated: 25 November 2026</p>
       </Card>
     </div>
   );

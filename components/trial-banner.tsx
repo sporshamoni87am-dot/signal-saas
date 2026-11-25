@@ -45,8 +45,8 @@ export default async function TrialBanner({ compact = false }: { compact?: boole
     <Card className={cn('flex flex-wrap items-center justify-between gap-3', !compact && 'mb-6')}>
       <div className="flex items-center gap-3">
         <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-lime-400 opacity-60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-lime-400" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-600 opacity-60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-violet-600" />
         </span>
         <div>
           <p className="text-sm font-semibold text-zinc-100">{label}</p>
@@ -58,7 +58,7 @@ export default async function TrialBanner({ compact = false }: { compact?: boole
       {!compact && (
         <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800 sm:w-40" title={`${TRIAL_DAYS}-day trial`}>
           <div
-            className="h-full rounded-full bg-lime-400"
+            className="h-full rounded-full bg-violet-600"
             style={{ width: `${Math.max(4, Math.min(100, (days / TRIAL_DAYS) * 100))}%` }}
           />
         </div>

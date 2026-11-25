@@ -6,7 +6,7 @@ import { Card, SectionTitle, StatusPill, VerdictBadge } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
 const VERDICT_RING: Record<string, string> = {
-  SCALE: 'border-lime-400/50',
+  SCALE: 'border-emerald-400/50',
   RUN: 'border-sky-400/50',
   FIX: 'border-amber-400/50',
   WAIT: 'border-zinc-600',
@@ -14,7 +14,7 @@ const VERDICT_RING: Record<string, string> = {
 };
 
 const VERDICT_GLOW: Record<string, string> = {
-  SCALE: 'radial-gradient(60% 120% at 50% 0%, rgb(163 230 53 / 0.14), transparent 70%)',
+  SCALE: 'radial-gradient(60% 120% at 50% 0%, rgb(52 211 153 / 0.14), transparent 70%)',
   RUN: 'radial-gradient(60% 120% at 50% 0%, rgb(56 189 248 / 0.14), transparent 70%)',
   FIX: 'radial-gradient(60% 120% at 50% 0%, rgb(251 191 36 / 0.14), transparent 70%)',
   WAIT: 'radial-gradient(60% 120% at 50% 0%, rgb(161 161 170 / 0.12), transparent 70%)',
@@ -22,7 +22,7 @@ const VERDICT_GLOW: Record<string, string> = {
 };
 
 const VERDICT_TITLE_COLOR: Record<string, string> = {
-  SCALE: 'text-lime-300',
+  SCALE: 'text-emerald-300',
   RUN: 'text-sky-300',
   FIX: 'text-amber-300',
   WAIT: 'text-zinc-200',
@@ -47,7 +47,7 @@ function SignalTable({ signals }: { signals: SignalGrade[] }) {
             {signals.map((s) => (
               <tr key={s.key} className="border-b border-zinc-800/60 last:border-0">
                 <td className="py-3 pr-3 font-medium text-zinc-200">{s.label}</td>
-                <td className="py-3 pr-3 font-mono text-zinc-100">{s.display}</td>
+                <td className="whitespace-nowrap py-3 pr-3 font-mono text-zinc-100">{s.display}</td>
                 <td className="py-3 pr-3">
                   <StatusPill status={s.status} />
                 </td>
@@ -68,7 +68,7 @@ function SignalTable({ signals }: { signals: SignalGrade[] }) {
               <p className="text-sm font-semibold text-zinc-100">{s.label}</p>
               <StatusPill status={s.status} />
             </div>
-            <p className="mt-1.5 font-mono text-lg text-zinc-100">{s.display}</p>
+            <p className="mt-1.5 whitespace-nowrap font-mono text-lg text-zinc-100">{s.display}</p>
             <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-400">{s.explanation}</p>
             <p className="mt-1.5 text-xs text-zinc-500">Benchmark: {s.benchmark}</p>
           </div>
@@ -146,18 +146,24 @@ export default function DiagnosisReport({
         <div className="flex items-center gap-4">
           <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
             <div
-              className={cn('h-full rounded-full', results.dataSufficiency.sufficient ? 'bg-gradient-to-r from-lime-400 to-emerald-400' : 'bg-gradient-to-r from-amber-400 to-orange-400')}
+              className={cn('h-full rounded-full', results.dataSufficiency.sufficient ? 'bg-gradient-to-r from-emerald-400 to-green-400' : 'bg-gradient-to-r from-amber-400 to-orange-400')}
               style={{ width: `${Math.min(100, (progress ?? 0) * 100)}%` }}
             />
           </div>
-          <span className="font-mono text-sm text-zinc-300">
-            {progress !== null ? `${Math.round(progress * 100)}%` : '—'}
+          <span className="whitespace-nowrap font-mono text-sm text-zinc-300">
+            {/* Spend can be many times the minimum — "2919%" reads as a
+                broken number. Show the plain-language multiple instead. */}
+            {progress === null
+              ? '—'
+              : progress >= 10
+                ? `${Math.round(progress)}× the minimum data needed`
+                : `${Math.round(progress * 100)}%`}
           </span>
         </div>
         <p className="mt-2 text-sm text-zinc-400">
           {results.dataSufficiency.targetCpa !== null ? (
             <>
-              Target CPA <span className="font-mono text-zinc-200">${results.dataSufficiency.targetCpa.toFixed(2)}</span>
+              Target CPA <span className="whitespace-nowrap font-mono text-zinc-200">${results.dataSufficiency.targetCpa.toFixed(2)}</span>
               {' '}(AOV ÷ breakeven ROAS). {results.dataSufficiency.note}
             </>
           ) : (
@@ -248,7 +254,7 @@ export default function DiagnosisReport({
                   </span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                  <div className="h-full rounded-full bg-gradient-to-r from-lime-500 to-lime-300" style={{ width: `${pct}%` }} />
+                  <div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-400" style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );
@@ -258,7 +264,7 @@ export default function DiagnosisReport({
 
       {/* Budget leaks — the same funnel, ranked by money lost, not by rate */}
       <Card>
-        <SectionTitle hint="Every person lost at a stage cost one click's worth of spend — so the stage where the most dollars die is the one to fix first.">
+        <SectionTitle hint="An estimate, modelled from your cost per click: every person lost at a stage cost roughly one click's worth of spend — so the stage where the most dollars are lost is the one to fix first.">
           Where your budget is leaking
         </SectionTitle>
         {results.leakRanking === undefined ? (
@@ -275,8 +281,8 @@ export default function DiagnosisReport({
             <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-200">
               <strong>#1 focus: fix {results.leakRanking.biggestLeak.fromStage} → {results.leakRanking.biggestLeak.toStage} first</strong>
               {' — '}
-              {fmtMoney(results.leakRanking.biggestLeak.wastedSpend)} of your {fmtMoney(results.leakRanking.totalSpend)} spend
-              died here ({fmtInt(results.leakRanking.biggestLeak.lost)} people).
+              an estimated {fmtMoney(results.leakRanking.biggestLeak.wastedSpend)} of your {fmtMoney(results.leakRanking.totalSpend)} spend
+              is lost here ({fmtInt(results.leakRanking.biggestLeak.lost)} people).
             </p>
             <div className="mt-4 space-y-2.5">
               {results.leakRanking.steps.map((s) => (
@@ -285,7 +291,7 @@ export default function DiagnosisReport({
                     <span className="font-medium text-zinc-200">
                       {s.fromStage} → {s.toStage}
                     </span>
-                    <span className="shrink-0 font-mono text-zinc-100">
+                    <span className="shrink-0 whitespace-nowrap font-mono text-zinc-100">
                       {fmtMoney(s.wastedSpend)}
                       <span className="ml-2 text-xs text-zinc-500">
                         {fmtInt(s.lost)} lost · {(s.shareOfWaste * 100).toFixed(0)}% of waste
@@ -302,9 +308,10 @@ export default function DiagnosisReport({
               ))}
             </div>
             <p className="mt-3 text-xs leading-relaxed text-zinc-500">
-              {fmtMoney(results.leakRanking.totalWastedSpend)} of {fmtMoney(results.leakRanking.totalSpend)} spend
+              An estimated {fmtMoney(results.leakRanking.totalWastedSpend)} of {fmtMoney(results.leakRanking.totalSpend)} spend
               never became a purchase across the funnel stages you entered. Fix the biggest
-              bar first — it moves the most money.
+              bar first — it moves the most money. Modelled from your cost per click, not
+              measured per stage.
             </p>
           </>
         )}
@@ -320,7 +327,10 @@ export default function DiagnosisReport({
             <li key={idx} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
               <p className="text-sm font-semibold text-zinc-100">{r.rule}</p>
               <p className="mt-1 text-sm text-zinc-400">{r.detail}</p>
-              <p className="mt-2 break-words font-mono text-xs text-lime-300/90">{r.math}</p>
+              {/* No break-words here: it can split a "$23.64" token across
+                  lines on narrow screens. Normal wrapping breaks at the
+                  spaces between tokens, so each amount stays one number. */}
+              <p className="mt-2 font-mono text-xs text-violet-300/90">{r.math}</p>
             </li>
           ))}
         </ul>
@@ -334,14 +344,14 @@ export default function DiagnosisReport({
         <ol className="space-y-4">
           {results.actionItems.map((a) => (
             <li key={a.priority} className="flex gap-4">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lime-400 text-sm font-bold text-zinc-950">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-bold text-white">
                 {a.priority}
               </span>
               <div className="min-w-0">
                 <p className="font-semibold text-zinc-100">{a.title}</p>
                 <p className="mt-1 text-sm leading-relaxed text-zinc-400">{a.detail}</p>
                 <p className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-[13px] text-zinc-300">
-                  <span className="font-semibold text-lime-300">In Ads Manager: </span>
+                  <span className="font-semibold text-violet-300">Do this: </span>
                   {a.adsManagerStep}
                 </p>
               </div>
@@ -363,7 +373,7 @@ export default function DiagnosisReport({
 
       {/* Plain-language metric guide — beginner-proofing */}
       <details className="group rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:p-6">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-zinc-200 transition hover:text-lime-300">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-zinc-200 transition hover:text-violet-300">
           <span className="mr-2 inline-block transition group-open:rotate-90">▸</span>
           New to these metrics? Read the plain-language guide
         </summary>
@@ -377,7 +387,7 @@ export default function DiagnosisReport({
               <p className="mt-1 text-[13px] leading-relaxed text-zinc-400">
                 <strong className="text-zinc-300">Why: </strong>{g.why}
               </p>
-              <p className="mt-1 text-[13px] leading-relaxed text-lime-200/80">
+              <p className="mt-1 text-[13px] leading-relaxed text-violet-200/80">
                 <strong>Good: </strong>{g.goodLooksLike}
               </p>
             </div>

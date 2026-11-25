@@ -25,7 +25,7 @@ export default function MetricHelp({ term, className }: { term: string; classNam
            target ~44px, and the popover is a fixed, viewport-wide sheet on
            phones (an absolute w-72 card anchored mid-label would overflow
            a 360px screen). Backdrop closes it on tap outside. */
-        className="relative ml-1.5 inline-flex h-5 w-5 translate-y-[1px] items-center justify-center rounded-full border border-zinc-600 text-[11px] font-bold text-zinc-400 transition after:absolute after:-inset-3 after:content-[''] hover:border-lime-400/60 hover:text-lime-300"
+        className="relative ml-1.5 inline-flex h-5 w-5 translate-y-[1px] items-center justify-center rounded-full border border-zinc-600 text-[11px] font-bold text-zinc-400 transition after:absolute after:-inset-3 after:content-[''] hover:border-violet-500/60 hover:text-violet-300"
       >
         i
       </button>
@@ -46,7 +46,7 @@ export default function MetricHelp({ term, className }: { term: string; classNam
               <strong className="font-semibold text-zinc-100">Why it matters: </strong>
               {entry.why}
             </span>
-            <span className="mt-1.5 block text-[13px] leading-relaxed text-lime-200/90">
+            <span className="mt-1.5 block text-[13px] leading-relaxed text-violet-200/90">
               <strong className="font-semibold">Good looks like: </strong>
               {entry.goodLooksLike}
             </span>

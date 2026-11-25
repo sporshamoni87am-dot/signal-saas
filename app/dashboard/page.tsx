@@ -96,10 +96,10 @@ export default async function DashboardPage({
           <>
             {!trial.expired && (
               <>
-                <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+                <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
                   + New diagnosis
                 </Link>
-                <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-lime-400/60 bg-lime-400/10 px-5 py-2.5 text-sm font-semibold text-lime-200 transition hover:bg-lime-400/20">
+                <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-violet-500/60 bg-violet-500/10 px-5 py-2.5 text-sm font-semibold text-violet-200 transition hover:bg-violet-500/20">
                   + New forecast
                 </Link>
               </>
@@ -120,7 +120,7 @@ export default async function DashboardPage({
       <TrialBanner />
 
       {deletedNote && (
-        <p className="mb-6 rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3 text-sm text-lime-200">
+        <p className="mb-6 rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3 text-sm text-violet-200">
           ✓ {deletedNote}
         </p>
       )}
@@ -146,7 +146,7 @@ export default async function DashboardPage({
             sub="No numbers to type yet? Start with the sample campaign — a realistic D2C example that shows you exactly what the diagnosis tells you."
             action={
               <div className="flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <Link href="/diagnose?sample=1" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+                <Link href="/diagnose?sample=1" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
                   ⚡ Try with a sample campaign
                 </Link>
                 <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-6 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
@@ -158,13 +158,13 @@ export default async function DashboardPage({
           <div className="mt-6 grid gap-4 md:grid-cols-3">
             {FIRST_STEPS.map((s) => (
               <Card key={s.n} className="relative">
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-lime-400/15 text-sm font-bold text-lime-300">
+                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-violet-500/15 text-sm font-bold text-violet-300">
                   {s.n}
                 </span>
                 <h3 className="mt-3 font-semibold text-zinc-100">{s.title}</h3>
                 <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{s.body}</p>
                 {s.cta && (
-                  <Link href={s.cta.href} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+                  <Link href={s.cta.href} className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 hover:text-violet-200">
                     {s.cta.label} →
                   </Link>
                 )}
@@ -229,7 +229,7 @@ export default async function DashboardPage({
             </p>
           </div>
           {!trial.expired && (
-            <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-lime-400/60 bg-lime-400/10 px-4 py-2 text-sm font-semibold text-lime-200 transition hover:bg-lime-400/20">
+            <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-violet-500/60 bg-violet-500/10 px-4 py-2 text-sm font-semibold text-violet-200 transition hover:bg-violet-500/20">
               + New forecast
             </Link>
           )}
@@ -242,7 +242,7 @@ export default async function DashboardPage({
               Spent $500 of a $5,000 budget and wondering how it lands? Run a forecast — the
               learning-phase gate tells you whether the numbers are even ready to judge yet.
             </p>
-            <Link href="/forecast?sample=1" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+            <Link href="/forecast?sample=1" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 hover:text-violet-200">
               Try the sample forecast →
             </Link>
           </Card>

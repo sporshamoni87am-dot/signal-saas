@@ -1,5 +1,5 @@
 /**
- * Meta Ads Signal Assistance — Meta Marketing API client (server-only).
+ * AdSignal Pro — Meta Marketing API client (server-only).
  *
  * READ-ONLY by design: this module only ever READS ad-account data
  * (accounts, campaigns, insights). It never creates, edits, pauses, or

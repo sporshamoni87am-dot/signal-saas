@@ -59,7 +59,7 @@ export default async function ComparePage({
           title="Nothing to compare yet"
           sub="Run two diagnoses of the same campaign — today, and again after a week or so of changes — and this page will show you exactly what moved."
           action={
-            <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-6 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+            <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
               Run your first diagnosis
             </Link>
           }

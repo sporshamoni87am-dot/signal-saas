@@ -50,7 +50,7 @@ export default async function DiagnosisDetailPage({
             <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
               ← Dashboard
             </Link>
-            <Link href={`/diagnoses/${id}/compare`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+            <Link href={`/diagnoses/${id}/compare`} className="inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500">
               Compare new data
             </Link>
             <DeleteButton id={id} campaignName={row.campaign_name as string} redirectTo="/dashboard?deleted=diagnosis" />

@@ -70,11 +70,11 @@ function SignupForm() {
           Free 30-day trial · Full access · No credit card required.
         </p>
         {done ? (
-          <div className="mt-6 rounded-xl border border-lime-400/40 bg-lime-400/10 px-4 py-4 text-sm leading-relaxed text-lime-200">
+          <div className="mt-6 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 py-4 text-sm leading-relaxed text-violet-200">
             Check your inbox — we sent a confirmation link to <strong>{email}</strong>. Click it
             to activate your account, then sign in. If this email already has an account, no new
             email is sent —{' '}
-            <Link href="/login" className="font-medium text-lime-100 underline hover:text-white">
+            <Link href="/login" className="font-medium text-violet-100 underline hover:text-white">
               sign in instead
             </Link>
             .
@@ -97,7 +97,7 @@ function SignupForm() {
         )}
         <p className="mt-5 text-center text-sm text-zinc-400">
           Already have an account?{' '}
-          <Link href="/login" className="inline-block py-1.5 font-medium text-lime-300 hover:text-lime-200">
+          <Link href="/login" className="inline-block py-1.5 font-medium text-violet-300 hover:text-violet-200">
             Sign in
           </Link>
         </p>

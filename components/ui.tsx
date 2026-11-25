@@ -41,7 +41,7 @@ export function Field({
 /* Mobile: text-base (16px) so iOS Safari does not zoom on focus, and
    py-3 so inputs are at least 44px tall. Desktop keeps the compact look. */
 export const inputClassName =
-  'w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3.5 py-3 text-base text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-lime-400/70 focus:ring-2 focus:ring-lime-400/20 sm:py-2.5 sm:text-sm';
+  'w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3.5 py-3 text-base text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/20 sm:py-2.5 sm:text-sm';
 
 export function PrimaryButton({
   children,
@@ -51,7 +51,7 @@ export function PrimaryButton({
   return (
     <button
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -70,7 +70,7 @@ export function PrimaryLink({
   return (
     <a
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300 active:scale-[0.98]',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98]',
         className,
       )}
       {...rest}
@@ -99,7 +99,7 @@ export function GhostButton({
 }
 
 const VERDICT_STYLES: Record<Verdict, string> = {
-  SCALE: 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950 border-transparent',
+  SCALE: 'bg-gradient-to-r from-emerald-500 to-green-500 text-white border-transparent',
   RUN: 'bg-gradient-to-r from-sky-400 to-cyan-400 text-zinc-950 border-transparent',
   FIX: 'bg-gradient-to-r from-amber-400 to-orange-400 text-zinc-950 border-transparent',
   WAIT: 'bg-gradient-to-r from-zinc-400 to-zinc-500 text-zinc-950 border-transparent',
@@ -156,7 +156,7 @@ export function PageHeader({
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -left-8 -top-12 h-44 w-80"
-        style={{ background: 'radial-gradient(closest-side, rgb(163 230 53 / 0.07), transparent)' }}
+        style={{ background: 'radial-gradient(closest-side, rgb(124 58 237 / 0.07), transparent)' }}
       />
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">

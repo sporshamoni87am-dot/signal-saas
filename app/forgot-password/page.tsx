@@ -53,7 +53,7 @@ export default function ForgotPasswordPage() {
           Enter the email you signed up with and we’ll send you a link to choose a new password.
         </p>
         {done ? (
-          <div className="mt-6 rounded-xl border border-lime-400/40 bg-lime-400/10 px-4 py-4 text-sm leading-relaxed text-lime-200">
+          <div className="mt-6 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 py-4 text-sm leading-relaxed text-violet-200">
             Check your inbox — we sent a password-reset link to <strong>{email}</strong>. Click it
             to choose a new password.
           </div>
@@ -72,7 +72,7 @@ export default function ForgotPasswordPage() {
         )}
         <p className="mt-5 text-center text-sm text-zinc-400">
           Remembered it?{' '}
-          <Link href="/login" className="inline-block py-1.5 font-medium text-lime-300 hover:text-lime-200">
+          <Link href="/login" className="inline-block py-1.5 font-medium text-violet-300 hover:text-violet-200">
             Sign in
           </Link>
         </p>

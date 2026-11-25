@@ -18,6 +18,7 @@ type MetricName =
   | 'adSpend'
   | 'impressions'
   | 'linkClicks'
+  | 'landingPageViews'
   | 'addToCarts'
   | 'checkoutsInitiated'
   | 'purchases'
@@ -29,6 +30,7 @@ const METRIC_FIELDS: Array<{ name: MetricName; label: string; prefix?: string }>
   { name: 'adSpend', label: 'Ad spend', prefix: '$' },
   { name: 'impressions', label: 'Impressions' },
   { name: 'linkClicks', label: 'Link clicks' },
+  { name: 'landingPageViews', label: 'Landing page views (new total)' },
   { name: 'addToCarts', label: 'Add to carts' },
   { name: 'checkoutsInitiated', label: 'Checkouts initiated' },
   { name: 'purchases', label: 'Purchases' },
@@ -75,6 +77,7 @@ export default function CompareClient({
     adSpend: '',
     impressions: '',
     linkClicks: '',
+    landingPageViews: '',
     addToCarts: '',
     checkoutsInitiated: '',
     purchases: '',
@@ -95,6 +98,10 @@ export default function CompareClient({
       impressions: parseNum(form.impressions),
       reach: null,
       linkClicks: parseNum(form.linkClicks),
+      // Fresh LPV, not the old one: reusing the baseline's LPV with new
+      // clicks/carts would mix denominators in the add-to-cart rate.
+      // Blank = no LPV this time, so the new run grades click→ATC.
+      landingPageViews: parseNum(form.landingPageViews),
       addToCarts: parseNum(form.addToCarts),
       checkoutsInitiated: parseNum(form.checkoutsInitiated),
       purchases: parseNum(form.purchases),
@@ -146,20 +153,24 @@ export default function CompareClient({
     const o = oldSig?.value ?? null;
     const n = newSig?.value ?? null;
     const d = o !== null && n !== null ? n - o : null;
+    // Use the signal's own label: the add-to-cart signal is named for the
+    // denominator it actually used (landing page views vs clicks), so the
+    // delta row never claims a click rate when the numbers are per page view.
+    const label = newSig?.label ?? oldSig?.label ?? meta.label;
     const good = d !== null && (meta.higherBetter ? d > 0 : d < 0);
     const bad = d !== null && (meta.higherBetter ? d < 0 : d > 0);
     const deltaText =
       d === null
         ? '—'
         : `${d > 0 ? '+' : ''}${meta.money ? `$${d.toFixed(2)}` : meta.pct ? `${(d * 100).toFixed(2)}pp` : `${d.toFixed(2)}`}`;
-    return { meta, o, n, d, good, bad, deltaText };
+    return { meta, label, o, n, d, good, bad, deltaText };
   }
 
   function deltaRow(key: string) {
-    const { meta, o, n, good, bad, deltaText } = deltaData(key);
+    const { meta, label, o, n, good, bad, deltaText } = deltaData(key);
     return (
       <tr key={key} className="border-b border-zinc-800/60 last:border-0">
-        <td className="py-2.5 pr-3 font-medium text-zinc-200">{meta.label}</td>
+        <td className="py-2.5 pr-3 font-medium text-zinc-200">{label}</td>
         <td className="py-2.5 pr-3 font-mono text-zinc-400">{fmtVal(o, meta)}</td>
         <td className="py-2.5 pr-3 font-mono text-zinc-100">{fmtVal(n, meta)}</td>
         <td className={cn('py-2.5 font-mono font-semibold', good && 'text-emerald-300', bad && 'text-red-300', !good && !bad && 'text-zinc-500')}>
@@ -170,11 +181,11 @@ export default function CompareClient({
   }
 
   function deltaCard(key: string) {
-    const { meta, o, n, good, bad, deltaText } = deltaData(key);
+    const { meta, label, o, n, good, bad, deltaText } = deltaData(key);
     return (
       <div key={key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-semibold text-zinc-100">{meta.label}</p>
+          <p className="text-sm font-semibold text-zinc-100">{label}</p>
           <span className={cn('shrink-0 font-mono text-sm font-semibold', good && 'text-emerald-300', bad && 'text-red-300', !good && !bad && 'text-zinc-500')}>
             {deltaText}
           </span>
@@ -224,9 +235,9 @@ export default function CompareClient({
 
       {fresh && comparison && (
         <>
-          <div className={cn('rounded-2xl border p-6', comparison.improved ? 'border-lime-400/50 bg-lime-400/5' : 'border-red-500/50 bg-red-500/5')}>
+          <div className={cn('rounded-2xl border p-6', comparison.improved ? 'border-violet-500/50 bg-violet-500/5' : 'border-red-500/50 bg-red-500/5')}>
             <div className="flex flex-wrap items-center gap-3">
-              <span className={cn('rounded-full px-4 py-1.5 text-sm font-bold', comparison.improved ? 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950' : 'bg-gradient-to-r from-red-500 to-rose-500 text-white')}>
+              <span className={cn('rounded-full px-4 py-1.5 text-sm font-bold', comparison.improved ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white' : 'bg-gradient-to-r from-red-500 to-rose-500 text-white')}>
                 {comparison.improved ? '✓ IMPROVED' : '✗ NOT IMPROVED'}
               </span>
               <div className="flex items-center gap-2 text-sm">
@@ -268,7 +279,7 @@ export default function CompareClient({
             <ol className="space-y-3">
               {fresh.results.actionItems.map((a) => (
                 <li key={a.priority} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-lime-400 text-xs font-bold text-zinc-950">{a.priority}</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">{a.priority}</span>
                   <div>
                     <p className="text-sm font-semibold text-zinc-100">{a.title}</p>
                     <p className="mt-0.5 text-[13px] text-zinc-400">{a.detail}</p>

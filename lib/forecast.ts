@@ -1,5 +1,5 @@
 /**
- * Meta Ads Signal Assistance — early-stage forecast engine.
+ * AdSignal Pro — early-stage forecast engine.
  *
  * Pure, transparent, rule-based math. No AI, no hidden scoring, no Meta API
  * calls — this module only turns the numbers you give it into a projection.
@@ -24,6 +24,12 @@
  * call should be made. Minimum daily budget rule of thumb:
  * (target CPA × 50) ÷ 7.
  */
+
+import {
+  resolveBenchmarks,
+  type MarketRegion,
+  type ProductCategory,
+} from './benchmarks';
 
 export type AttributionWindow = '7dc_1dv' | '7dc' | '1dc';
 
@@ -55,6 +61,11 @@ export const ATTRIBUTION_OPTIONS: {
 export interface ForecastInputs {
   campaignName: string;
   market: string;
+  /** Optional benchmark context — the same market/category the diagnosis
+   *  uses. When given, the CTR grade uses your segment's benchmarks;
+   *  skipped means the generic D2C thresholds. */
+  marketRegion: MarketRegion | null;
+  productCategory: ProductCategory | null;
   /** Full budget for the campaign/test (e.g. $5,000). Null = no projection. */
   totalBudget: number | null;
   /** What has actually been spent so far (e.g. $550). */
@@ -140,6 +151,8 @@ export interface ScenarioRow {
   cpa: number | null;
   roas: number | null;
   vsBreakEven: 'above' | 'below' | 'unknown';
+  /** True for the inserted break-even row: the CVR this campaign needs. */
+  isRequired?: boolean;
 }
 
 export interface ForecastResults {
@@ -212,13 +225,17 @@ export interface ForecastResults {
 // Engine thresholds reused from lib/engine.ts (reference only — do not
 // duplicate the engine here). hook: good ≥30%, warn ≥20%. frequency: good
 // ≤2.5, warn ≤4.0. click→ATC: good ≥8%, warn ≥4%. checkout→purchase: good
-// ≥60%, warn ≥35%. Fatigue: frequency ≥3.5 while CTR < 0.8%.
+// ≥60%, warn ≥35%. LPV→ATC: good ≥10%, warn ≥5% — derived from click→ATC
+// at the typical ~80% click→LPV rate (same derivation as lib/engine.ts).
+// Fatigue: frequency ≥3.5 while CTR < 0.8%.
 const HOOK_GOOD = 0.3;
 const HOOK_WARN = 0.2;
 const FREQ_GOOD = 2.5;
 const FREQ_WARN = 4.0;
 const CLICK_ATC_GOOD = 0.08;
 const CLICK_ATC_WARN = 0.04;
+const LPV_ATC_GOOD = 0.1;
+const LPV_ATC_WARN = 0.05;
 const CHECKOUT_PURCHASE_GOOD = 0.6;
 const CHECKOUT_PURCHASE_WARN = 0.35;
 const FATIGUE_FREQ = 3.5;
@@ -280,6 +297,11 @@ export function forecast(raw: ForecastInputs): ForecastResults {
   const dailyBudget = n(i.dailyBudget);
   const daysRunning = n(i.daysRunning);
   const observed = n(i.purchasesSoFar);
+
+  // Benchmark context — the same tables the diagnosis uses. When the user
+  // gave a market/category, the CTR grade uses their segment's benchmarks;
+  // skipped means the generic D2C thresholds.
+  const bench = resolveBenchmarks(raw.marketRegion ?? null, raw.productCategory ?? null);
 
   const ready = spend > 0 && cpm !== null && cpm > 0 && aov !== null && aov > 0 && margin !== null && margin > 0;
 
@@ -406,7 +428,7 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       paceNote = `Spending slower than planned: $${Math.round(spend).toLocaleString()} spent vs ~$${Math.round(expectedSpend).toLocaleString()} expected by day ${Math.round(daysRunning ?? 0)}. Delivery may be limited — check budget, audience, or bid.`;
     } else {
       paceStatus = 'on-track';
-      paceNote = `Spend pace is on track: $${Math.round(spend).toLocaleString()} spent vs ~$${Math.round(expectedSpend).toLocaleString()} expected.`;
+      paceNote = `Spend pace is on track: $${Math.round(spend).toLocaleString()} spent vs ~$${Math.round(expectedSpend).toLocaleString()} expected after ${Math.round(daysRunning ?? 0)} days at $${dailyBudget ?? 0}/day.`;
     }
   }
 
@@ -425,6 +447,10 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       : 'No fatigue signal from frequency and CTR.';
 
   // ---- funnel with grades ----
+  // Every row is graded by ITS OWN step's benchmark: CTR by the link-CTR
+  // thresholds, add-to-carts by LPV→ATC, purchases by checkout→purchase.
+  // Steps with no published benchmark (click→LPV, ATC→checkout) stay
+  // ungraded and say so, instead of borrowing another step's numbers.
   const clickToAtc = div(atc, linkClicks);
   const atcToCheckout = div(checkouts, atc);
   const checkoutToPurchase = div(purchasesExpected, checkouts);
@@ -442,8 +468,8 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       count: linkClicks,
       rateFromPrev: ctr,
       rateDisplay: pctDisplay(ctr),
-      status: gradeHigh(ctr, 0.01, 0.007),
-      benchmark: 'Good ≥1.0% · Watch ≥0.7%',
+      status: gradeHigh(ctr, bench.ctrGood, bench.ctrWarn),
+      benchmark: `Good ≥${(bench.ctrGood * 100).toFixed(1)}% · Watch ≥${(bench.ctrWarn * 100).toFixed(1)}%${bench.segmented ? ` · ${bench.label} benchmarks` : ''}`,
     },
     {
       stage: 'Landing page views',
@@ -458,8 +484,8 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       count: atc,
       rateFromPrev: div(atc, lpv),
       rateDisplay: pctDisplay(div(atc, lpv)),
-      status: 'na',
-      benchmark: '—',
+      status: gradeHigh(div(atc, lpv), LPV_ATC_GOOD, LPV_ATC_WARN),
+      benchmark: 'Good ≥10% · Watch ≥5% of page views',
     },
     {
       stage: 'Checkouts initiated',
@@ -467,7 +493,7 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       rateFromPrev: atcToCheckout,
       rateDisplay: pctDisplay(atcToCheckout),
       status: 'na',
-      benchmark: '—',
+      benchmark: 'No standard benchmark — compare with your own history',
     },
     {
       stage: 'Purchases (expected)',
@@ -475,7 +501,7 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       rateFromPrev: checkoutToPurchase,
       rateDisplay: pctDisplay(checkoutToPurchase),
       status: gradeHigh(checkoutToPurchase, CHECKOUT_PURCHASE_GOOD, CHECKOUT_PURCHASE_WARN),
-      benchmark: 'Good ≥60% · Watch ≥35%',
+      benchmark: 'Checkout → purchase · Good ≥60% · Watch ≥35%',
     },
   ];
   // Click → ATC graded against the engine's threshold (ATC per link click,
@@ -567,6 +593,8 @@ export function forecast(raw: ForecastInputs): ForecastResults {
   );
 
   // ---- scenario sensitivity: vary overall website CVR, hold the rest ----
+  // Plus the break-even row: the CVR this campaign actually needs, inserted
+  // in order so the table itself shows whether any scenario reaches it.
   const scenarioCvrs = [0.5, 1, 2, 3, 5];
   const scenarioRows: ScenarioRow[] = scenarioCvrs.map((cvrPct) => {
     const p = lpv * (cvrPct / 100);
@@ -580,6 +608,25 @@ export function forecast(raw: ForecastInputs): ForecastResults {
       vsBreakEven: beRoas !== null && rr !== null ? (rr >= beRoas ? 'above' : 'below') : 'unknown',
     };
   });
+  if (requiredCvrPct !== null && requiredCvrPct > 0 && requiredCvrPct <= 100) {
+    const near = scenarioRows.find((r) => Math.abs(r.cvrPct - requiredCvrPct) < 0.05);
+    if (near) {
+      near.isRequired = true;
+    } else {
+      const p = lpv * (requiredCvrPct / 100);
+      const cp = p > 0 ? spend / p : null;
+      const rr = spend > 0 && aov !== null ? (p * aov) / spend : null;
+      scenarioRows.push({
+        cvrPct: requiredCvrPct,
+        purchases: p,
+        cpa: cp,
+        roas: rr,
+        vsBreakEven: beRoas !== null && rr !== null ? (rr >= beRoas ? 'above' : 'below') : 'unknown',
+        isRequired: true,
+      });
+      scenarioRows.sort((a, b) => a.cvrPct - b.cvrPct);
+    }
+  }
 
   return {
     ready,

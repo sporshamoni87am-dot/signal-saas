@@ -9,6 +9,7 @@ import {
   calculateUnitEconomics,
   type CurrencySymbol,
   type UnitEconomicsInputs,
+  type UnitEconomicsMode,
 } from '@/lib/unit-economics';
 import { parseNum } from '@/lib/format';
 import { Card, Field, GhostButton, PageHeader, SectionTitle, inputClassName } from '@/components/ui';
@@ -47,28 +48,32 @@ function ResultRow({ label, value, plain }: { label: string; value: string; plai
         <p className="text-sm font-semibold text-zinc-100">{label}</p>
         <p className="mt-0.5 text-sm leading-relaxed text-zinc-400">{plain}</p>
       </div>
-      <p className="mt-1 shrink-0 font-mono text-xl font-bold text-lime-300 sm:mt-0">{value}</p>
+      <p className="mt-1 shrink-0 font-mono text-xl font-bold text-violet-300 sm:mt-0">{value}</p>
     </div>
   );
 }
 
-const EXAMPLE = { aov: '200', purchases: '5', margin: '50', spend: '10000', customers: '200' };
+const EXAMPLE = { aov: '200', purchases: '5', margin: '50', spend: '10000', customers: '200', leads: '2000', leadConversion: '10' };
 
 export default function UnitEconomicsPage() {
   // ---- Calculator 1: what is one customer worth? ----
   const [currency, setCurrency] = useState<CurrencySymbol>('$');
+  const [calc1Mode, setCalc1Mode] = useState<UnitEconomicsMode>('ecommerce');
   const [aov, setAov] = useState(EXAMPLE.aov);
   const [purchases, setPurchases] = useState(EXAMPLE.purchases);
   const [margin, setMargin] = useState(EXAMPLE.margin);
   const [spend, setSpend] = useState(EXAMPLE.spend);
   const [customers, setCustomers] = useState(EXAMPLE.customers);
+  // Lead-gen mode: customers are derived (leads × conversion), never typed.
+  const [leads, setLeads] = useState(EXAMPLE.leads);
+  const [leadConversion, setLeadConversion] = useState(EXAMPLE.leadConversion);
 
   // ---- Calculator 2: break-even (independent inputs) ----
   const [beEcomAov, setBeEcomAov] = useState('200');
   const [beEcomMargin, setBeEcomMargin] = useState('50');
   const [beLeadValue, setBeLeadValue] = useState('1000');
-  const [beLeadMargin, setBeLeadMargin] = useState('50');
-  const [beLeadConversion, setBeLeadConversion] = useState('20');
+  const [beLeadMargin, setBeLeadMargin] = useState('75');
+  const [beLeadConversion, setBeLeadConversion] = useState('10');
 
   // ---- Advanced / helpers (collapsed by default) ----
   const [advancedOpen, setAdvancedOpen] = useState(false);
@@ -83,18 +88,18 @@ export default function UnitEconomicsPage() {
 
   const calc1 = useMemo(() => {
     const inputs: UnitEconomicsInputs = {
-      mode: 'ecommerce',
+      mode: calc1Mode,
       currency,
       aov: parseNum(aov),
       avgPurchases: parseNum(purchases),
       marginPct: parseNum(margin),
       adSpend: parseNum(spend),
-      customersAcquired: parseNum(customers),
-      leadsAcquired: null,
-      leadToCustomerPct: null,
+      customersAcquired: calc1Mode === 'ecommerce' ? parseNum(customers) : null,
+      leadsAcquired: calc1Mode === 'leadgen' ? parseNum(leads) : null,
+      leadToCustomerPct: calc1Mode === 'leadgen' ? parseNum(leadConversion) : null,
     };
     return { inputs, r: calculateUnitEconomics(inputs) };
-  }, [currency, aov, purchases, margin, spend, customers]);
+  }, [calc1Mode, currency, aov, purchases, margin, spend, customers, leads, leadConversion]);
 
   const beEcom = useMemo(
     () => calculateBreakEvenEcom(parseNum(beEcomAov), parseNum(beEcomMargin)),
@@ -106,9 +111,15 @@ export default function UnitEconomicsPage() {
   );
 
   const r = calc1.r;
+  // E-commerce needs 5 boxes; lead-gen swaps "customers won" for two
+  // boxes (leads + conversion), so it needs 6.
   const calc1Valid =
     parseNum(aov) !== null && parseNum(purchases) !== null && parseNum(margin) !== null &&
-    parseNum(spend) !== null && parseNum(customers) !== null;
+    parseNum(spend) !== null &&
+    (calc1Mode === 'ecommerce'
+      ? parseNum(customers) !== null
+      : parseNum(leads) !== null && parseNum(leadConversion) !== null);
+  const calc1BoxCount = calc1Mode === 'leadgen' ? 'six' : 'five';
 
   function loadExample() {
     setAov(EXAMPLE.aov);
@@ -116,21 +127,26 @@ export default function UnitEconomicsPage() {
     setMargin(EXAMPLE.margin);
     setSpend(EXAMPLE.spend);
     setCustomers(EXAMPLE.customers);
+    setLeads(EXAMPLE.leads);
+    setLeadConversion(EXAMPLE.leadConversion);
+    setTotalsNote(null);
   }
 
   function clearAll() {
     setAov(''); setPurchases(''); setMargin(''); setSpend(''); setCustomers('');
+    setLeads(''); setLeadConversion('');
+    setTotalsNote(null);
   }
 
   function useTotals() {
     const rev = parseNum(totalRevenue);
     const cust = parseNum(totalCustomersForAvg);
     const purch = parseNum(totalPurchases);
-    if (rev === null || cust === null || cust <= 0 || purch === null) {
+    if (rev === null || cust === null || cust <= 0 || purch === null || purch <= 0) {
       setTotalsNote('Fill in all three totals first — total revenue, total customers and total purchases.');
       return;
     }
-    const newAov = Math.round((rev / cust) * 100) / 100;
+    const newAov = Math.round((rev / purch) * 100) / 100;
     const newAvg = Math.round((purch / cust) * 100) / 100;
     setAov(String(newAov));
     setPurchases(String(newAvg));
@@ -150,10 +166,19 @@ export default function UnitEconomicsPage() {
       ['Purchases per customer', purchases],
       ['Gross profit margin %', margin],
       ['Total ad spend', money(sym, parseNum(spend))],
-      ['Customers won', customers],
+      ...(calc1Mode === 'leadgen'
+        ? [
+            ['Leads won', leads],
+            ['Lead-to-customer conversion %', leadConversion],
+            ['Customers won (derived)', r.customers !== null ? String(Math.round(r.customers * 100) / 100) : '—'],
+          ] as [string, string][]
+        : [['Customers won', customers] as [string, string]]),
       ['Lifetime value per customer', money(sym, r.lifetimeRevenuePerCustomer)],
       ['Lifetime profit per customer', money(sym, r.ltgp)],
       ['Cost per customer (CAC)', money(sym, r.cac)],
+      ...(calc1Mode === 'leadgen'
+        ? [['Cost per lead (CPL)', money(sym, r.cpl)] as [string, string]]
+        : []),
       ['Lifetime profit vs cost', plainNumber(r.ltgpCacRatio)],
       ['Profit on first order', money(sym, r.firstOrderGrossProfit)],
       ['Most you can pay per purchase', money(sym, r.acceptableCpp)],
@@ -183,8 +208,8 @@ export default function UnitEconomicsPage() {
   const ratioSentence =
     r.ltgpCacRatio !== null
       ? r.ltgpCacRatio >= 1
-        ? `For every ${sym}1 you spend on ads, you earn ${sym}${plainNumber(r.ltgpCacRatio)} in lifetime profit.`
-        : `For every ${sym}1 you spend on ads, you earn back only ${sym}${plainNumber(r.ltgpCacRatio)} in lifetime profit — less than you spent.`
+        ? `For every ${sym}1 it costs to win a customer, you earn ${sym}${plainNumber(r.ltgpCacRatio)} in lifetime profit.`
+        : `For every ${sym}1 it costs to win a customer, you earn back only ${sym}${plainNumber(r.ltgpCacRatio)} in lifetime profit — less than it costs to win them.`
       : 'Fill in the numbers above to see this.';
 
   return (
@@ -206,7 +231,7 @@ export default function UnitEconomicsPage() {
           ['3', 'See the most you can pay', 'Your break-even cost per purchase and per lead.'],
         ].map(([n, title, desc]) => (
           <li key={n} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-            <p className="text-sm font-bold text-lime-300">{n}. {title}</p>
+            <p className="text-sm font-bold text-violet-300">{n}. {title}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">{desc}</p>
           </li>
         ))}
@@ -221,7 +246,7 @@ export default function UnitEconomicsPage() {
           <Field label="Currency">
             <select
               value={currency}
-              onChange={(e) => setCurrency(e.target.value as CurrencySymbol)}
+              onChange={(e) => { setCurrency(e.target.value as CurrencySymbol); setTotalsNote(null); }}
               className={cn(inputClassName, 'min-h-11 w-28')}
               aria-label="Currency — symbol only, numbers are not converted"
             >
@@ -233,8 +258,35 @@ export default function UnitEconomicsPage() {
         </div>
         <p className="mt-1 text-xs text-zinc-500">Currency is a label only — it never converts your numbers.</p>
 
+        {/* E-commerce or lead-gen: same maths, different last boxes. */}
+        <div className="mt-4 flex flex-wrap items-center gap-3">
+          <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1" role="group" aria-label="Business model">
+            <button
+              type="button"
+              onClick={() => setCalc1Mode('ecommerce')}
+              aria-pressed={calc1Mode === 'ecommerce'}
+              className={cn('min-h-9 rounded-lg px-3 text-sm font-medium transition', calc1Mode === 'ecommerce' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-100')}
+            >
+              E-commerce
+            </button>
+            <button
+              type="button"
+              onClick={() => setCalc1Mode('leadgen')}
+              aria-pressed={calc1Mode === 'leadgen'}
+              className={cn('min-h-9 rounded-lg px-3 text-sm font-medium transition', calc1Mode === 'leadgen' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-100')}
+            >
+              Lead-gen
+            </button>
+          </div>
+          <p className="text-xs leading-relaxed text-zinc-500">
+            {calc1Mode === 'ecommerce'
+              ? 'You sell products online — enter the customers this spend won.'
+              : 'You buy leads for a service — enter the leads this spend won and how many become paying customers. Customers are worked out from leads × conversion, never typed separately.'}
+          </p>
+        </div>
+
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
-          <Field label="Average order value *" hint="What a customer spends on a typical order. Example: $200.">
+          <Field label="Average order value *" hint={`What a customer spends on a typical order. Example: ${sym}200.`}>
             <div className="relative">
               <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">{sym}</span>
               {numInput(aov, setAov, 'pl-8')}
@@ -255,9 +307,23 @@ export default function UnitEconomicsPage() {
               {numInput(spend, setSpend, 'pl-8')}
             </div>
           </Field>
-          <Field label="Customers won *" hint="Paying customers that spend won. Count delivered, paid customers only — not messages or unpaid orders.">
-            {numInput(customers, setCustomers)}
-          </Field>
+          {calc1Mode === 'ecommerce' ? (
+            <Field label="Customers won *" hint="Paying customers this spend won. Count delivered, paid customers only — not messages or unpaid orders.">
+              {numInput(customers, setCustomers)}
+            </Field>
+          ) : (
+            <>
+              <Field label="Leads won *" hint="Leads this spend won — enquiries, form fills or calls.">
+                {numInput(leads, setLeads)}
+              </Field>
+              <Field label="How many leads become customers? *" hint="Out of 100 leads, how many pay? Example: 10 means 1 in 10.">
+                <div className="relative">
+                  {numInput(leadConversion, setLeadConversion, 'pr-10')}
+                  <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">%</span>
+                </div>
+              </Field>
+            </>
+          )}
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
@@ -266,7 +332,7 @@ export default function UnitEconomicsPage() {
           <button
             type="button"
             onClick={() => setTotalsOpen((v) => !v)}
-            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200"
+            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-violet-300 transition hover:text-violet-200"
           >
             Don’t know your averages? Work them out from your totals {totalsOpen ? '▴' : '▾'}
           </button>
@@ -276,7 +342,7 @@ export default function UnitEconomicsPage() {
           <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
             <p className="text-sm font-semibold text-zinc-100">Work out your averages from totals</p>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
-              Average order value = total revenue ÷ total customers. Purchases per customer = total purchases ÷ total customers.
+              Average order value = total revenue ÷ total purchases. Purchases per customer = total purchases ÷ total customers.
             </p>
             <div className="mt-3 grid gap-3 sm:grid-cols-3">
               <Field label="Total revenue">
@@ -291,7 +357,7 @@ export default function UnitEconomicsPage() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <GhostButton onClick={useTotals}>Use these totals</GhostButton>
-              {totalsNote && <p className="text-xs text-lime-300">{totalsNote}</p>}
+              {totalsNote && <p className="text-xs text-emerald-300">{totalsNote}</p>}
             </div>
           </div>
         )}
@@ -302,15 +368,22 @@ export default function UnitEconomicsPage() {
             <ResultRow label="Lifetime value — what one customer spends with you" value={money(sym, r.lifetimeRevenuePerCustomer)} plain="Average order value × how many times they buy." />
             <ResultRow label="Lifetime profit — what one customer is worth" value={money(sym, r.ltgp)} plain="Lifetime value × your gross profit margin. This is the real amount you can spend to win one customer." />
             <ResultRow label="Cost per customer — what you pay to win one" value={money(sym, r.cac)} plain="Total ad spend ÷ customers won." />
+            {calc1Mode === 'leadgen' && (
+              <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+                Customers won: {r.customers !== null ? Math.round(r.customers * 100) / 100 : '—'} — worked out from
+                {' '}{leads || '—'} leads × {leadConversion || '—'}% conversion, never typed separately.
+                Cost per lead: {money(sym, r.cpl)}.
+              </p>
+            )}
             <ResultRow label="Value vs. cost" value={plainNumber(r.ltgpCacRatio)} plain={ratioSentence} />
-            <div className="mt-4 rounded-xl border border-lime-400/30 bg-lime-400/5 px-4 py-3">
-              <p className="text-sm font-bold text-lime-200">{r.verdictHeadline}</p>
+            <div className="mt-4 rounded-xl border border-violet-500/30 bg-violet-500/5 px-4 py-3">
+              <p className="text-sm font-bold text-violet-200">{r.verdictHeadline}</p>
               <p className="mt-1 text-sm leading-relaxed text-zinc-400">{r.verdictDetail}</p>
             </div>
           </div>
         ) : (
           <p className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-400">
-            Fill in all five boxes above to see your answers.
+            Fill in all {calc1BoxCount} boxes above to see your answers.
           </p>
         )}
       </Card>
@@ -408,7 +481,7 @@ export default function UnitEconomicsPage() {
                     <tr key={l.label} className="border-t border-zinc-800/60 align-top">
                       <td className="px-4 py-3"><span className="font-semibold text-zinc-100">{l.label}</span><br /><span className="text-xs text-zinc-500">{l.change}</span></td>
                       <td className="px-4 py-3 font-mono text-zinc-100">{money(sym, l.newLtgp)}</td>
-                      <td className="px-4 py-3 font-mono text-lime-300">{l.deltaLtgp !== null ? `+${money(sym, l.deltaLtgp)}` : '—'}</td>
+                      <td className="px-4 py-3 font-mono text-emerald-300">{l.deltaLtgp !== null ? `+${money(sym, l.deltaLtgp)}` : '—'}</td>
                       <td className="px-4 py-3 font-mono text-zinc-300">{l.newRatio !== null ? plainNumber(l.newRatio) : '—'}</td>
                     </tr>
                   ))}
@@ -431,6 +504,12 @@ export default function UnitEconomicsPage() {
               ))}
             </div>
 
+            <p className="mt-3 text-xs leading-relaxed text-zinc-500">
+              ROAS means return on ad spend — revenue for every {sym}1 of ad spend. First-order
+              ROAS uses first-order revenue only; break-even ROAS (1 ÷ margin) is the ROAS at
+              which the first order breaks even.
+            </p>
+
             <div className="no-print mt-5 flex flex-wrap gap-2">
               <button type="button" onClick={onCopy} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
                 {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
@@ -445,7 +524,7 @@ export default function UnitEconomicsPage() {
           </div>
         )}
         {advancedOpen && !r.ready && (
-          <p className="mt-4 text-sm text-zinc-400">Fill in all five boxes in Calculator 1 to see the advanced numbers.</p>
+          <p className="mt-4 text-sm text-zinc-400">Fill in all {calc1BoxCount} boxes in Calculator 1 to see the advanced numbers.</p>
         )}
       </Card>
 

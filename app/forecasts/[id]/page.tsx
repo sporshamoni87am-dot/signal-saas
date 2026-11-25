@@ -60,7 +60,7 @@ export default async function ForecastDetailPage({
         generatedAt={row.created_at as string}
       />
       <div className="no-print mt-6 flex justify-end">
-        <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+        <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500">
           Run a new forecast →
         </Link>
       </div>

@@ -211,7 +211,7 @@ const CTR_CPC_BY_CATEGORY: Partial<
     cpcWarn: 0.85,
     avgCtr: '1.52%',
     avgCpc: '$0.49',
-    vertical: 'Beauty & Personal Care',
+    vertical: 'Beauty & Skincare',
   },
   fashion: {
     ctrGood: 0.012,
@@ -220,7 +220,7 @@ const CTR_CPC_BY_CATEGORY: Partial<
     cpcWarn: 0.8,
     avgCtr: '1.24%',
     avgCpc: '$0.45',
-    vertical: 'Apparel & Fashion',
+    vertical: 'Fashion & Apparel',
   },
   food: {
     ctrGood: 0.018,

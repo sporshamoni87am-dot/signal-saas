@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 function Step({ n, title, children }: { n: string; title: string; children: React.ReactNode }) {
   return (
     <div className="flex gap-4">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-lime-400/15 text-sm font-bold text-lime-300">
+      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-sm font-bold text-violet-300">
         {n}
       </span>
       <div className="min-w-0">
@@ -31,7 +31,7 @@ export default function HowItWorksPage() {
       />
 
       <Card className="mb-6 space-y-4 text-sm leading-relaxed text-zinc-300">
-        <SectionTitle hint="Two tools, one job: turn a pile of ad numbers into a decision.">
+        <SectionTitle hint="Three tools, one job: turn a pile of ad numbers into a decision.">
           What AdSignal Pro does
         </SectionTitle>
         <p>
@@ -39,7 +39,9 @@ export default function HowItWorksPage() {
           tells you, in plain words, whether to kill it, scale it, fix it, or leave it alone —
           and exactly what to change in Ads Manager, in order. <strong className="text-zinc-100">Forecast</strong>{' '}
           looks at a young campaign that has only spent part of its budget and projects how it
-          is likely to land when the full budget is spent.
+          is likely to land when the full budget is spent. <strong className="text-zinc-100">Unit
+          Economics</strong> checks whether the business can afford to buy customers on Meta at
+          all — LTGP, CAC, LTGP:CAC and break-even — before you judge CPM, CTR or creative.
         </p>
         <p>
           It is for <strong className="text-zinc-100">new media buyers</strong> who don&apos;t
@@ -50,7 +52,7 @@ export default function HowItWorksPage() {
           the tool does the judging.
         </p>
         <p>
-          Both tools are for <strong className="text-zinc-100">D2C campaigns on Meta</strong>{' '}
+          All three tools are for <strong className="text-zinc-100">D2C campaigns on Meta</strong>{' '}
           (Facebook and Instagram ads that sell a product online). Other campaign types are not
           supported yet.
         </p>
@@ -107,12 +109,12 @@ export default function HowItWorksPage() {
         </Step>
         <p className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm leading-relaxed text-zinc-400">
           Not ready to type your own numbers?{' '}
-          <Link href="/diagnose?sample=1" className="font-semibold text-lime-300 underline underline-offset-2">
+          <Link href="/diagnose?sample=1" className="font-semibold text-violet-300 underline underline-offset-2">
             Run the sample diagnosis
           </Link>{' '}
           — a fictional D2C skincare campaign, fully filled in, so you can see a complete report
           before touching your own data. Same for the{' '}
-          <Link href="/forecast?sample=1" className="font-semibold text-lime-300 underline underline-offset-2">
+          <Link href="/forecast?sample=1" className="font-semibold text-violet-300 underline underline-offset-2">
             sample forecast
           </Link>
           .
@@ -130,7 +132,7 @@ export default function HowItWorksPage() {
         </p>
         <ul className="list-disc space-y-1.5 pl-5">
           <li>
-            <strong className="text-lime-300">SCALE IT</strong> — ROAS is at least 1.15× your
+            <strong className="text-violet-300">SCALE IT</strong> — ROAS is at least 1.15× your
             breakeven. A winner: raise the budget in steps.
           </li>
           <li>
@@ -234,7 +236,7 @@ export default function HowItWorksPage() {
           The forecast
         </SectionTitle>
         <p>
-          The forecast answers one question: <em>you have spent $500 of a $5,000 budget — how is
+          The forecast answers one question: <em>you have spent $550 of a $5,000 budget — how is
           this campaign likely to land when the full budget is spent?</em> Enter what it has done
           so far (spend, CPM, CTR, landing page views, funnel rates, purchases, AOV, margin) and
           it projects the full budget at today&apos;s rates: expected purchases, revenue, CPA, and
@@ -266,6 +268,39 @@ export default function HowItWorksPage() {
           A forecast is a <strong className="text-zinc-100">planning model, not a Meta
           prediction</strong>. It assumes today&apos;s rates hold; auctions, creative fatigue, and
           seasonality will move them.
+        </p>
+      </Card>
+
+      <Card className="mb-6 space-y-4 text-sm leading-relaxed text-zinc-300">
+        <SectionTitle hint="Can this business afford to buy customers on Meta?">
+          Unit Economics Calculator
+        </SectionTitle>
+        <p>
+          Before you judge CPM, CTR or creative, check the maths that decides everything.
+          Enter AOV, average purchases per customer, gross margin, ad spend and customers won —
+          or switch to lead-gen mode and enter leads plus your lead-to-customer conversion —
+          and it shows your lifetime gross profit per customer (LTGP), what each customer costs
+          to win (CAC), the LTGP:CAC ratio, and how much headroom you have to scale.
+        </p>
+        <ul className="list-disc space-y-2 pl-5">
+          <li>
+            <strong className="text-zinc-100">Break-even, first order and lifetime</strong> — the
+            most you can pay per purchase (or per lead) and still break even, on the first order
+            and over the customer&apos;s lifetime.
+          </li>
+          <li>
+            <strong className="text-zinc-100">Which lever moves LTGP most</strong> — one more
+            purchase per customer, 10% higher AOV, or 5 points more margin — so you know what to
+            fix first.
+          </li>
+          <li>
+            <strong className="text-zinc-100">A scale verdict in plain words</strong> — whether
+            the numbers say scale aggressively, scale a little, or fix the economics first.
+          </li>
+        </ul>
+        <p>
+          Like the other tools it runs in your browser with no sign-up, and every answer has a
+          one-line plain-English explanation underneath it.
         </p>
       </Card>
 
@@ -331,7 +366,9 @@ export default function HowItWorksPage() {
             <strong className="text-zinc-100">No sign-up to try.</strong> The full diagnosis and
             forecast run right in your browser. A free account (30-day trial, no credit card) is
             only needed to save results to your dashboard — and if you sign up after running one,
-            your inputs are preserved, nothing to retype.
+            your inputs are preserved, nothing to retype. While you work, your inputs are kept
+            in this browser only: they stay until you clear them or hit Start fresh, and they
+            never leave your device unless you save them.
           </li>
           <li>
             <strong className="text-zinc-100">Track improvement.</strong> Save a diagnosis, fix
@@ -347,14 +384,13 @@ export default function HowItWorksPage() {
             <strong className="text-zinc-100">Your numbers stay yours.</strong> Guest runs never
             leave your browser unless you save them. Saved diagnoses and screenshots are private
             to your account. We never sell your data — see the{' '}
-            <Link href="/privacy" className="font-semibold text-lime-300 underline underline-offset-2">
+            <Link href="/privacy" className="font-semibold text-violet-300 underline underline-offset-2">
               Privacy Policy
             </Link>
             .
           </li>
         </ul>
         <div className="flex flex-col items-stretch gap-3 pt-2 sm:flex-row sm:flex-wrap">
-          <PrimaryLink href="/diagnose?sample=1">Try the sample diagnosis</PrimaryLink>
           <PrimaryLink href="/diagnose" className="bg-zinc-800 text-zinc-100 hover:bg-zinc-700">
             Run your own diagnosis
           </PrimaryLink>

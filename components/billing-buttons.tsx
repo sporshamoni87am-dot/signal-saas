@@ -25,7 +25,9 @@ export function UpgradeButton() {
   return (
     <div>
       <PrimaryButton onClick={() => postAndRedirect('/api/stripe/checkout', setLoading, setError)} disabled={loading}>
-        {loading ? 'Redirecting to Stripe…' : 'Upgrade to Pro — $29/mo'}
+        {/* No price in the UI while the launch is free — the price is
+            decided from beta feedback when paid plans launch. */}
+        {loading ? 'Redirecting to Stripe…' : 'Upgrade to Pro'}
       </PrimaryButton>
       {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
       <p className="mt-2 text-xs text-zinc-500">Test mode — use card 4242 4242 4242 4242.</p>

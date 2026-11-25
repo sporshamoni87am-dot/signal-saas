@@ -160,13 +160,13 @@ export default function ForecastReport({
   const learning = results.learning;
   const guidanceStyles = {
     provisional: 'border-amber-400/40 bg-amber-400/5',
-    ontrack: 'border-lime-400/40 bg-lime-400/5',
+    ontrack: 'border-emerald-400/40 bg-emerald-400/5',
     below: 'border-red-500/40 bg-red-500/5',
     unknown: 'border-zinc-700 bg-zinc-900/60',
   } as const;
   const guidanceText = {
     provisional: 'text-amber-200',
-    ontrack: 'text-lime-200',
+    ontrack: 'text-emerald-200',
     below: 'text-red-300',
     unknown: 'text-zinc-200',
   } as const;
@@ -205,7 +205,7 @@ export default function ForecastReport({
         className={cn(
           'rounded-2xl border p-4 sm:p-5',
           learning.status === 'exited'
-            ? 'border-lime-400/40 bg-lime-400/5'
+            ? 'border-emerald-400/40 bg-emerald-400/5'
             : learning.status === 'unknown'
               ? 'border-zinc-700 bg-zinc-900/60'
               : 'border-amber-400/40 bg-amber-400/5',
@@ -247,7 +247,7 @@ export default function ForecastReport({
             Attribution: {attributionLabel}
           </span>
           {liveSource && (
-            <span className="rounded-full border border-lime-400/40 bg-lime-400/5 px-3 py-1 font-semibold text-lime-200">
+            <span className="rounded-full border border-violet-500/40 bg-violet-500/5 px-3 py-1 font-semibold text-violet-200">
               ⚡ Live data from Meta
             </span>
           )}
@@ -259,7 +259,7 @@ export default function ForecastReport({
         So far — ${results.spend.toLocaleString()} spent
       </h2>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Metric label="Expected purchases" value={results.purchasesExpected.toFixed(1)} sub={results.observedPurchases !== null ? `Observed: ${results.observedPurchases}` : 'No observed count entered'} />
+        <Metric label="Expected purchases" value={`about ${Math.round(results.purchasesExpected)}`} sub={results.observedPurchases !== null ? `Observed: ${results.observedPurchases} · modelled ${results.purchasesExpected.toFixed(1)}` : `Modelled ${results.purchasesExpected.toFixed(1)}`} />
         <Metric label="Expected revenue" value={money(results.revenue)} />
         <Metric label="Modelled CPA" value={money(results.cpa)} sub={results.cpaRange ? `Rough range ${money(results.cpaRange.low)} – ${results.cpaRange.high !== null ? money(results.cpaRange.high) : 'very wide'}` : undefined} />
         <Metric label="Modelled ROAS" value={results.roas !== null ? `${results.roas.toFixed(2)}×` : '—'} sub={`Break-even ${results.beRoas !== null ? `${results.beRoas.toFixed(2)}×` : '—'}`} />
@@ -283,7 +283,7 @@ export default function ForecastReport({
           </h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             <Metric label="Remaining budget" value={money(results.remainingBudget)} />
-            <Metric label="Expected purchases" value={results.fullPurchases !== null ? results.fullPurchases.toFixed(1) : '—'} />
+            <Metric label="Expected purchases" value={results.fullPurchases !== null ? `about ${Math.round(results.fullPurchases)}` : '—'} sub={results.fullPurchases !== null ? `Modelled ${results.fullPurchases.toFixed(1)}` : undefined} />
             <Metric label="Expected revenue" value={money(results.fullRevenue)} />
             <Metric label="Modelled ROAS" value={results.fullRoas !== null ? `${results.fullRoas.toFixed(2)}×` : '—'} sub={`Break-even ${results.beRoas !== null ? `${results.beRoas.toFixed(2)}×` : '—'}`} />
             <Metric label="Full-budget CPA" value={money(results.fullCpa)} sub={`Break-even CPA ${money(results.beCpa)}`} />
@@ -355,6 +355,7 @@ export default function ForecastReport({
       <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Scenario sensitivity (not a promise)</h2>
       <p className="mb-3 text-sm text-zinc-400">
         How CPA and ROAS change if website purchase conversion rate changes, while CPM, CTR, LPV rate and AOV stay constant.
+        The highlighted row is the CVR this campaign actually needs to break even.
       </p>
       {/* Desktop table */}
       <div className="hidden overflow-hidden rounded-2xl border border-zinc-800 sm:block">
@@ -370,12 +371,19 @@ export default function ForecastReport({
           </thead>
           <tbody>
             {results.scenarioRows.map((r) => (
-              <tr key={r.cvrPct} className="border-t border-zinc-800/60">
-                <td className="px-4 py-3 font-mono text-zinc-100">{r.cvrPct.toFixed(1)}%</td>
+              <tr key={r.cvrPct} className={r.isRequired ? 'border-t border-violet-500/40 bg-violet-500/10' : 'border-t border-zinc-800/60'}>
+                <td className="px-4 py-3 font-mono text-zinc-100">
+                  {r.cvrPct.toFixed(1)}%
+                  {r.isRequired && (
+                    <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[11px] font-semibold text-violet-200">
+                      Required for break-even
+                    </span>
+                  )}
+                </td>
                 <td className="px-4 py-3 font-mono text-zinc-300">{r.purchases !== null ? r.purchases.toFixed(2) : '—'}</td>
                 <td className="px-4 py-3 font-mono text-zinc-300">{money(r.cpa)}</td>
                 <td className="px-4 py-3 font-mono text-zinc-300">{r.roas !== null ? `${r.roas.toFixed(2)}×` : '—'}</td>
-                <td className={cn('px-4 py-3 font-semibold', r.vsBreakEven === 'above' ? 'text-lime-300' : r.vsBreakEven === 'below' ? 'text-red-300' : 'text-zinc-500')}>
+                <td className={cn('px-4 py-3 font-semibold', r.vsBreakEven === 'above' ? 'text-emerald-300' : r.vsBreakEven === 'below' ? 'text-red-300' : 'text-zinc-500')}>
                   {r.vsBreakEven === 'above' ? 'At/above' : r.vsBreakEven === 'below' ? 'Below' : '—'}
                 </td>
               </tr>
@@ -386,12 +394,19 @@ export default function ForecastReport({
       {/* Mobile stacked cards */}
       <div className="space-y-2 sm:hidden">
         {results.scenarioRows.map((r) => (
-          <div key={r.cvrPct} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-            <p className="text-sm font-semibold text-zinc-100">CVR {r.cvrPct.toFixed(1)}%</p>
+          <div key={r.cvrPct} className={cn('rounded-xl border px-4 py-3', r.isRequired ? 'border-violet-500/40 bg-violet-500/10' : 'border-zinc-800 bg-zinc-900/60')}>
+            <p className="text-sm font-semibold text-zinc-100">
+              CVR {r.cvrPct.toFixed(1)}%
+              {r.isRequired && (
+                <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[11px] font-semibold text-violet-200">
+                  Required for break-even
+                </span>
+              )}
+            </p>
             <p className="mt-1 font-mono text-sm text-zinc-300">
               {r.purchases !== null ? r.purchases.toFixed(2) : '—'} purchases · CPA {money(r.cpa)} · ROAS {r.roas !== null ? `${r.roas.toFixed(2)}×` : '—'}
             </p>
-            <p className={cn('mt-1 text-xs font-semibold', r.vsBreakEven === 'above' ? 'text-lime-300' : r.vsBreakEven === 'below' ? 'text-red-300' : 'text-zinc-500')}>
+            <p className={cn('mt-1 text-xs font-semibold', r.vsBreakEven === 'above' ? 'text-emerald-300' : r.vsBreakEven === 'below' ? 'text-red-300' : 'text-zinc-500')}>
               {r.vsBreakEven === 'above' ? 'At/above break-even' : r.vsBreakEven === 'below' ? 'Below break-even' : '—'}
             </p>
           </div>

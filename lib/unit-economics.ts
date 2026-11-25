@@ -1,5 +1,5 @@
 /**
- * Meta Ads Signal Assistance — Unit Economics Calculator.
+ * AdSignal Pro — Unit Economics Calculator.
  *
  * Pure, transparent math. No AI, no hidden scoring, no Meta API calls.
  * Based on Ben Heath, "The REAL Secret to Winning with Meta Ads"
@@ -47,7 +47,7 @@
  *   service-delivery cost). It does NOT deduct overheads, office costs or
  *   other fixed costs — but LTGP must still cover those overheads.
  * - Averages must be calculated from totals, not guessed:
- *   AOV = total sales value / number of customers
+ *   AOV = total sales value / number of purchases
  *   average purchases = total purchases / number of customers
  * - For Bangladesh F-commerce / COD, "customers acquired" must be
  *   DELIVERED, PAID customers — not leads, messages or conversations.
@@ -262,18 +262,20 @@ export function calculateUnitEconomics(raw: UnitEconomicsInputs): UnitEconomicsR
   let scaleVerdict: ScaleVerdict = 'unknown';
   let verdictHeadline = 'Add the essentials to see the verdict';
   let verdictDetail =
-    'AOV, average purchases, margin, ad spend and customers acquired are the minimum — everything else refines the picture.';
+    raw.mode === 'leadgen'
+      ? 'AOV, average purchases, margin, ad spend, leads and lead-to-customer conversion are the minimum — everything else refines the picture.'
+      : 'AOV, average purchases, margin, ad spend and customers acquired are the minimum — everything else refines the picture.';
   if (ready && ltgp !== null && cac !== null && acceptableCpp !== null) {
     if (cac >= ltgp) {
       scaleVerdict = 'lifetime-loss';
       verdictHeadline = 'Do not scale — you lose money over the lifetime';
       verdictDetail =
-        'Your CAC is at or above your LTGP, so each new customer loses money even after all their repeat purchases — before overheads. Fix the economics first: raise AOV, margin or repeat purchases, or lower CAC. Cheaper clicks alone will not fix this.';
+        'Your cost per customer (CAC) is at or above your LTGP, so each new customer loses money even after all their repeat purchases — before overheads. Fix the economics first: raise AOV, margin or repeat purchases, or lower CAC. Cheaper clicks alone will not fix this.';
     } else if (cac > acceptableCpp) {
       scaleVerdict = 'first-order-loss';
       verdictHeadline = 'You lose money on the first order — profit only if they come back';
       verdictDetail =
-        'Your CAC is above what the first order earns, so you are funding every new customer from future repeat purchases. That can work only if repeat purchases are proven (not hoped for) and you have the cash to wait for them. Otherwise, do not scale yet.';
+        'Your cost per customer (CAC) is above what the first order earns, so you are funding every new customer from future repeat purchases. That can work only if repeat purchases are proven (not hoped for) and you have the cash to wait for them. Otherwise, do not scale yet.';
     } else {
       // cac <= acceptable CPP: break even or better on the first order.
       const share = acceptableCpp > 0 ? cac / acceptableCpp : 1;
@@ -281,17 +283,17 @@ export function calculateUnitEconomics(raw: UnitEconomicsInputs): UnitEconomicsR
         scaleVerdict = 'scale-aggressive';
         verdictHeadline = 'Wide headroom — you can scale aggressively';
         verdictDetail =
-          'Your CAC is less than half of what the first order can afford, so costs can rise a lot as you scale and still stay profitable.';
+          'Your cost per customer (CAC) is half or less of what the first order can afford, so costs can rise a lot as you scale and still stay profitable.';
       } else if (share <= 0.8) {
         scaleVerdict = 'scale-cautious';
         verdictHeadline = 'Decent headroom — scale in steps';
         verdictDetail =
-          'Your CAC is inside what the first order can afford, but not by a wide margin. Scale in +20–30% steps and re-check CPA after 48–72 hours — costs rise as you scale, so headroom shrinks.';
+          'Your cost per customer (CAC) is inside what the first order can afford, but not by a wide margin. Scale in +20–30% steps and re-check CPA after 48–72 hours — costs rise as you scale, so headroom shrinks.';
       } else {
         scaleVerdict = 'scale-little';
         verdictHeadline = 'Almost no headroom — scale only a little, if at all';
         verdictDetail =
-          'Your CAC is close to the maximum the first order can afford. Scaling will push costs up and leave almost nothing. Improve LTGP (AOV, repeat purchases, margin) or CAC first, then scale.';
+          'Your cost per customer (CAC) is close to the maximum the first order can afford. Scaling will push costs up and leave almost nothing. Improve LTGP (AOV, repeat purchases, margin) or CAC first, then scale.';
       }
     }
   }
@@ -320,7 +322,7 @@ export function calculateUnitEconomics(raw: UnitEconomicsInputs): UnitEconomicsR
     ),
     lever(
       'AOV +10%',
-      aov !== null ? `AOV × 1.10` : '—',
+      aov !== null ? `${raw.currency}${aov} → ${raw.currency}${Math.round(aov * 1.1 * 100) / 100}` : '—',
       aov !== null ? aov * 1.1 : null,
       avgPurchases,
       margin,

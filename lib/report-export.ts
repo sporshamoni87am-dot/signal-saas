@@ -153,7 +153,7 @@ export function buildDiagnosisSections(
 
   const actions: DiagnosisExportSection = {
     title: 'Action items',
-    header: ['Priority', 'Action', 'Detail', 'In Ads Manager'],
+    header: ['Priority', 'Action', 'Detail', 'Do this'],
     rows: results.actionItems.map((a) => [
       String(a.priority),
       a.title,

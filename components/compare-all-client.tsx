@@ -139,7 +139,7 @@ export default function CompareAllClient({
           <p className="mt-4 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-300">
             Only one diagnosis saved so far — run this campaign again after your changes and
             come back here to compare.{' '}
-            <Link href="/diagnose" className="font-semibold text-lime-300 underline underline-offset-2">
+            <Link href="/diagnose" className="font-semibold text-violet-300 underline underline-offset-2">
               New diagnosis
             </Link>
           </p>
@@ -171,7 +171,7 @@ export default function CompareAllClient({
           <div
             className={cn(
               'rounded-2xl border p-6',
-              status === 'improved' && 'border-lime-400/50 bg-lime-400/5',
+              status === 'improved' && 'border-violet-500/50 bg-violet-500/5',
               status === 'declined' && 'border-red-500/50 bg-red-500/5',
               status === 'stable' && 'border-zinc-700 bg-zinc-900/60',
             )}
@@ -180,7 +180,7 @@ export default function CompareAllClient({
               <span
                 className={cn(
                   'rounded-full px-4 py-1.5 text-sm font-bold',
-                  status === 'improved' && 'bg-gradient-to-r from-lime-400 to-emerald-400 text-zinc-950',
+                  status === 'improved' && 'bg-gradient-to-r from-emerald-500 to-green-500 text-white',
                   status === 'declined' && 'bg-gradient-to-r from-red-500 to-rose-500 text-white',
                   status === 'stable' && 'bg-gradient-to-r from-zinc-400 to-zinc-500 text-zinc-950',
                 )}
@@ -258,7 +258,7 @@ export default function CompareAllClient({
             <ol className="space-y-3">
               {later.results.actionItems.map((a) => (
                 <li key={a.priority} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 text-xs font-bold text-zinc-950">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-bold text-white">
                     {a.priority}
                   </span>
                   <div>

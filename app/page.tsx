@@ -1,10 +1,15 @@
 import Link from 'next/link';
+import { diagnose } from '@/lib/engine';
+import { SAMPLE_CAMPAIGN } from '@/lib/sample-campaign';
+import { forecast } from '@/lib/forecast';
+import { SAMPLE_FORECAST } from '@/lib/forecast-sample';
+import { VerdictBadge } from '@/components/ui';
 
 const STEPS = [
   {
     n: '01',
     title: 'Drop in your numbers',
-    body: 'Type your Ads Manager metrics — or upload a screenshot to read from while you type. Add your breakeven ROAS, margin, and a one-line note on what’s worrying you.',
+    body: 'Type your Ads Manager metrics — or upload a screenshot for reference while you type. Add your breakeven ROAS, margin, and a one-line note on what’s worrying you.',
   },
   {
     n: '02',
@@ -30,6 +35,17 @@ const SIGNALS = [
 ];
 
 export default function LandingPage() {
+  // Both previews below are built from the REAL sample data run through
+  // the real engine/forecast — no fake screenshots, no invented numbers.
+  const sample = diagnose(SAMPLE_CAMPAIGN);
+  const sampleForecast = forecast(SAMPLE_FORECAST);
+  const roas = sample.adSignals.find((s) => s.key === 'roas');
+  const cpa = sample.adSignals.find((s) => s.key === 'cpa');
+  const mer = sample.businessMetrics.find((s) => s.key === 'mer');
+  const poas = sample.businessMetrics.find((s) => s.key === 'poas');
+  const creativeRule = sample.rulesFired.find((r) => r.rule === 'Creative weakness detected');
+  const topAction = sample.actionItems[0];
+  const forecastPurchases = sampleForecast.funnel.find((f) => f.stage === 'Purchases (expected)');
   return (
     <div>
       {/* Hero */}
@@ -41,20 +57,20 @@ export default function LandingPage() {
         <div
           aria-hidden="true"
           className="pointer-events-none absolute inset-0"
-          style={{ background: 'radial-gradient(60% 45% at 50% 0%, rgb(163 230 53 / 0.09), transparent 70%)' }}
+          style={{ background: 'radial-gradient(60% 45% at 50% 0%, rgb(124 58 237 / 0.09), transparent 70%)' }}
         />
         <div className="relative mx-auto max-w-6xl px-4 pb-20 pt-16 sm:px-6 sm:pt-24">
           <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-lime-400/30 bg-lime-400/10 px-3.5 py-1.5 text-xs font-semibold text-lime-300">
-              <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
+            <p className="inline-flex items-center gap-2 rounded-full border border-violet-500/30 bg-violet-500/10 px-3.5 py-1.5 text-xs font-semibold text-violet-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-violet-600" />
               Built for D2C media buyers on Meta
             </p>
             <h1 className="mt-6 text-4xl font-bold leading-[1.08] tracking-tight text-zinc-50 sm:text-6xl">
               Stop guessing which metrics matter.{' '}
-              <span className="text-lime-300">Get the signal.</span>
+              <span className="text-violet-300">Get the signal.</span>
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-zinc-400">
-              Meta Ads Signal Assistance reads your campaign numbers and tells you, in plain
+              AdSignal Pro reads your campaign numbers and tells you, in plain
               terms, which signals are healthy, which are leaking money, whether to kill,
               scale, fix or wait — and exactly what to change in Ads Manager. No prompting
               skills required. No generic strategy fluff.
@@ -64,7 +80,7 @@ export default function LandingPage() {
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <Link
                 href="/diagnose"
-                className="w-full justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-6 py-3.5 text-center text-sm font-semibold text-zinc-950 shadow-[0_0_32px_-6px] shadow-lime-400/50 transition hover:from-lime-300 hover:to-emerald-300 sm:w-auto"
+                className="w-full justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-3.5 text-center text-sm font-semibold text-white shadow-[0_0_32px_-6px] shadow-violet-600/50 transition hover:from-violet-500 hover:to-indigo-500 sm:w-auto"
               >
                 Try a free diagnosis — no sign-up
               </Link>
@@ -82,9 +98,9 @@ export default function LandingPage() {
               </Link>
             </div>
             <p className="mt-4 text-xs leading-relaxed text-zinc-500">
-              Run your first diagnosis right now, no account needed.
+              The tools are free — no sign-up, no credit card. Run your first diagnosis right now.
               <br className="hidden sm:block" />
-              Free 30-day trial when you create an account · No credit card required
+              Create a free account and you get a 30-day trial with saving and comparison.
             </p>
           </div>
 
@@ -95,7 +111,7 @@ export default function LandingPage() {
                 key={s}
                 className="rounded-xl border border-zinc-800/70 bg-zinc-900/70 px-4 py-3 text-[13px] font-medium text-zinc-300 shadow-[0_1px_2px_rgb(0_0_0/0.4)]"
               >
-                <span className="mr-2 text-lime-400">✓</span>
+                <span className="mr-2 text-violet-400">✓</span>
                 {s}
               </div>
             ))}
@@ -113,7 +129,7 @@ export default function LandingPage() {
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {STEPS.map((s) => (
               <div key={s.n} className="rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-6 shadow-[0_1px_2px_rgb(0_0_0/0.4)] transition-all hover:-translate-y-0.5 hover:border-zinc-700/80">
-                <p className="font-mono text-sm font-bold text-lime-400">{s.n}</p>
+                <p className="font-mono text-sm font-bold text-violet-400">{s.n}</p>
                 <h3 className="mt-3 text-lg font-semibold text-zinc-100">{s.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-zinc-400">{s.body}</p>
               </div>
@@ -132,7 +148,7 @@ export default function LandingPage() {
               </h2>
               <p className="mt-4 leading-relaxed text-zinc-400">
                 Most buyers stare at ROAS, link clicks and CTR — then wonder why the business
-                isn’t growing. Signal Assistance grades your campaign on both levels: the
+                isn’t growing. AdSignal Pro grades your campaign on both levels: the
                 ad-platform signals <em className="text-zinc-300">and</em> the business truth —
                 blended MER, profit on ad spend, margin-aware verdicts — plus creative health
                 (hook rate, hold rate, fatigue) and a leak-by-leak funnel read.
@@ -141,13 +157,50 @@ export default function LandingPage() {
                 And it never hides behind a black box: every rule that fires shows its math.
               </p>
             </div>
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-[13px] leading-relaxed">
-              <p className="text-zinc-500">{'// what the engine shows you'}</p>
-              <p className="mt-2 text-zinc-300">verdict: <span className="font-bold text-amber-300">FIX IT &amp; RETEST</span></p>
-              <p className="text-zinc-300">rule: <span className="text-zinc-100">creative weakness detected</span></p>
-              <p className="text-lime-300/90">math: CTR 0.52% &lt; 0.70% · hook 16.2% &lt; 20%</p>
-              <p className="mt-3 text-zinc-300">action 1: <span className="text-zinc-100">launch 3 new hooks</span></p>
-              <p className="text-zinc-500">in Ads Manager: duplicate the ad 3×, swap only the first 3 seconds…</p>
+            {/* Miniature preview of the REAL sample diagnosis — same card as
+                the dashboard workflow section, run through the real engine. */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+              <div className="flex items-center justify-between gap-2">
+                <p className="min-w-0 truncate text-xs font-semibold text-zinc-300">Sample — Aurora Skincare</p>
+                <VerdictBadge verdict={sample.verdict} size="sm" />
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[11px] text-zinc-500">ROAS</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">{roas?.display ?? '—'}</p>
+                  <p className="text-[11px] text-zinc-500">Breakeven {SAMPLE_CAMPAIGN.breakevenRoas}×</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">Cost per purchase</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">{cpa?.display ?? '—'}</p>
+                  <p className="text-[11px] text-zinc-500">
+                    Target ${sample.dataSufficiency.targetCpa?.toFixed(2) ?? '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">MER (blended)</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">{mer?.display ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">POAS</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">{poas?.display ?? '—'}</p>
+                </div>
+              </div>
+              {creativeRule && (
+                <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
+                  <p className="text-xs font-semibold text-zinc-200">Rule that fired: {creativeRule.rule}</p>
+                  <p className="mt-1 font-mono text-xs text-amber-300">{creativeRule.math}</p>
+                </div>
+              )}
+              {topAction && (
+                <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+                  <span className="font-semibold text-zinc-300">First action: </span>
+                  {topAction.title}
+                </p>
+              )}
+              <Link href="/diagnose?sample=1" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 transition hover:text-violet-200">
+                Run the sample diagnosis →
+              </Link>
             </div>
           </div>
         </div>
@@ -158,7 +211,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
-              <p className="text-xs font-bold tracking-widest text-lime-300">NEW · EARLY-STAGE FORECAST</p>
+              <p className="text-xs font-bold tracking-widest text-violet-300">NEW · EARLY-STAGE FORECAST</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
                 $5,000 budget, $550 spent. How will it land?
               </h2>
@@ -173,20 +226,58 @@ export default function LandingPage() {
                 judged: until Meta&apos;s learning phase is over (about 50 optimisation events
                 in a week), every verdict is provisional — too early to scale or pause.
               </p>
-              <Link href="/forecast" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-7 py-3 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+              <Link href="/forecast" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-7 py-3 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
                 Try the forecast — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
                 A planning model built on your numbers — not a Meta prediction, and not affiliated with Meta.
               </p>
             </div>
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-[13px] leading-relaxed">
-              <p className="text-zinc-500">{'// what the forecast shows you'}</p>
-              <p className="mt-2 text-zinc-300">learning: <span className="font-bold text-amber-300">LIMITED RISK · 11 / 50 events · ~7/week</span></p>
-              <p className="text-zinc-300">guidance: <span className="text-zinc-100">too early to scale or pause — verdicts are provisional</span></p>
-              <p className="text-zinc-300">full budget: <span className="text-zinc-100">~99 purchases · CPA $50.28 · ROAS 1.37×</span></p>
-              <p className="mt-3 text-zinc-300">leak: <span className="text-zinc-100">checkout → purchase 45.0% · watch</span></p>
-              <p className="text-zinc-500">min daily budget to exit learning: (target CPA × 50) ÷ 7</p>
+            {/* Miniature preview of the REAL sample forecast — run through the
+                real forecast model, same numbers as /forecast?sample=1. */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+              <p className="text-xs font-semibold text-zinc-300">Sample — Aurora Skincare early test</p>
+              <div className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3">
+                <p className="text-sm font-semibold text-amber-200">
+                  Learning: limited risk · {sampleForecast.learning.events ?? '—'} / 50 events · ~{sampleForecast.learning.weeklyProjected !== null ? Math.round(sampleForecast.learning.weeklyProjected) : '—'}/week
+                </p>
+                <p className="mt-1 text-xs leading-relaxed text-amber-200/80">
+                  Too early to scale or pause — verdicts are provisional.
+                </p>
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-3">
+                <div>
+                  <p className="text-[11px] text-zinc-500">Full-budget purchases</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {sampleForecast.fullPurchases !== null ? `about ${Math.round(sampleForecast.fullPurchases)}` : '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">Full-budget CPA</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {sampleForecast.fullCpa !== null ? `$${sampleForecast.fullCpa.toFixed(2)}` : '—'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">Full-budget ROAS</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {sampleForecast.fullRoas !== null ? `${sampleForecast.fullRoas.toFixed(2)}×` : '—'}
+                  </p>
+                </div>
+              </div>
+              {forecastPurchases && (
+                <p className="mt-4 text-xs leading-relaxed text-zinc-500">
+                  <span className="font-semibold text-zinc-300">Biggest leak: </span>
+                  checkout → purchase {forecastPurchases.rateDisplay} ·{' '}
+                  {forecastPurchases.status === 'bad' ? 'bad' : forecastPurchases.status === 'warn' ? 'watch' : forecastPurchases.status === 'good' ? 'good' : '—'}
+                </p>
+              )}
+              <p className="mt-1 text-xs leading-relaxed text-zinc-500">
+                To exit learning: about ${sampleForecast.learning.minDailyBudget !== null ? Math.round(sampleForecast.learning.minDailyBudget) : '—'}/day.
+              </p>
+              <Link href="/forecast?sample=1" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 transition hover:text-violet-200">
+                Run the sample forecast →
+              </Link>
             </div>
           </div>
         </div>
@@ -197,7 +288,7 @@ export default function LandingPage() {
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
             <div>
-              <p className="text-xs font-bold tracking-widest text-lime-300">NEW · UNIT ECONOMICS CALCULATOR</p>
+              <p className="text-xs font-bold tracking-widest text-violet-300">NEW · UNIT ECONOMICS CALCULATOR</p>
               <h2 className="mt-2 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
                 Can this business afford to buy customers on Meta?
               </h2>
@@ -212,7 +303,7 @@ export default function LandingPage() {
                 really have to scale, and which lever — one more purchase, higher
                 AOV, or better margin — moves LTGP most.
               </p>
-              <Link href="/unit-economics" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-7 py-3 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+              <Link href="/unit-economics" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-7 py-3 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
                 Try the Unit Economics Calculator — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
@@ -223,7 +314,7 @@ export default function LandingPage() {
               <p className="text-zinc-500">{'// Example'}</p>
               <p className="mt-2 text-zinc-300">LTGP: <span className="text-zinc-100">$200 × 5 × 50% = $500</span></p>
               <p className="text-zinc-300">CAC: <span className="text-zinc-100">$10,000 ÷ 200 = $50</span></p>
-              <p className="text-zinc-300">LTGP:CAC: <span className="font-bold text-lime-300">10</span> <span className="text-zinc-500">— every $1 returns $10 in lifetime profit</span></p>
+              <p className="text-zinc-300">LTGP:CAC: <span className="font-bold text-violet-300">10</span> <span className="text-zinc-500">— for every $1 it costs to win a customer, you earn $10 in lifetime profit</span></p>
               <p className="mt-3 text-zinc-300">acceptable CPP: <span className="text-zinc-100">$200 × 50% = $100</span></p>
               <p className="text-zinc-500">verdict: wide headroom — scale aggressively</p>
             </div>
@@ -239,9 +330,9 @@ export default function LandingPage() {
             One simple trial. Everything unlocked. Decide later.
           </p>
           <div className="mx-auto mt-10 max-w-xl">
-            <div className="rounded-2xl border border-lime-400/50 bg-zinc-900/60 p-6 text-center shadow-[0_0_40px_-12px] shadow-lime-400/20 sm:p-8">
-              <p className="inline-flex items-center gap-2 rounded-full bg-lime-400/15 px-3 py-1 text-xs font-bold text-lime-300">
-                <span className="h-1.5 w-1.5 rounded-full bg-lime-400" />
+            <div className="rounded-2xl border border-violet-500/50 bg-zinc-900/60 p-6 text-center shadow-[0_0_40px_-12px] shadow-violet-600/20 sm:p-8">
+              <p className="inline-flex items-center gap-2 rounded-full bg-violet-500/15 px-3 py-1 text-xs font-bold text-violet-300">
+                <span className="h-1.5 w-1.5 rounded-full bg-violet-600" />
                 LAUNCH OFFER
               </p>
               <h3 className="mt-4 text-xl font-semibold text-zinc-100">Free 30-day trial</h3>
@@ -256,7 +347,7 @@ export default function LandingPage() {
                 <li>✓ Creative analysis + Ads Manager action items</li>
                 <li>✓ Save history + old-vs-new comparison</li>
               </ul>
-              <Link href="/diagnose" className="mt-7 block min-h-11 rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-5 py-3 text-center text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+              <Link href="/diagnose" className="mt-7 block min-h-11 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-3 text-center text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
                 Try a free diagnosis — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
@@ -276,7 +367,7 @@ export default function LandingPage() {
           <p className="mx-auto mt-3 max-w-xl text-sm text-zinc-400">
             No account, no credit card — just your numbers and an honest verdict.
           </p>
-          <Link href="/diagnose" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-7 py-3 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+          <Link href="/diagnose" className="mt-7 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-7 py-3 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
             Run your first diagnosis
           </Link>
         </div>

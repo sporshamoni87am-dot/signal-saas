@@ -12,6 +12,13 @@ import {
 } from '@/lib/forecast';
 import { SAMPLE_FORECAST, SAMPLE_FORECAST_NOTE } from '@/lib/forecast-sample';
 import { getTrial, saveForecast } from '@/lib/actions';
+import {
+  MARKET_REGIONS,
+  PRODUCT_CATEGORIES,
+  isMarketRegion,
+  isProductCategory,
+  regionLabel,
+} from '@/lib/benchmarks';
 import { parseNum } from '@/lib/format';
 import { clearRestoreFlag, consumeRestore, markRestore } from '@/lib/restore';
 import ForecastReport from '@/components/forecast-report';
@@ -36,7 +43,8 @@ interface NumFieldDef {
 
 type FormState = {
   campaignName: string;
-  market: string;
+  marketRegion: string;
+  productCategory: string;
   totalBudget: string;
   spentSoFar: string;
   dailyBudget: string;
@@ -63,7 +71,8 @@ type FormState = {
 
 const EMPTY: FormState = {
   campaignName: '',
-  market: '',
+  marketRegion: '',
+  productCategory: '',
   totalBudget: '',
   spentSoFar: '',
   dailyBudget: '',
@@ -90,7 +99,6 @@ const EMPTY: FormState = {
 
 const BUDGET_FIELDS: NumFieldDef[] = [
   { name: 'campaignName', label: 'Campaign name', required: true },
-  { name: 'market', label: 'Market / audience', hint: 'E.g. Netherlands + Belgium. Label only — it never changes the math.' },
   { name: 'totalBudget', label: 'Total budget', prefix: '$', hint: 'The full budget for this campaign. Leave blank to forecast only what has been spent so far.' },
   { name: 'spentSoFar', label: 'Spent so far', prefix: '$', required: true },
   { name: 'dailyBudget', label: 'Daily budget', prefix: '$', hint: 'For the spend-pace check.' },
@@ -112,7 +120,7 @@ const PERFORMANCE_FIELDS: NumFieldDef[] = [
 
 const FUNNEL_FIELDS: NumFieldDef[] = [
   { name: 'atcActual', label: 'Add to carts (actual)', hint: 'Optional — overrides the ATC rate when filled.' },
-  { name: 'atcRatePct', label: 'LPV → add to cart rate', suffix: '%', required: true, hint: 'Good ≥8% of clicks (engine threshold).' },
+  { name: 'atcRatePct', label: 'LPV → add to cart rate', suffix: '%', required: true, hint: 'Good ≥10% of landing page views · watch ≥5% (from the engine’s click→ATC benchmark).' },
   { name: 'checkoutsActual', label: 'Checkouts initiated (actual)', hint: 'Optional — overrides the checkout rate when filled.' },
   { name: 'checkoutRatePct', label: 'ATC → checkout rate', suffix: '%', required: true, hint: 'Good ≥60% (engine threshold).' },
   { name: 'purchaseRatePct', label: 'Checkout → purchase rate', suffix: '%', required: true, hint: 'Good ≥60% · watch ≥35% (engine threshold).' },
@@ -147,7 +155,8 @@ function sampleToForm(): FormState {
   const s = SAMPLE_FORECAST;
   return {
     campaignName: s.campaignName,
-    market: s.market ?? '',
+    marketRegion: s.marketRegion ?? '',
+    productCategory: s.productCategory ?? '',
     totalBudget: str(s.totalBudget),
     spentSoFar: str(s.spentSoFar),
     dailyBudget: str(s.dailyBudget),
@@ -253,12 +262,12 @@ function NumField({
   error?: boolean;
   errorText?: string;
 }) {
-  const isText = def.name === 'campaignName' || def.name === 'market';
+  const isText = def.name === 'campaignName';
   return (
     <Field
       label={
-        <span>
-          {def.label + (def.required ? ' *' : '')}
+        <span className="inline-flex items-center gap-1">
+          <span className="whitespace-nowrap">{def.label + (def.required ? ' *' : '')}</span>
           {def.helpTerm && <MetricHelp term={def.helpTerm} />}
         </span>
       }
@@ -275,6 +284,7 @@ function NumField({
             onChange={(e) => onChange(e.target.value)}
             className={cn(inputClassName, error && 'border-red-500/70')}
             placeholder={def.label}
+            aria-label={def.label}
             aria-invalid={error}
           />
         ) : (
@@ -287,6 +297,7 @@ function NumField({
             onChange={(e) => onChange(e.target.value)}
             className={cn(inputClassName, def.prefix && 'pl-8', def.suffix && 'pr-10', error && 'border-red-500/70')}
             placeholder="0"
+            aria-label={def.label}
             aria-invalid={error}
           />
         )}
@@ -445,7 +456,10 @@ function ForecastPage() {
   function buildInputs(): ForecastInputs {
     return {
       campaignName: form.campaignName.trim() || 'Untitled forecast',
-      market: form.market.trim(),
+      // The report prints the market as a label; the grade uses the enum.
+      market: regionLabel(isMarketRegion(form.marketRegion) ? form.marketRegion : null) ?? '',
+      marketRegion: isMarketRegion(form.marketRegion) ? form.marketRegion : null,
+      productCategory: isProductCategory(form.productCategory) ? form.productCategory : null,
       totalBudget: parseNum(form.totalBudget),
       spentSoFar: parseNum(form.spentSoFar) ?? 0,
       dailyBudget: parseNum(form.dailyBudget),
@@ -605,6 +619,12 @@ function ForecastPage() {
    * can't resurrect the old run either.
    */
   function startFresh() {
+    // Clearing is destructive — confirm when there is work to lose. A
+    // fresh empty form clears silently (nothing to lose).
+    const dirty =
+      (Object.keys(EMPTY) as (keyof FormState)[]).some((k) => form[k] !== EMPTY[k]) ||
+      results !== null;
+    if (dirty && !window.confirm('Start fresh? This clears your inputs and results.')) return;
     setForm(EMPTY);
     setResults(null);
     setIsSample(false);
@@ -683,7 +703,7 @@ function ForecastPage() {
             away. Creating new forecasts is paused until paid plans launch.
           </p>
           <div className="mt-5 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-lime-400 px-5 py-2.5 text-sm font-semibold text-zinc-950 transition hover:bg-lime-300">
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500">
               View my forecasts
             </Link>
             <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
@@ -724,7 +744,9 @@ function ForecastPage() {
             <div className="no-print flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
               <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
               <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
-              {saveCta}
+              {/* One save prompt per report: guests get the banner below,
+                  logged-in users get the Save button here (and only here). */}
+              {!isGuest && saveCta}
             </div>
           }
         />
@@ -734,9 +756,9 @@ function ForecastPage() {
           </p>
         )}
         {isGuest && (
-          <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3">
+          <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3">
             <p className="text-sm text-zinc-300">
-              <strong className="text-lime-200">Keep this forecast.</strong>{' '}
+              <strong className="text-violet-200">Keep this forecast.</strong>{' '}
               A free account saves it to your dashboard — your inputs are preserved, nothing to retype.
             </p>
             <PrimaryLink href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="w-full shrink-0 px-4 py-2 sm:w-auto">
@@ -756,7 +778,6 @@ function ForecastPage() {
         <div className="no-print mt-6 flex flex-col items-stretch gap-2 sm:flex-row sm:flex-wrap sm:justify-end">
           <GhostButton onClick={() => { setResults(null); scrollTop(); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
           <GhostButton onClick={startFresh} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
-          {saveCta}
         </div>
       </div>
     );
@@ -772,7 +793,7 @@ function ForecastPage() {
           explains every step. */}
       <div className="no-print mb-6 flex flex-wrap items-center gap-2">
         <GhostButton onClick={startFresh}>↺ Start fresh</GhostButton>
-        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200">
+        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-violet-300 transition hover:text-violet-200">
           How it works →
         </Link>
       </div>
@@ -795,7 +816,7 @@ function ForecastPage() {
         </p>
 
         {connectDone && (
-          <p className="mt-3 rounded-xl border border-lime-400/40 bg-lime-400/5 px-3.5 py-2.5 text-sm text-lime-200">
+          <p className="mt-3 rounded-xl border border-violet-500/40 bg-violet-500/5 px-3.5 py-2.5 text-sm text-violet-200">
             ✓ Meta account connected — pick an ad account and campaign below.
           </p>
         )}
@@ -808,7 +829,7 @@ function ForecastPage() {
         {isGuest && (
           <p className="mt-3 text-sm text-zinc-300">
             Live data needs a free account.{' '}
-            <Link href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="font-semibold text-lime-300 underline underline-offset-2">
+            <Link href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="font-semibold text-violet-300 underline underline-offset-2">
               Create one
             </Link>{' '}
             to connect your Meta ad account — manual entry works right now.
@@ -915,8 +936,8 @@ function ForecastPage() {
               </p>
             )}
             {liveSource && (
-              <div className="rounded-xl border border-lime-400/40 bg-lime-400/5 px-4 py-3">
-                <p className="text-sm font-semibold text-lime-200">
+              <div className="rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3">
+                <p className="text-sm font-semibold text-violet-200">
                   ✓ Live data loaded — {liveSource.objectName ?? 'campaign'} · {liveSource.since} → {liveSource.until}
                 </p>
                 <p className="mt-1 text-[13px] text-zinc-400">
@@ -952,6 +973,43 @@ function ForecastPage() {
         <SectionTitle hint="The money side — what the campaign costs and how long it has been running.">
           Campaign &amp; budget
         </SectionTitle>
+        {/* Benchmark context — the same market/category the diagnosis uses,
+            so the CTR grade agrees across the two tools. Optional. */}
+        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
+          <p className="text-sm font-medium text-zinc-200">
+            Market &amp; category <span className="font-normal text-zinc-500">(optional)</span>
+          </p>
+          <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
+            When set, the CTR grade uses your segment&apos;s benchmarks instead of the generic
+            D2C thresholds — the same context the diagnosis uses. Skipped means generic.
+          </p>
+          <div className="mt-3 grid gap-4 sm:grid-cols-2">
+            <Field label="Market / region">
+              <select
+                value={form.marketRegion}
+                onChange={(e) => set('marketRegion', e.target.value)}
+                className={inputClassName}
+              >
+                <option value="">Skip — use generic benchmarks</option>
+                {MARKET_REGIONS.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Product category">
+              <select
+                value={form.productCategory}
+                onChange={(e) => set('productCategory', e.target.value)}
+                className={inputClassName}
+              >
+                <option value="">Skip — use generic benchmarks</option>
+                {PRODUCT_CATEGORIES.map((o) => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
+              </select>
+            </Field>
+          </div>
+        </div>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {BUDGET_FIELDS.map((def) => (
             <NumField
@@ -1063,9 +1121,6 @@ function ForecastPage() {
               className="w-full sm:w-auto"
             >
               Load sample
-            </GhostButton>
-            <GhostButton onClick={startFresh} className="w-full sm:w-auto">
-              ↺ Start fresh
             </GhostButton>
           </div>
           <p className="text-center text-xs text-zinc-500 sm:text-right">

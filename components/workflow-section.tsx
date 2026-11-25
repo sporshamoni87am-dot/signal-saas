@@ -26,7 +26,7 @@ export default function WorkflowSection() {
             Diagnose, act, compare, forecast — the loop that turns ad spend into decisions.
           </p>
         </div>
-        <Link href="/how-it-works" className="inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 transition hover:text-lime-200">
+        <Link href="/how-it-works" className="inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 transition hover:text-violet-200">
           Read the full user manual →
         </Link>
       </div>
@@ -53,12 +53,12 @@ export default function WorkflowSection() {
               Verdict, signals and leaks — graded against your breakeven, with the math shown.
             </p>
           </div>
-          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 text-sm font-bold text-zinc-950">1</span>
+          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-sm font-bold text-white">1</span>
           <h3 className="mt-3 font-semibold text-zinc-100">Diagnose</h3>
           <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">
             Run your numbers and get a verdict — kill, scale, fix or wait — in about two minutes.
           </p>
-          <Link href="/diagnose" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+          <Link href="/diagnose" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 hover:text-violet-200">
             New diagnosis →
           </Link>
         </div>
@@ -69,7 +69,7 @@ export default function WorkflowSection() {
             <ol className="space-y-2.5">
               {actions.map((a) => (
                 <li key={a.priority} className="flex gap-2.5">
-                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-lime-400/15 text-[11px] font-bold text-lime-300">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-violet-500/15 text-[11px] font-bold text-violet-300">
                     {a.priority}
                   </span>
                   <p className="text-xs leading-snug text-zinc-300">{a.title}</p>
@@ -77,12 +77,12 @@ export default function WorkflowSection() {
               ))}
             </ol>
           </div>
-          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 text-sm font-bold text-zinc-950">2</span>
+          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-sm font-bold text-white">2</span>
           <h3 className="mt-3 font-semibold text-zinc-100">Act</h3>
           <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">
             Follow the ordered action items in Ads Manager — biggest leak first, in the exact order given.
           </p>
-          <Link href="/how-it-works" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+          <Link href="/how-it-works" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 hover:text-violet-200">
             How the verdict is decided →
           </Link>
         </div>
@@ -93,24 +93,24 @@ export default function WorkflowSection() {
             <svg viewBox="0 0 200 96" className="h-24 w-full" role="img" aria-label="Diagram: results improving from an earlier diagnosis to a later one">
               <defs>
                 <linearGradient id="wf-bars" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#a3e635" />
-                  <stop offset="100%" stopColor="#34d399" />
+                  <stop offset="0%" stopColor="#7c3aed" />
+                  <stop offset="100%" stopColor="#4f46e5" />
                 </linearGradient>
               </defs>
               <rect x="18" y="58" width="28" height="26" rx="4" fill="#3f3f46" />
-              <rect x="78" y="40" width="28" height="44" rx="4" fill="#65a30d" />
+              <rect x="78" y="40" width="28" height="44" rx="4" fill="#6d28d9" />
               <rect x="138" y="18" width="28" height="66" rx="4" fill="url(#wf-bars)" />
-              <polyline points="32,52 92,34 152,12" fill="none" stroke="#a3e635" strokeWidth="2" strokeLinecap="round" />
+              <polyline points="32,52 92,34 152,12" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round" />
               <text x="18" y="94" fill="#71717a" fontSize="9">Then</text>
               <text x="138" y="94" fill="#a1a1aa" fontSize="9">Now</text>
             </svg>
           </div>
-          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 text-sm font-bold text-zinc-950">3</span>
+          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-sm font-bold text-white">3</span>
           <h3 className="mt-3 font-semibold text-zinc-100">Compare</h3>
           <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">
             Re-diagnose after 7–30 days and see side by side what improved — and what still leaks.
           </p>
-          <Link href="/compare" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+          <Link href="/compare" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 hover:text-violet-200">
             Compare diagnoses →
           </Link>
         </div>
@@ -121,8 +121,8 @@ export default function WorkflowSection() {
             <svg viewBox="0 0 200 96" className="h-24 w-full" role="img" aria-label="Diagram: the funnel narrowing from impressions to purchases">
               <defs>
                 <linearGradient id="wf-funnel" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#a3e635" />
-                  <stop offset="100%" stopColor="#34d399" />
+                  <stop offset="0%" stopColor="#7c3aed" />
+                  <stop offset="100%" stopColor="#4f46e5" />
                 </linearGradient>
               </defs>
               <rect x="10" y="8" width="180" height="14" rx="7" fill="url(#wf-funnel)" opacity="0.95" />
@@ -132,12 +132,12 @@ export default function WorkflowSection() {
               <text x="10" y="94" fill="#71717a" fontSize="9">Impressions → purchases</text>
             </svg>
           </div>
-          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 text-sm font-bold text-zinc-950">4</span>
+          <span className="mt-4 flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-sm font-bold text-white">4</span>
           <h3 className="mt-3 font-semibold text-zinc-100">Forecast</h3>
           <p className="mt-1.5 flex-1 text-sm leading-relaxed text-zinc-400">
             Check the learning phase and the full-budget projection before you scale a young campaign.
           </p>
-          <Link href="/forecast" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-lime-300 hover:text-lime-200">
+          <Link href="/forecast" className="mt-3 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 hover:text-violet-200">
             Run a forecast →
           </Link>
         </div>
