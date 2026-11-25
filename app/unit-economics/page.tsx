@@ -1,457 +1,427 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import {
   CURRENCY_OPTIONS,
   buildUnitEconomicsSummaryText,
+  calculateBreakEvenEcom,
+  calculateBreakEvenLeadGen,
   calculateUnitEconomics,
   type CurrencySymbol,
   type UnitEconomicsInputs,
-  type UnitEconomicsMode,
 } from '@/lib/unit-economics';
 import {
-  SAMPLE_UNIT_ECONOMICS,
-  SAMPLE_UNIT_ECONOMICS_LEADGEN,
-  SAMPLE_UNIT_ECONOMICS_NOTE,
+  HEATH_BREAKEVEN_LEADGEN_PRESETS,
+  HEATH_SHEET1_EXAMPLES,
+  type HeathBreakEvenLeadGenPreset,
+  type HeathSheet1Example,
 } from '@/lib/unit-economics-sample';
 import { parseNum } from '@/lib/format';
-import { Card, Field, GhostButton, PageHeader, PrimaryButton, SectionTitle, inputClassName } from '@/components/ui';
+import { Card, Field, GhostButton, PageHeader, SectionTitle, inputClassName } from '@/components/ui';
 import { cn } from '@/lib/cn';
 
-type FormState = {
-  mode: UnitEconomicsMode;
-  currency: CurrencySymbol;
-  aov: string;
-  avgPurchases: string;
-  marginPct: string;
-  adSpend: string;
-  customersAcquired: string;
-  leadsAcquired: string;
-  leadToCustomerPct: string;
-  // Helper: calculate AOV / avg purchases from totals, as Heath insists.
-  totalRevenue: string;
-  totalCustomersForAvg: string;
-  totalPurchases: string;
-};
+/**
+ * Ben Heath's calculator, rebuilt exactly — same inputs, same formulas,
+ * same answers, $ only, like his Google Sheet in the video
+ * ("The REAL Secret to Winning with Meta Ads", 11 Nov 2026).
+ *
+ * Section 1 = his Sheet 1 ("Sheet1"): 5 green "Input required" cells,
+ * LTV =A4*A5, LTGP =A6*A7, CAC =C4/C5, LTGP:CAC =A8/C6 (plain number
+ * in F4 — no ":1" in the cell). Section 2 = his break-even sheet:
+ * Ecom (AOV, margin → gross profit on 1st transaction, acceptable
+ * cost per purchase) and Lead Gen (1st transaction value, margin,
+ * lead-to-client conversion → gross profit on 1st transaction,
+ * acceptable cost per lead). The break-even cell formulas were never
+ * shown in the video — they are inferred from values + spoken maths
+ * and labelled as such.
+ *
+ * Everything below the "AdSignal Pro extras" divider is NOT part of
+ * Ben Heath's calculator: currency symbol, totals helper, lever table,
+ * scale verdict, copy/CSV, ROAS and profit-per-customer.
+ */
 
-const EMPTY: FormState = {
-  mode: 'ecommerce',
-  currency: '$',
-  aov: '',
-  avgPurchases: '',
-  marginPct: '',
-  adSpend: '',
-  customersAcquired: '',
-  leadsAcquired: '',
-  leadToCustomerPct: '',
-  totalRevenue: '',
-  totalCustomersForAvg: '',
-  totalPurchases: '',
-};
-
-function sampleToForm(s: UnitEconomicsInputs): FormState {
-  const str = (v: number | null) => (v === null ? '' : String(v));
-  return {
-    ...EMPTY,
-    mode: s.mode,
-    currency: s.currency,
-    aov: str(s.aov),
-    avgPurchases: str(s.avgPurchases),
-    marginPct: str(s.marginPct),
-    adSpend: str(s.adSpend),
-    customersAcquired: str(s.customersAcquired),
-    leadsAcquired: str(s.leadsAcquired),
-    leadToCustomerPct: str(s.leadToCustomerPct),
-  };
-}
-
-function money(sym: string, v: number | null): string {
+function money(v: number | null): string {
   if (v === null || !Number.isFinite(v)) return '—';
-  return `${sym}${v.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
 }
 
-function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
+function moneySym(sym: string, v: number | null): string {
+  if (v === null || !Number.isFinite(v)) return '—';
+  return `${sym}${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}`;
+}
+
+/** Plain number, like Heath's F4 cell: 10, 12.5, 28.8 — never "10:1". */
+function plainRatio(v: number | null): string {
+  if (v === null || !Number.isFinite(v)) return '—';
+  const rounded = Math.round(v * 100) / 100;
+  return String(rounded);
+}
+
+function OutputRow({ label, value, formula, note }: { label: string; value: string; formula: string; note?: string }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
-      <p className="text-xs text-zinc-500">{label}</p>
-      <p className="mt-0.5 break-words font-mono text-base font-semibold text-zinc-100">{value}</p>
-      {sub && <p className="mt-0.5 text-xs text-zinc-500">{sub}</p>}
+    <div className="flex flex-col gap-0.5 border-t border-zinc-800/60 px-4 py-3 first:border-t-0 sm:flex-row sm:items-baseline sm:justify-between sm:gap-4">
+      <div>
+        <p className="text-sm font-semibold text-zinc-100">{label}</p>
+        {note && <p className="text-xs text-zinc-500">{note}</p>}
+      </div>
+      <div className="sm:text-right">
+        <p className="font-mono text-base font-semibold text-lime-300">{value}</p>
+        <p className="font-mono text-xs text-zinc-500">{formula}</p>
+      </div>
     </div>
   );
 }
 
-const VERDICT_STYLES: Record<string, { box: string; text: string }> = {
-  'scale-aggressive': { box: 'border-lime-400/40 bg-lime-400/5', text: 'text-lime-200' },
-  'scale-cautious': { box: 'border-sky-400/40 bg-sky-400/5', text: 'text-sky-200' },
-  'scale-little': { box: 'border-amber-400/40 bg-amber-400/5', text: 'text-amber-200' },
-  'first-order-loss': { box: 'border-amber-400/40 bg-amber-400/5', text: 'text-amber-200' },
-  'lifetime-loss': { box: 'border-red-500/40 bg-red-500/5', text: 'text-red-300' },
-  unknown: { box: 'border-zinc-700 bg-zinc-900/60', text: 'text-zinc-200' },
-};
-
-const FORMULAS: { metric: string; formula: string }[] = [
-  { metric: 'Lifetime revenue per customer', formula: 'AOV × average purchases' },
-  { metric: 'LTGP (lifetime gross profit)', formula: 'AOV × average purchases × gross margin' },
-  { metric: 'CAC', formula: 'Total ad spend ÷ customers acquired (delivered, paid)' },
-  { metric: 'LTGP:CAC ratio', formula: 'LTGP ÷ CAC' },
-  { metric: 'First-order gross profit', formula: 'AOV × gross margin' },
-  { metric: 'Acceptable cost per purchase (first order)', formula: 'AOV × gross margin' },
-  { metric: 'Acceptable CAC (lifetime)', formula: 'LTGP' },
-  { metric: 'Acceptable CPL (lead gen, first order)', formula: 'First-order gross profit × lead-to-customer conversion' },
-  { metric: 'Break-even ROAS (first order)', formula: '1 ÷ gross margin' },
-  { metric: 'Profit per customer after ads', formula: 'LTGP − CAC' },
-];
+const INPUT_GREEN = 'border-lime-400/60 bg-lime-400/5';
 
 export default function UnitEconomicsPage() {
-  const [form, setForm] = useState<FormState>(EMPTY);
-  const [errors, setErrors] = useState<string[]>([]);
-  const [results, setResults] = useState<{ inputs: UnitEconomicsInputs; r: ReturnType<typeof calculateUnitEconomics> } | null>(null);
-  const [isSample, setIsSample] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // ---- Section 1: Heath's Sheet 1, pre-filled with his base example ----
+  const [aov, setAov] = useState('200');
+  const [purchases, setPurchases] = useState('5');
+  const [margin, setMargin] = useState('50');
+  const [spend, setSpend] = useState('10000');
+  const [customers, setCustomers] = useState('200');
+  const [activeExample, setActiveExample] = useState('Base example');
+
+  // ---- Section 2: Heath's break-even sheet ----
+  const [beEcomAov, setBeEcomAov] = useState('200');
+  const [beEcomMargin, setBeEcomMargin] = useState('50');
+  const [beLeadValue, setBeLeadValue] = useState('1000');
+  const [beLeadMargin, setBeLeadMargin] = useState('50');
+  const [beLeadConversion, setBeLeadConversion] = useState('20');
+  const [activeLeadPreset, setActiveLeadPreset] = useState('20% close rate');
+
+  // ---- Extras (NOT part of Ben's calculator) ----
+  const [currency, setCurrency] = useState<CurrencySymbol>('$');
+  const [totalRevenue, setTotalRevenue] = useState('');
+  const [totalCustomersForAvg, setTotalCustomersForAvg] = useState('');
+  const [totalPurchases, setTotalPurchases] = useState('');
   const [totalsNote, setTotalsNote] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const sym = form.currency;
-
-  function set<K extends keyof FormState>(name: K, v: string) {
-    setForm((f) => ({ ...f, [name]: v }));
-    setErrors((e) => e.filter((n) => n !== name));
-  }
-
-  function buildInputs(): UnitEconomicsInputs {
-    return {
-      mode: form.mode,
-      currency: form.currency,
-      aov: parseNum(form.aov),
-      avgPurchases: parseNum(form.avgPurchases),
-      marginPct: parseNum(form.marginPct),
-      adSpend: parseNum(form.adSpend),
-      customersAcquired: form.mode === 'ecommerce' ? parseNum(form.customersAcquired) : null,
-      leadsAcquired: form.mode === 'leadgen' ? parseNum(form.leadsAcquired) : null,
-      leadToCustomerPct: form.mode === 'leadgen' ? parseNum(form.leadToCustomerPct) : null,
+  const sheet1 = useMemo(() => {
+    const inputs: UnitEconomicsInputs = {
+      mode: 'ecommerce',
+      currency: '$',
+      aov: parseNum(aov),
+      avgPurchases: parseNum(purchases),
+      marginPct: parseNum(margin),
+      adSpend: parseNum(spend),
+      customersAcquired: parseNum(customers),
+      leadsAcquired: null,
+      leadToCustomerPct: null,
     };
+    return { inputs, r: calculateUnitEconomics(inputs) };
+  }, [aov, purchases, margin, spend, customers]);
+
+  const beEcom = useMemo(
+    () => calculateBreakEvenEcom(parseNum(beEcomAov), parseNum(beEcomMargin)),
+    [beEcomAov, beEcomMargin],
+  );
+  const beLead = useMemo(
+    () => calculateBreakEvenLeadGen(parseNum(beLeadValue), parseNum(beLeadMargin), parseNum(beLeadConversion)),
+    [beLeadValue, beLeadMargin, beLeadConversion],
+  );
+
+  const r = sheet1.r;
+  const sheet1Valid =
+    parseNum(aov) !== null && parseNum(purchases) !== null && parseNum(margin) !== null && parseNum(spend) !== null && parseNum(customers) !== null;
+
+  function loadExample(ex: HeathSheet1Example) {
+    setAov(String(ex.aov));
+    setPurchases(String(ex.avgPurchases));
+    setMargin(String(ex.marginPct));
+    setSpend(String(ex.adSpend));
+    setCustomers(String(ex.customersAcquired));
+    setActiveExample(ex.label);
   }
 
-  function validate(): string[] {
-    const errs: string[] = [];
-    const aov = parseNum(form.aov);
-    const avg = parseNum(form.avgPurchases);
-    const margin = parseNum(form.marginPct);
-    const spend = parseNum(form.adSpend);
-    if (aov === null || aov <= 0) errs.push('aov');
-    if (avg === null || avg < 1) errs.push('avgPurchases');
-    if (margin === null || margin <= 0 || margin > 100) errs.push('marginPct');
-    if (spend === null) errs.push('adSpend');
-    if (form.mode === 'ecommerce') {
-      const c = parseNum(form.customersAcquired);
-      if (c === null || c <= 0) errs.push('customersAcquired');
-    } else {
-      const leads = parseNum(form.leadsAcquired);
-      const conv = parseNum(form.leadToCustomerPct);
-      if (leads === null || leads <= 0) errs.push('leadsAcquired');
-      if (conv === null || conv <= 0 || conv > 100) errs.push('leadToCustomerPct');
-    }
-    return errs;
+  function loadLeadPreset(p: HeathBreakEvenLeadGenPreset) {
+    setBeLeadValue(String(p.firstTransactionValue));
+    setBeLeadMargin(String(p.marginPct));
+    setBeLeadConversion(String(p.conversionPct));
+    setActiveLeadPreset(p.label);
   }
 
-  function run() {
-    const errs = validate();
-    setErrors(errs);
-    if (errs.length > 0) {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    const inputs = buildInputs();
-    setIsSample(false);
-    setResults({ inputs, r: calculateUnitEconomics(inputs) });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  function loadSample(mode: UnitEconomicsMode) {
-    const s = mode === 'leadgen' ? SAMPLE_UNIT_ECONOMICS_LEADGEN : SAMPLE_UNIT_ECONOMICS;
-    setForm(sampleToForm(s));
-    setIsSample(true);
-    setErrors([]);
-    setResults({ inputs: s, r: calculateUnitEconomics(s) });
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  function startFresh() {
+    setAov(''); setPurchases(''); setMargin(''); setSpend(''); setCustomers('');
+    setBeEcomAov(''); setBeEcomMargin('');
+    setBeLeadValue(''); setBeLeadMargin(''); setBeLeadConversion('');
+    setActiveExample(''); setActiveLeadPreset('');
+    setTotalsNote(null);
   }
 
   function useTotals() {
-    const rev = parseNum(form.totalRevenue);
-    const cust = parseNum(form.totalCustomersForAvg);
-    const purch = parseNum(form.totalPurchases);
+    const rev = parseNum(totalRevenue);
+    const cust = parseNum(totalCustomersForAvg);
+    const purch = parseNum(totalPurchases);
     if (rev === null || cust === null || cust <= 0 || purch === null) {
       setTotalsNote('Fill in all three totals first — total revenue, total customers and total purchases.');
       return;
     }
-    const aov = rev / cust;
-    const avg = purch / cust;
-    setForm((f) => ({
-      ...f,
-      aov: String(Math.round(aov * 100) / 100),
-      avgPurchases: String(Math.round(avg * 100) / 100),
-    }));
-    setTotalsNote(
-      `Done — AOV ${sym}${(Math.round(aov * 100) / 100).toLocaleString()} and average purchases ${Math.round(avg * 100) / 100} filled in from your totals.`,
-    );
+    const newAov = Math.round((rev / cust) * 100) / 100;
+    const newAvg = Math.round((purch / cust) * 100) / 100;
+    setAov(String(newAov));
+    setPurchases(String(newAvg));
+    setTotalsNote(`Done — AOV $${newAov.toLocaleString()} and average purchases ${newAvg} filled in from your totals.`);
   }
 
   function onCopy() {
-    if (!results) return;
     navigator.clipboard
-      .writeText(buildUnitEconomicsSummaryText(results.inputs, results.r))
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      })
+      .writeText(buildUnitEconomicsSummaryText(sheet1.inputs, r))
+      .then(() => { setCopied(true); setTimeout(() => setCopied(false), 2000); })
       .catch(() => setCopied(false));
   }
 
   function onCsv() {
-    if (!results) return;
-    const { inputs, r } = results;
     const rows: [string, string][] = [
-      ['Mode', inputs.mode],
-      ['AOV / first transaction', money(sym, inputs.aov)],
-      ['Average purchases per customer', inputs.avgPurchases !== null ? String(inputs.avgPurchases) : ''],
-      ['Gross margin %', inputs.marginPct !== null ? String(inputs.marginPct) : ''],
-      ['Ad spend', money(sym, inputs.adSpend)],
-      ['Customers acquired', r.customers !== null ? String(Math.round(r.customers)) : ''],
-      ['Lifetime revenue per customer', money(sym, r.lifetimeRevenuePerCustomer)],
-      ['First-order gross profit', money(sym, r.firstOrderGrossProfit)],
-      ['LTGP', money(sym, r.ltgp)],
-      ['CAC', money(sym, r.cac)],
-      ['CPL', money(sym, r.cpl)],
-      ['LTGP:CAC', r.ltgpCacRatio !== null ? `${r.ltgpCacRatio.toFixed(2)}:1` : ''],
-      ['First-order ROAS', r.firstOrderRoas !== null ? `${r.firstOrderRoas.toFixed(2)}x` : ''],
-      ['Break-even ROAS (first order)', r.breakEvenRoas !== null ? `${r.breakEvenRoas.toFixed(2)}x` : ''],
-      ['Acceptable CPP (first order)', money(sym, r.acceptableCpp)],
-      ['Acceptable CAC (lifetime)', money(sym, r.acceptableCacLifetime)],
-      ['Acceptable CPL (first order)', money(sym, r.acceptableCpl)],
-      ['Profit per customer after ads', money(sym, r.profitPerCustomerAfterAds)],
-      ['Total profit after ads', money(sym, r.totalProfitAfterAds)],
-      ['Verdict', r.verdictHeadline],
+      ['AOV', money(parseNum(aov))],
+      ['No. of purchases', purchases],
+      ['Gross Profit Margin %', margin],
+      ['Total ad spend', money(parseNum(spend))],
+      ['No. of customers acquired', customers],
+      ['LTV (Lifetime revenue per customer)', money(r.lifetimeRevenuePerCustomer)],
+      ['LTGP (Lifetime Gross Profit)', money(r.ltgp)],
+      ['CAC', money(r.cac)],
+      ['LTGP:CAC ratio', plainRatio(r.ltgpCacRatio)],
+      ['Break-even Ecom — AOV', money(parseNum(beEcomAov))],
+      ['Break-even Ecom — Gross Profit Margin %', beEcomMargin],
+      ['Break-even Ecom — Gross Profit on 1st transaction', money(beEcom.grossProfitFirst)],
+      ['Break-even Ecom — Acceptable cost per purchase', money(beEcom.acceptableCpp)],
+      ['Break-even Lead Gen — 1st transaction value', money(parseNum(beLeadValue))],
+      ['Break-even Lead Gen — Gross Profit Margin %', beLeadMargin],
+      ['Break-even Lead Gen — Lead-to-client conversion %', beLeadConversion],
+      ['Break-even Lead Gen — Gross Profit on 1st transaction', money(beLead.grossProfitFirst)],
+      ['Break-even Lead Gen — Acceptable cost per lead', money(beLead.acceptableCpl)],
     ];
-    const csv = rows.map(([k, v]) => `"${k.replaceAll('"', '""')}","${String(v).replaceAll('"', '""')}"`).join('\n');
+    const csv = rows.map(([k, v]) => `"${k}","${String(v).replaceAll('"', '""')}"`).join('\n');
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'unit-economics.csv';
+    a.download = 'unit-economics-ben-heath.csv';
     a.click();
     URL.revokeObjectURL(a.href);
   }
 
-  // ---------------- results view ----------------
-  if (results) {
-    const { r } = results;
-    const vs = VERDICT_STYLES[r.scaleVerdict] ?? VERDICT_STYLES.unknown;
-    return (
-      <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
-        <PageHeader
-          title="Unit Economics Calculator"
-          sub={isSample ? 'Sample — Ben Heath’s worked example. Replace it with your own numbers.' : 'Your unit economics, with every formula shown.'}
-          actions={
-            <div className="no-print flex w-full flex-col items-stretch gap-2 sm:w-auto sm:flex-row sm:flex-wrap sm:items-center">
-              <GhostButton onClick={() => { setResults(null); window.scrollTo({ top: 0 }); }} className="w-full sm:w-auto">Edit inputs</GhostButton>
-              <GhostButton onClick={() => { setForm(EMPTY); setResults(null); setIsSample(false); setErrors([]); window.scrollTo({ top: 0 }); }} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
-            </div>
-          }
-        />
-        {isSample && (
-          <p className="no-print mb-4 rounded-xl border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm text-sky-200">{SAMPLE_UNIT_ECONOMICS_NOTE}</p>
-        )}
+  const numInput = (value: string, set: (v: string) => void, extra?: string) => (
+    <input
+      type="number" min="0" step="any" inputMode="decimal" value={value}
+      onChange={(e) => set(e.target.value)}
+      className={cn(inputClassName, INPUT_GREEN, extra)}
+      placeholder="0"
+    />
+  );
 
-        <div className="no-print mb-5 flex flex-wrap gap-2">
-          <button type="button" onClick={onCopy} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
-            {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
-          </button>
-          <button type="button" onClick={onCsv} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
-            ⭳ Export CSV
-          </button>
-          <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
-            ⎙ Print / save PDF
-          </button>
-        </div>
-
-        <div className={cn('rounded-2xl border p-4 sm:p-5', vs.box)}>
-          <p className={cn('text-lg font-bold', vs.text)}>{r.verdictHeadline}</p>
-          <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{r.verdictDetail}</p>
-          <p className="mt-3 text-xs text-zinc-500">
-            Scale bands are AdSignal Pro guidance from the headroom principle — Ben Heath’s video gives no band thresholds, only “scale aggressively when actual cost is far below acceptable cost”.
-          </p>
-        </div>
-
-        <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">The headline numbers</h2>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <Metric label="LTGP — lifetime gross profit / customer" value={money(sym, r.ltgp)} sub="AOV × avg purchases × margin" />
-          <Metric label="CAC — cost to acquire a customer" value={money(sym, r.cac)} sub="Ad spend ÷ delivered, paid customers" />
-          <Metric label="LTGP:CAC ratio" value={r.ltgpCacRatio !== null ? `${r.ltgpCacRatio.toFixed(1)}:1` : '—'} sub="LTGP ÷ CAC — no universal minimum; judge on headroom" />
-          <Metric label="Profit / customer after ads" value={money(sym, r.profitPerCustomerAfterAds)} sub="LTGP − CAC, over the lifetime" />
-          <Metric label="Lifetime revenue / customer" value={money(sym, r.lifetimeRevenuePerCustomer)} sub="AOV × avg purchases" />
-          <Metric label="First-order gross profit" value={money(sym, r.firstOrderGrossProfit)} sub="AOV × margin" />
-          <Metric label="Acceptable CPP (first order)" value={money(sym, r.acceptableCpp)} sub="Max you can pay per purchase and break even on order 1" />
-          <Metric label="Acceptable CAC (lifetime)" value={money(sym, r.acceptableCacLifetime)} sub="Max you can pay per customer and break even over their lifetime" />
-          <Metric label="First-order ROAS" value={r.firstOrderRoas !== null ? `${r.firstOrderRoas.toFixed(2)}×` : '—'} sub={`Break-even ${r.breakEvenRoas !== null ? `${r.breakEvenRoas.toFixed(2)}×` : '—'}`} />
-          <Metric label="Headroom (first order)" value={money(sym, r.headroomFirstOrder)} sub={r.headroomFirstOrderPct !== null ? `${(r.headroomFirstOrderPct * 100).toFixed(0)}% of acceptable CPP left` : '—'} />
-          {results.inputs.mode === 'leadgen' && (
-            <>
-              <Metric label="CPL — cost per lead" value={money(sym, r.cpl)} sub="Ad spend ÷ leads" />
-              <Metric label="Acceptable CPL (first order)" value={money(sym, r.acceptableCpl)} sub="First-order profit × conversion" />
-            </>
-          )}
-          <Metric label="Total profit after ads" value={money(sym, r.totalProfitAfterAds)} sub={`${r.customers !== null ? Math.round(r.customers).toLocaleString() : '—'} customers × profit/customer`} />
-        </div>
-
-        <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">What moves LTGP most?</h2>
-        <p className="mb-3 text-sm text-zinc-400">
-          Heath’s sensitivity test: improving the customer is usually a bigger lever than improving CAC. Each row changes one thing only, holding CAC the same.
-        </p>
-        <div className="overflow-hidden rounded-2xl border border-zinc-800">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-zinc-800 text-left text-zinc-500">
-                <th className="px-4 py-3 font-semibold">Lever</th>
-                <th className="px-4 py-3 font-semibold">New LTGP</th>
-                <th className="px-4 py-3 font-semibold">Change</th>
-                <th className="px-4 py-3 font-semibold">New LTGP:CAC</th>
-              </tr>
-            </thead>
-            <tbody>
-              {r.levers.map((l) => (
-                <tr key={l.label} className="border-t border-zinc-800/60 align-top">
-                  <td className="px-4 py-3"><span className="font-semibold text-zinc-100">{l.label}</span><br /><span className="text-xs text-zinc-500">{l.change}</span></td>
-                  <td className="px-4 py-3 font-mono text-zinc-100">{money(sym, l.newLtgp)}</td>
-                  <td className="px-4 py-3 font-mono text-lime-300">{l.deltaLtgp !== null ? `+${money(sym, l.deltaLtgp)}` : '—'}</td>
-                  <td className="px-4 py-3 font-mono text-zinc-300">{l.newRatio !== null ? `${l.newRatio.toFixed(1)}:1` : '—'}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Formula reference</h2>
-        <div className="overflow-hidden rounded-2xl border border-zinc-800">
-          <table className="w-full text-sm">
-            <tbody>
-              {FORMULAS.map((f, idx) => (
-                <tr key={f.metric} className={idx > 0 ? 'border-t border-zinc-800/60' : ''}>
-                  <td className="px-4 py-2.5 font-semibold text-zinc-100">{f.metric}</td>
-                  <td className="px-4 py-2.5 font-mono text-zinc-400">{f.formula}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Warnings &amp; caveats</h2>
-        <ul className="space-y-2">
-          {r.warnings.map((w) => (
-            <li key={w} className="rounded-xl border-l-4 border-amber-400/60 bg-amber-400/5 px-4 py-3 text-sm leading-relaxed text-zinc-300">• {w}</li>
-          ))}
-        </ul>
-        <p className="mt-6 text-center text-xs text-zinc-500">
-          Based on Ben Heath’s LTGP:CAC framework (“The REAL Secret to Winning with Meta Ads”, 11 Nov 2026). Not affiliated with, endorsed by, or connected to Meta. No data is uploaded; calculations run in this browser.
-        </p>
-      </div>
-    );
-  }
-
-  // ---------------- form view ----------------
-  const err = (name: string) => errors.includes(name);
   return (
     <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-      <PageHeader title="Unit Economics Calculator" sub="Can this business afford to buy customers on Meta? · no sign-up needed to try" />
+      <PageHeader title="Unit Economics Calculator" sub="Ben Heath’s calculator, rebuilt exactly — same inputs, same formulas, same answers." />
+
+      <p className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+        This is the Google Sheet from Ben Heath’s video “The REAL Secret to Winning with Meta Ads” (11 Nov 2026), rebuilt as a web
+        calculator. His sheet isn’t downloadable — no link exists, and he told a commenter the sheets live in his Skool community —
+        so this is rebuilt from the formulas read from his formula bar and the values shown on screen. The answers update as you
+        type, exactly like a spreadsheet. <strong className="text-zinc-100">$ only, like his sheet.</strong>
+      </p>
 
       <div className="no-print mb-6 flex flex-wrap items-center gap-2">
-        <GhostButton onClick={() => loadSample('ecommerce')}>Load Ben Heath’s example</GhostButton>
-        <GhostButton onClick={() => loadSample('leadgen')}>Load lead-gen example</GhostButton>
+        {HEATH_SHEET1_EXAMPLES.map((ex) => (
+          <button
+            key={ex.label}
+            type="button"
+            onClick={() => loadExample(ex)}
+            title={ex.note}
+            className={cn(
+              'min-h-11 rounded-xl border px-3 py-2 text-sm font-medium transition',
+              activeExample === ex.label
+                ? 'border-lime-400/70 bg-lime-400/10 text-lime-200'
+                : 'border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500',
+            )}
+          >
+            {ex.label} <span className="text-xs text-zinc-500">· {ex.note}</span>
+          </button>
+        ))}
+        <button type="button" onClick={startFresh} className="min-h-11 rounded-xl border border-zinc-700 bg-zinc-900 px-3 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500">
+          ↺ Start fresh
+        </button>
         <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-lime-300 transition hover:text-lime-200">
           How it works →
         </Link>
       </div>
 
-      <p className="mb-6 rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm leading-relaxed text-zinc-300">
-        <strong className="text-zinc-100">The idea, in one line:</strong> the winner is usually the business that can afford to pay the most for a customer, because each customer is worth the most over their lifetime. This calculator checks that maths before you judge CPM, CTR or creative.
-      </p>
-
-      {errors.length > 0 && (
-        <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3" role="alert">
-          <p className="text-sm font-semibold text-red-200">A few fields need your attention — check the highlighted fields below.</p>
-        </div>
-      )}
-
+      {/* ============ SECTION 1 — Heath's Sheet 1 ============ */}
       <Card className="mb-6">
-        <SectionTitle hint="E-commerce: you sell a product. Lead gen: you sell a service and a lead becomes a customer only some of the time.">
-          Business type &amp; currency
+        <SectionTitle hint="His Sheet 1. The 5 green cells are the only inputs — “Input required”. No other fields exist on his sheet.">
+          LTGP &amp; CAC — Ben Heath’s Sheet 1
         </SectionTitle>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field label="Business type">
-            <div className="flex gap-2">
-              {(['ecommerce', 'leadgen'] as const).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => set('mode', m)}
-                  className={cn(
-                    'min-h-11 flex-1 rounded-xl border px-3 py-2.5 text-sm font-semibold transition',
-                    form.mode === m ? 'border-lime-400/70 bg-lime-400/10 text-lime-200' : 'border-zinc-700 bg-zinc-950 text-zinc-300 hover:border-zinc-500',
-                  )}
-                >
-                  {m === 'ecommerce' ? 'E-commerce' : 'Lead gen'}
-                </button>
-              ))}
+          <Field label="AOV ($) *">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">$</span>
+              {numInput(aov, setAov, 'pl-8')}
             </div>
           </Field>
-          <Field label="Currency — symbol only, no conversion">
-            <select value={form.currency} onChange={(e) => set('currency', e.target.value as CurrencySymbol)} className={inputClassName}>
-              {CURRENCY_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+          <Field label="No. of purchases *">
+            {numInput(purchases, setPurchases)}
           </Field>
-        </div>
-      </Card>
-
-      <Card className="mb-6">
-        <SectionTitle hint="Calculate these from totals, don’t guess them — see the box below. Margin deducts direct costs only (product, delivery, service cost), not overheads.">
-          Customer value
-        </SectionTitle>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          <Field label={`AOV — first order value *`} hint={form.mode === 'leadgen' ? 'First transaction value, e.g. $1,000 for a service.' : 'Average order value, e.g. $200.'}>
+          <Field label="Gross Profit Margin (%) *">
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">{sym}</span>
-              <input type="number" min="0" step="any" inputMode="decimal" value={form.aov} onChange={(e) => set('aov', e.target.value)} className={cn(inputClassName, 'pl-8', err('aov') && 'border-red-500/70')} placeholder="0" aria-invalid={err('aov')} />
-            </div>
-          </Field>
-          <Field label="Average purchases per customer *" hint="Total purchases ÷ total customers. 1 = one-off purchase.">
-            <input type="number" min="1" step="any" inputMode="decimal" value={form.avgPurchases} onChange={(e) => set('avgPurchases', e.target.value)} className={cn(inputClassName, err('avgPurchases') && 'border-red-500/70')} placeholder="e.g. 5" aria-invalid={err('avgPurchases')} />
-          </Field>
-          <Field label="Gross profit margin *" hint="After product + delivery/service cost, before ads and overheads.">
-            <div className="relative">
-              <input type="number" min="0" max="100" step="any" inputMode="decimal" value={form.marginPct} onChange={(e) => set('marginPct', e.target.value)} className={cn(inputClassName, 'pr-10', err('marginPct') && 'border-red-500/70')} placeholder="e.g. 50" aria-invalid={err('marginPct')} />
+              {numInput(margin, setMargin, 'pr-10')}
               <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">%</span>
             </div>
           </Field>
-          <Field label="Ad spend *" hint="Total ad spend for the period these customers came from.">
+          <Field label="Total ad spend ($) *">
             <div className="relative">
-              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">{sym}</span>
-              <input type="number" min="0" step="any" inputMode="decimal" value={form.adSpend} onChange={(e) => set('adSpend', e.target.value)} className={cn(inputClassName, 'pl-8', err('adSpend') && 'border-red-500/70')} placeholder="0" aria-invalid={err('adSpend')} />
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">$</span>
+              {numInput(spend, setSpend, 'pl-8')}
+            </div>
+          </Field>
+          <Field label="No. of customers acquired *">
+            {numInput(customers, setCustomers)}
+          </Field>
+        </div>
+        <p className="mt-4 text-[13px] leading-relaxed text-zinc-500">
+          Averages must come from totals, not guesses: AOV = total revenue ÷ customers; purchases = total purchases ÷ customers.
+          For Bangladesh F-commerce, “customers acquired” means delivered, paid customers — COD orders that cancel, return or never
+          pay are not customers yet.
+        </p>
+
+        <div className="mt-5 overflow-hidden rounded-2xl border border-zinc-800">
+          <OutputRow label="LTV — Lifetime revenue per customer" value={money(r.lifetimeRevenuePerCustomer)} formula="= AOV × No. of purchases  (=A4*A5)" note="His sheet: $1,000 in the base example" />
+          <OutputRow label="LTGP — Lifetime Gross Profit" value={money(r.ltgp)} formula="= LTV × Gross Profit Margin  (=A6*A7)" note="His sheet: $500 in the base example" />
+          <OutputRow label="CAC — Cost to acquire a customer" value={money(r.cac)} formula="= Total ad spend ÷ No. of customers  (=C4/C5)" note="His sheet: $50 in the base example" />
+          <OutputRow label="LTGP : CAC ratio" value={plainRatio(r.ltgpCacRatio)} formula="= LTGP ÷ CAC  (=A8/C6)" note="Plain number, like his F4 cell — 10 in the base example, not “10:1”" />
+        </div>
+        {!sheet1Valid && (
+          <p className="mt-3 text-sm text-amber-300">Fill in all 5 inputs above to see the answers.</p>
+        )}
+      </Card>
+
+      {/* ============ SECTION 2 — Heath's break-even sheet ============ */}
+      <Card className="mb-6">
+        <SectionTitle hint="His second sheet, from 15:10 in the video. Two layouts: Ecom and Lead Gen.">
+          Break-even — the most you can pay
+        </SectionTitle>
+        <p className="mt-2 text-[13px] leading-relaxed text-zinc-500">
+          Honest note: the video never shows this sheet’s formula bar, so these two multiplications are <em>inferred</em> from the
+          values on screen and what Ben says aloud — not read from a formula. They match every value shown.
+        </p>
+
+        <h3 className="mb-3 mt-5 text-sm font-semibold tracking-wide text-zinc-200">Ecom</h3>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <Field label="AOV ($) *">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">$</span>
+              {numInput(beEcomAov, setBeEcomAov, 'pl-8')}
+            </div>
+          </Field>
+          <Field label="Gross Profit Margin (%) *">
+            <div className="relative">
+              {numInput(beEcomMargin, setBeEcomMargin, 'pr-10')}
+              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">%</span>
             </div>
           </Field>
         </div>
+        <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-800">
+          <OutputRow label="Gross Profit on 1st transaction" value={money(beEcom.grossProfitFirst)} formula="= AOV × Gross Profit Margin  (inferred)" note="His sheet: $100 at $200 × 50%" />
+          <OutputRow label="Acceptable cost per purchase" value={money(beEcom.acceptableCpp)} formula="= Gross Profit on 1st transaction  (inferred — identical in every frame)" note="His sheet: $100 — pay more and the first order loses money" />
+        </div>
 
-        <div className="mt-5 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+        <h3 className="mb-3 mt-6 text-sm font-semibold tracking-wide text-zinc-200">Lead Gen</h3>
+        <div className="no-print mb-3 flex flex-wrap gap-2">
+          {HEATH_BREAKEVEN_LEADGEN_PRESETS.map((p) => (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => loadLeadPreset(p)}
+              title={p.note}
+              className={cn(
+                'min-h-11 rounded-xl border px-3 py-2 text-sm font-medium transition',
+                activeLeadPreset === p.label
+                  ? 'border-lime-400/70 bg-lime-400/10 text-lime-200'
+                  : 'border-zinc-700 bg-zinc-900 text-zinc-300 hover:border-zinc-500',
+              )}
+            >
+              {p.label} <span className="text-xs text-zinc-500">· {p.note}</span>
+            </button>
+          ))}
+        </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <Field label="1st transaction value ($) *">
+            <div className="relative">
+              <span className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">$</span>
+              {numInput(beLeadValue, setBeLeadValue, 'pl-8')}
+            </div>
+          </Field>
+          <Field label="Gross Profit Margin (%) *">
+            <div className="relative">
+              {numInput(beLeadMargin, setBeLeadMargin, 'pr-10')}
+              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">%</span>
+            </div>
+          </Field>
+          <Field label="Lead-to-client conversion (%) *">
+            <div className="relative">
+              {numInput(beLeadConversion, setBeLeadConversion, 'pr-10')}
+              <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">%</span>
+            </div>
+          </Field>
+        </div>
+        <div className="mt-4 overflow-hidden rounded-2xl border border-zinc-800">
+          <OutputRow label="Gross Profit on 1st transaction" value={money(beLead.grossProfitFirst)} formula="= 1st transaction value × Gross Profit Margin  (inferred)" note="His sheet: $500 at $1,000 × 50%" />
+          <OutputRow label="Acceptable cost per lead" value={money(beLead.acceptableCpl)} formula="= Gross Profit on 1st transaction × lead-to-client conversion  (inferred)" note="His sheet: $100 at 20% close rate — $75 at 10%, $225 at 30%" />
+        </div>
+      </Card>
+
+      {/* ============ EXTRAS — NOT part of Ben Heath's calculator ============ */}
+      <div className="mb-6 rounded-2xl border border-dashed border-zinc-700 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold tracking-tight text-zinc-100">AdSignal Pro extras — not part of Ben Heath’s calculator</h2>
+        <p className="mt-1 text-sm leading-relaxed text-zinc-400">
+          Everything in this box is our addition. Ben’s sheet has none of it: no currency choice, no totals helper, no lever table,
+          no scale verdict, no copy/CSV, no ROAS or profit-per-customer. It is kept separate so the calculator above stays 100% his.
+        </p>
+
+        <div className="mt-5">
+          <p className="text-sm font-semibold text-zinc-100">Currency — symbol only, no conversion</p>
+          <p className="mt-1 text-xs text-zinc-500">Ben’s sheet is $ only. Picking another symbol below only re-labels the headline numbers in the extras — it never converts them.</p>
+          <select value={currency} onChange={(e) => setCurrency(e.target.value as CurrencySymbol)} className={cn(inputClassName, 'mt-2 max-w-xs')}>
+            {CURRENCY_OPTIONS.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+          <div className="mt-3 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+              <p className="text-xs text-zinc-500">LTGP (in {currency})</p>
+              <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">{moneySym(currency, r.ltgp)}</p>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+              <p className="text-xs text-zinc-500">CAC (in {currency})</p>
+              <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">{moneySym(currency, r.cac)}</p>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+              <p className="text-xs text-zinc-500">Profit / customer after ads</p>
+              <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">{moneySym(currency, r.profitPerCustomerAfterAds)}</p>
+            </div>
+            <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+              <p className="text-xs text-zinc-500">First-order ROAS / break-even</p>
+              <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">
+                {r.firstOrderRoas !== null ? `${r.firstOrderRoas.toFixed(2)}×` : '—'} / {r.breakEvenRoas !== null ? `${r.breakEvenRoas.toFixed(2)}×` : '—'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
           <p className="text-sm font-semibold text-zinc-100">Calculate AOV &amp; average purchases from totals</p>
-          <p className="mt-1 text-xs leading-relaxed text-zinc-500">Heath’s rule: don’t guess the averages. Total revenue ÷ total customers = AOV. Total purchases ÷ total customers = average purchases.</p>
+          <p className="mt-1 text-xs leading-relaxed text-zinc-500">Heath’s rule: don’t guess the averages. Total revenue ÷ total customers = AOV. Total purchases ÷ total customers = average purchases. This fills in the Sheet 1 inputs above.</p>
           <div className="mt-3 grid gap-3 sm:grid-cols-3">
             <Field label="Total revenue">
-              <input type="number" min="0" step="any" inputMode="decimal" value={form.totalRevenue} onChange={(e) => set('totalRevenue', e.target.value)} className={inputClassName} placeholder="0" />
+              <input type="number" min="0" step="any" inputMode="decimal" value={totalRevenue} onChange={(e) => setTotalRevenue(e.target.value)} className={inputClassName} placeholder="0" />
             </Field>
             <Field label="Total customers">
-              <input type="number" min="0" step="any" inputMode="decimal" value={form.totalCustomersForAvg} onChange={(e) => set('totalCustomersForAvg', e.target.value)} className={inputClassName} placeholder="0" />
+              <input type="number" min="0" step="any" inputMode="decimal" value={totalCustomersForAvg} onChange={(e) => setTotalCustomersForAvg(e.target.value)} className={inputClassName} placeholder="0" />
             </Field>
             <Field label="Total purchases">
-              <input type="number" min="0" step="any" inputMode="decimal" value={form.totalPurchases} onChange={(e) => set('totalPurchases', e.target.value)} className={inputClassName} placeholder="0" />
+              <input type="number" min="0" step="any" inputMode="decimal" value={totalPurchases} onChange={(e) => setTotalPurchases(e.target.value)} className={inputClassName} placeholder="0" />
             </Field>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -459,46 +429,67 @@ export default function UnitEconomicsPage() {
             {totalsNote && <p className="text-xs text-lime-300">{totalsNote}</p>}
           </div>
         </div>
-      </Card>
 
-      <Card className="mb-6">
-        <SectionTitle hint={form.mode === 'ecommerce' ? 'Count delivered, paid customers only — not messages, leads or orders that never paid / never arrived. A cheap cost-per-message that never converts is not a low CAC.' : 'In lead gen, customers are derived from leads × conversion, so the two can never disagree.'}>
-          Customers acquired
-        </SectionTitle>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {form.mode === 'ecommerce' ? (
-            <Field label="Customers acquired (delivered, paid) *">
-              <input type="number" min="0" step="any" inputMode="decimal" value={form.customersAcquired} onChange={(e) => set('customersAcquired', e.target.value)} className={cn(inputClassName, err('customersAcquired') && 'border-red-500/70')} placeholder="e.g. 200" aria-invalid={err('customersAcquired')} />
-            </Field>
-          ) : (
-            <>
-              <Field label="Leads acquired *">
-                <input type="number" min="0" step="any" inputMode="decimal" value={form.leadsAcquired} onChange={(e) => set('leadsAcquired', e.target.value)} className={cn(inputClassName, err('leadsAcquired') && 'border-red-500/70')} placeholder="e.g. 500" aria-invalid={err('leadsAcquired')} />
-              </Field>
-              <Field label="Lead-to-customer conversion *" hint="Customers ÷ leads. 20% means 1 in 5 leads becomes a paying customer.">
-                <div className="relative">
-                  <input type="number" min="0" max="100" step="any" inputMode="decimal" value={form.leadToCustomerPct} onChange={(e) => set('leadToCustomerPct', e.target.value)} className={cn(inputClassName, 'pr-10', err('leadToCustomerPct') && 'border-red-500/70')} placeholder="e.g. 20" aria-invalid={err('leadToCustomerPct')} />
-                  <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">%</span>
-                </div>
-              </Field>
-            </>
-          )}
-        </div>
-        <p className="mt-4 text-[13px] leading-relaxed text-zinc-500">
-          For Bangladesh F-commerce: use delivered, paid customers as the denominator. COD orders that cancel, return or never pay are not customers yet — counting them flatters CAC and breaks every break-even number.
-        </p>
-      </Card>
+        {r.ready && (
+          <>
+            <h3 className="mb-3 mt-6 text-base font-semibold text-zinc-100">What moves LTGP most?</h3>
+            <p className="mb-3 text-sm text-zinc-400">
+              Heath’s sensitivity test: improving the customer is usually a bigger lever than improving CAC. Each row changes one
+              thing only, holding CAC the same.
+            </p>
+            <div className="overflow-hidden rounded-2xl border border-zinc-800">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-800 text-left text-zinc-500">
+                    <th className="px-4 py-3 font-semibold">Lever</th>
+                    <th className="px-4 py-3 font-semibold">New LTGP</th>
+                    <th className="px-4 py-3 font-semibold">Change</th>
+                    <th className="px-4 py-3 font-semibold">New ratio</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {r.levers.map((l) => (
+                    <tr key={l.label} className="border-t border-zinc-800/60 align-top">
+                      <td className="px-4 py-3"><span className="font-semibold text-zinc-100">{l.label}</span><br /><span className="text-xs text-zinc-500">{l.change}</span></td>
+                      <td className="px-4 py-3 font-mono text-zinc-100">{moneySym(currency, l.newLtgp)}</td>
+                      <td className="px-4 py-3 font-mono text-lime-300">{l.deltaLtgp !== null ? `+${moneySym(currency, l.deltaLtgp)}` : '—'}</td>
+                      <td className="px-4 py-3 font-mono text-zinc-300">{l.newRatio !== null ? plainRatio(l.newRatio) : '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-      <div className="sticky bottom-0 z-10 -mx-4 border-t border-zinc-800 bg-zinc-950/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
-        <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <PrimaryButton onClick={run} className="w-full sm:w-auto">Calculate unit economics</PrimaryButton>
-            <GhostButton onClick={() => loadSample(form.mode)} className="w-full sm:w-auto">Load sample</GhostButton>
-            <GhostButton onClick={() => { setForm(EMPTY); setErrors([]); setTotalsNote(null); }} className="w-full sm:w-auto">↺ Start fresh</GhostButton>
-          </div>
-          <p className="text-center text-xs text-zinc-500 sm:text-right">Planning model — not a Meta prediction. No data leaves your browser.</p>
-        </div>
+            <h3 className="mb-3 mt-6 text-base font-semibold text-zinc-100">Scale verdict (AdSignal Pro guidance)</h3>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-4">
+              <p className="text-base font-bold text-zinc-100">{r.verdictHeadline}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{r.verdictDetail}</p>
+              <p className="mt-3 text-xs text-zinc-500">
+                Ben Heath’s video gives no band thresholds, only the headroom principle — scale aggressively when actual cost is far
+                below acceptable cost. These bands are ours, labelled as such.
+              </p>
+            </div>
+
+            <div className="no-print mt-5 flex flex-wrap gap-2">
+              <button type="button" onClick={onCopy} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+                {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
+              </button>
+              <button type="button" onClick={onCsv} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+                ⭳ Export CSV
+              </button>
+              <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+                ⎙ Print / save PDF
+              </button>
+            </div>
+          </>
+        )}
       </div>
+
+      <p className="mt-6 text-center text-xs leading-relaxed text-zinc-500">
+        Based on Ben Heath’s LTGP:CAC framework (“The REAL Secret to Winning with Meta Ads”, 11 Nov 2026). Rebuilt, not affiliated
+        with or endorsed by Ben Heath, and not connected to Meta. Gross margin deducts direct costs only, not overheads. No data is
+        uploaded; calculations run in this browser.
+      </p>
     </div>
   );
 }

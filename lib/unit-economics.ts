@@ -58,6 +58,20 @@
  * (scale aggressively when actual cost is far below acceptable cost;
  * scale only a little when it is close). The bands are labelled as such
  * in the UI and in the verdict text.
+ *
+ * REPLICA SCOPE (rebuilt 25 Nov 2026 at Radi's request: "100% same"):
+ * The /unit-economics page's two calculator sections ARE Heath's sheets:
+ * Section 1 = Sheet 1 (5 inputs, LTV / LTGP / CAC / ratio, $ only,
+ * ratio shown as a plain number like his F4 cell, not "10:1").
+ * Section 2 = his break-even sheet (Ecom + Lead Gen layouts, same
+ * fields in the same order). Everything else on the page — currency
+ * symbol, totals helper, lever table, scale verdict, copy/CSV, ROAS,
+ * profit-per-customer — lives in a separate, clearly labelled
+ * "AdSignal Pro extras" section and is NOT part of his calculator.
+ * One honest limit remains: the break-even sheet's cell formulas were
+ * never shown in the video, so its two multiplications are inferred
+ * from the values + spoken maths (see calculateBreakEven below), not
+ * read from a formula bar. They are labelled "inferred" in the UI.
  */
 
 export type UnitEconomicsMode = 'ecommerce' | 'leadgen';
@@ -380,6 +394,48 @@ export function calculateUnitEconomics(raw: UnitEconomicsInputs): UnitEconomicsR
     levers,
     warnings,
   };
+}
+
+/**
+ * Ben Heath's break-even sheet (second layout in the video, from 15:10).
+ * Ecom: Gross Profit on 1st transaction = AOV x margin;
+ *   Acceptable cost per purchase = that gross profit (identical in
+ *   every frame shown — e.g. $200 x 50% = $100, and $100 again).
+ * Lead Gen: Gross Profit on 1st transaction = 1st transaction value
+ *   x margin; Acceptable cost per lead = that gross profit
+ *   x lead-to-client conversion (e.g. $1,000 x 50% = $500, x 20% = $100;
+ *   $750 x 10% = $75; $750 x 30% = $225).
+ * INFERRED, not read from a formula bar: the video never shows this
+ * sheet's formula bar. The multiplications match every value + spoken
+ * number in the video, and the UI labels them as inferred.
+ */
+export interface BreakEvenEcom {
+  grossProfitFirst: number | null;
+  acceptableCpp: number | null;
+}
+export function calculateBreakEvenEcom(aov: number | null, marginPct: number | null): BreakEvenEcom {
+  const profit = aov !== null && marginPct !== null && marginPct > 0 ? aov * (marginPct / 100) : null;
+  return { grossProfitFirst: profit, acceptableCpp: profit };
+}
+
+export interface BreakEvenLeadGen {
+  grossProfitFirst: number | null;
+  acceptableCpl: number | null;
+}
+export function calculateBreakEvenLeadGen(
+  firstTransactionValue: number | null,
+  marginPct: number | null,
+  conversionPct: number | null,
+): BreakEvenLeadGen {
+  const profit =
+    firstTransactionValue !== null && marginPct !== null && marginPct > 0
+      ? firstTransactionValue * (marginPct / 100)
+      : null;
+  const acceptableCpl =
+    profit !== null && conversionPct !== null && conversionPct > 0
+      ? profit * (conversionPct / 100)
+      : null;
+  return { grossProfitFirst: profit, acceptableCpl };
 }
 
 /** Plain-text summary for Copy — same idea as the forecast summary. */
