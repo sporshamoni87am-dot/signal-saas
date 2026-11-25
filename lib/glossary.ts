@@ -116,6 +116,24 @@ export const GLOSSARY: GlossaryEntry[] = [
     goodLooksLike: 'Know your real number. If those variable costs are still excluded, your break-even is wrong.',
   },
   {
+    term: 'LTGP',
+    what: 'Lifetime gross profit per customer — AOV × average purchases per customer × gross margin.',
+    why: 'It is the maximum you can afford to pay to acquire a customer and still break even over their lifetime.',
+    goodLooksLike: 'High enough that CAC leaves wide headroom. Raising repeat purchases usually moves it most.',
+  },
+  {
+    term: 'CAC',
+    what: 'Cost to acquire a customer — total ad spend divided by customers acquired (delivered, paid customers).',
+    why: 'Compare it to LTGP and to first-order gross profit. That comparison — not CPM or CPC — decides if you can scale.',
+    goodLooksLike: 'Far below first-order gross profit for aggressive scaling; at or above LTGP means you lose money per customer.',
+  },
+  {
+    term: 'LTGP:CAC ratio',
+    what: 'LTGP divided by CAC — how many dollars of lifetime gross profit each dollar of acquisition buys.',
+    why: 'It turns two numbers into one health check for the whole business model.',
+    goodLooksLike: 'There is no universal minimum in the source framework. Judge it on headroom: acceptable cost minus actual CAC.',
+  },
+  {
     term: 'Learning phase',
     what: 'The period after a new ad set launches (or after a big edit) while Meta explores who to show it to. The Delivery column reads "Learning".',
     why: 'Costs and ROAS swing while Meta is still learning — judging a campaign now is judging noise.',

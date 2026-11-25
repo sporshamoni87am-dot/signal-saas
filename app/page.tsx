@@ -192,6 +192,45 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Unit Economics Calculator — Ben Heath LTGP:CAC */}
+      <section className="border-t border-zinc-800/80">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+          <div className="grid gap-10 md:grid-cols-2 md:items-center">
+            <div>
+              <p className="text-xs font-bold tracking-widest text-lime-300">NEW · UNIT ECONOMICS CALCULATOR</p>
+              <h2 className="mt-2 text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">
+                Can this business afford to buy customers on Meta?
+              </h2>
+              <p className="mt-4 leading-relaxed text-zinc-400">
+                Before you judge CPM, CTR or creative, check the maths that decides
+                everything: LTGP, CAC, LTGP:CAC and break-even — AOV × average
+                purchases × margin, versus what you actually pay per delivered,
+                paid customer.
+              </p>
+              <p className="mt-4 leading-relaxed text-zinc-400">
+                It shows your acceptable cost per purchase, how much headroom you
+                really have to scale, and which lever — one more purchase, higher
+                AOV, or better margin — moves LTGP most.
+              </p>
+              <Link href="/unit-economics" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-lime-400 to-emerald-400 px-7 py-3 text-sm font-semibold text-zinc-950 shadow-[0_0_24px_-6px] shadow-lime-400/40 transition hover:from-lime-300 hover:to-emerald-300">
+                Try the Unit Economics Calculator — no sign-up
+              </Link>
+              <p className="mt-3 text-xs text-zinc-500">
+                Based on Ben Heath’s LTGP:CAC framework. A planning model — not a Meta prediction, and not affiliated with Meta.
+              </p>
+            </div>
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-[13px] leading-relaxed">
+              <p className="text-zinc-500">{'// Ben Heath’s worked example'}</p>
+              <p className="mt-2 text-zinc-300">LTGP: <span className="text-zinc-100">$200 × 5 × 50% = $500</span></p>
+              <p className="text-zinc-300">CAC: <span className="text-zinc-100">$10,000 ÷ 200 = $50</span></p>
+              <p className="text-zinc-300">LTGP:CAC: <span className="font-bold text-lime-300">10:1</span></p>
+              <p className="mt-3 text-zinc-300">acceptable CPP: <span className="text-zinc-100">$200 × 50% = $100</span></p>
+              <p className="text-zinc-500">verdict: wide headroom — scale aggressively</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing — trial launch: free 30 days, no card, no paywall */}
       <section id="pricing" className="border-t border-zinc-800/80">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
@@ -212,6 +251,7 @@ export default function LandingPage() {
                 <li>✓ Unlimited diagnoses for 30 days</li>
                 <li>✓ Full D2C diagnosis engine</li>
                 <li>✓ Early-stage forecast with learning-phase gate</li>
+                <li>✓ Unit Economics Calculator (LTGP, CAC, break-even)</li>
                 <li>✓ Business metrics (MER, POAS)</li>
                 <li>✓ Creative analysis + Ads Manager action items</li>
                 <li>✓ Save history + old-vs-new comparison</li>
