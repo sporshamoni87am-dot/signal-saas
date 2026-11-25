@@ -281,7 +281,7 @@ export function calculateUnitEconomics(raw: UnitEconomicsInputs): UnitEconomicsR
         scaleVerdict = 'scale-aggressive';
         verdictHeadline = 'Wide headroom — you can scale aggressively';
         verdictDetail =
-          'Your CAC is less than half of what the first order can afford, so costs can rise a lot as you scale and still stay profitable. This is the position Heath describes as “we can be really aggressive”.';
+          'Your CAC is less than half of what the first order can afford, so costs can rise a lot as you scale and still stay profitable.';
       } else if (share <= 0.8) {
         scaleVerdict = 'scale-cautious';
         verdictHeadline = 'Decent headroom — scale in steps';
@@ -364,7 +364,7 @@ export function calculateUnitEconomics(raw: UnitEconomicsInputs): UnitEconomicsR
     'Averages hide variance: a few high-value customers can flatter the average. Check the median and the repeat rate for a recent cohort before trusting LTGP for a big scale decision.',
   );
   warnings.push(
-    'This is a planning model based on Ben Heath’s LTGP:CAC framework, not a Meta prediction and not affiliated with Meta. It does not model attribution, signal loss, creative fatigue or auction competition.',
+    'This is a planning model, not a Meta prediction. It does not model attribution, signal loss, creative fatigue or auction competition.',
   );
 
   return {
@@ -461,6 +461,6 @@ export function buildUnitEconomicsSummaryText(
   lines.push(`Profit per customer after ads (lifetime): ${money(r.profitPerCustomerAfterAds)}`);
   lines.push(`Verdict: ${r.verdictHeadline} — ${r.verdictDetail}`);
   lines.push('Formulas: LTGP = AOV x avg purchases x margin. CAC = ad spend / customers. Acceptable CPP = AOV x margin.');
-  lines.push('Planning model based on Ben Heath’s LTGP:CAC framework — not a Meta prediction.');
+  lines.push('Planning model — not a Meta prediction.');
   return lines.join('\n');
 }

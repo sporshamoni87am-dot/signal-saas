@@ -192,7 +192,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Unit Economics Calculator — Ben Heath LTGP:CAC */}
+      {/* Unit Economics Calculator */}
       <section className="border-t border-zinc-800/80">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="grid gap-10 md:grid-cols-2 md:items-center">
@@ -216,14 +216,14 @@ export default function LandingPage() {
                 Try the Unit Economics Calculator — no sign-up
               </Link>
               <p className="mt-3 text-xs text-zinc-500">
-                Based on Ben Heath’s LTGP:CAC framework. A planning model — not a Meta prediction, and not affiliated with Meta.
+                A planning model — not a Meta prediction, and not affiliated with Meta.
               </p>
             </div>
             <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-[13px] leading-relaxed">
-              <p className="text-zinc-500">{'// Ben Heath’s worked example'}</p>
+              <p className="text-zinc-500">{'// Example'}</p>
               <p className="mt-2 text-zinc-300">LTGP: <span className="text-zinc-100">$200 × 5 × 50% = $500</span></p>
               <p className="text-zinc-300">CAC: <span className="text-zinc-100">$10,000 ÷ 200 = $50</span></p>
-              <p className="text-zinc-300">LTGP:CAC: <span className="font-bold text-lime-300">10:1</span></p>
+              <p className="text-zinc-300">LTGP:CAC: <span className="font-bold text-lime-300">10</span> <span className="text-zinc-500">— every $1 returns $10 in lifetime profit</span></p>
               <p className="mt-3 text-zinc-300">acceptable CPP: <span className="text-zinc-100">$200 × 50% = $100</span></p>
               <p className="text-zinc-500">verdict: wide headroom — scale aggressively</p>
             </div>
