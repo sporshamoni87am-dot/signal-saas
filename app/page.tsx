@@ -3,6 +3,7 @@ import { diagnose } from '@/lib/engine';
 import { SAMPLE_CAMPAIGN } from '@/lib/sample-campaign';
 import { forecast } from '@/lib/forecast';
 import { SAMPLE_FORECAST } from '@/lib/forecast-sample';
+import { calculateUnitEconomics, type UnitEconomicsInputs } from '@/lib/unit-economics';
 import { VerdictBadge } from '@/components/ui';
 
 const STEPS = [
@@ -35,10 +36,26 @@ const SIGNALS = [
 ];
 
 export default function LandingPage() {
-  // Both previews below are built from the REAL sample data run through
-  // the real engine/forecast — no fake screenshots, no invented numbers.
+  // All three previews below are built from the REAL sample data run
+  // through the real engine/forecast/calculator — no fake screenshots,
+  // no invented numbers.
   const sample = diagnose(SAMPLE_CAMPAIGN);
   const sampleForecast = forecast(SAMPLE_FORECAST);
+  // Unit Economics preview: the calculator's own base example, run
+  // through the real calculator — same numbers as /unit-economics
+  // ("Use example numbers").
+  const ueExample: UnitEconomicsInputs = {
+    mode: 'ecommerce',
+    currency: '$',
+    aov: 200,
+    avgPurchases: 5,
+    marginPct: 50,
+    adSpend: 10000,
+    customersAcquired: 200,
+    leadsAcquired: null,
+    leadToCustomerPct: null,
+  };
+  const ue = calculateUnitEconomics(ueExample);
   const roas = sample.adSignals.find((s) => s.key === 'roas');
   const cpa = sample.adSignals.find((s) => s.key === 'cpa');
   const mer = sample.businessMetrics.find((s) => s.key === 'mer');
@@ -310,13 +327,49 @@ export default function LandingPage() {
                 A planning model — not a Meta prediction, and not affiliated with Meta.
               </p>
             </div>
-            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6 font-mono text-[13px] leading-relaxed">
-              <p className="text-zinc-500">{'// Example'}</p>
-              <p className="mt-2 text-zinc-300">LTGP: <span className="text-zinc-100">$200 × 5 × 50% = $500</span></p>
-              <p className="text-zinc-300">CAC: <span className="text-zinc-100">$10,000 ÷ 200 = $50</span></p>
-              <p className="text-zinc-300">LTGP:CAC: <span className="font-bold text-violet-300">10</span> <span className="text-zinc-500">— for every $1 it costs to win a customer, you earn $10 in lifetime profit</span></p>
-              <p className="mt-3 text-zinc-300">acceptable CPP: <span className="text-zinc-100">$200 × 50% = $100</span></p>
-              <p className="text-zinc-500">verdict: wide headroom — scale aggressively</p>
+            {/* Miniature preview of the REAL Unit Economics base example —
+                run through the real calculator, same numbers as
+                /unit-economics. Same card structure as the diagnosis and
+                forecast previews above. */}
+            <div className="rounded-2xl border border-zinc-800 bg-zinc-950 p-6">
+              <p className="text-xs font-semibold text-zinc-300">Example — $200 AOV · 5 purchases · 50% margin</p>
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div>
+                  <p className="text-[11px] text-zinc-500">LTGP (lifetime profit / customer)</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {ue.ltgp !== null ? `$${ue.ltgp}` : '—'}
+                  </p>
+                  <p className="text-[11px] text-zinc-500">$200 × 5 × 50%</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">CAC (cost per customer)</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {ue.cac !== null ? `$${ue.cac}` : '—'}
+                  </p>
+                  <p className="text-[11px] text-zinc-500">$10,000 ÷ 200 customers</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">LTGP:CAC</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {ue.ltgpCacRatio !== null ? ue.ltgpCacRatio : '—'}
+                  </p>
+                  <p className="text-[11px] text-zinc-500">for every $1, you earn $10 in lifetime profit</p>
+                </div>
+                <div>
+                  <p className="text-[11px] text-zinc-500">Most you can pay per purchase</p>
+                  <p className="font-mono text-base font-semibold text-zinc-100">
+                    {ue.acceptableCpp !== null ? `$${ue.acceptableCpp}` : '—'}
+                  </p>
+                  <p className="text-[11px] text-zinc-500">$200 × 50% (first order)</p>
+                </div>
+              </div>
+              <div className="mt-4 rounded-xl border border-emerald-400/40 bg-emerald-400/10 px-4 py-3">
+                <p className="text-sm font-semibold text-emerald-200">{ue.verdictHeadline}</p>
+                <p className="mt-1 text-xs leading-relaxed text-emerald-200/80">{ue.verdictDetail}</p>
+              </div>
+              <Link href="/unit-economics" className="mt-4 inline-flex min-h-11 items-center text-sm font-semibold text-violet-300 transition hover:text-violet-200">
+                Try the Unit Economics Calculator →
+              </Link>
             </div>
           </div>
         </div>
