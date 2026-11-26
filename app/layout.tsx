@@ -64,13 +64,13 @@ export const metadata: Metadata = {
 function Logo() {
   return (
     <a href="/" className="flex min-h-11 shrink-0 items-center gap-2.5">
-      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-600 text-lg font-black text-white">
+      <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-red-600 to-rose-600 text-lg font-black text-white">
         ∿
       </span>
       {/* Wordmark hidden on narrow phones: icon + nav links alone fit 360px;
           the full wordmark returns at 420px and up. */}
-      <span className="hidden text-[15px] font-bold tracking-tight text-zinc-50 min-[420px]:inline">
-        AdSignal<span className="text-violet-300"> Pro</span>
+      <span className="hidden text-[15px] font-bold tracking-tight text-zinc-900 min-[420px]:inline">
+        AdSignal<span className="text-red-700"> Pro</span>
       </span>
     </a>
   );
@@ -79,50 +79,50 @@ function Logo() {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
-      <body className="flex min-h-full flex-col bg-zinc-950 text-zinc-100">
+      <body className="flex min-h-full flex-col bg-white text-zinc-900">
         {/* Exchanges a stray `?code=` confirmation code landing on any page
             (safety net if Supabase ever redirects to the site root again);
             renders nothing and does nothing without a code in the URL. */}
         <AuthCodeHandler />
-        <header className="no-print sticky top-0 z-40 border-b border-zinc-800/80 bg-zinc-950/80 backdrop-blur pt-[env(safe-area-inset-top)]">
+        <header className="no-print sticky top-0 z-40 border-b border-zinc-200 bg-white/80 backdrop-blur pt-[env(safe-area-inset-top)]">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-2 px-4 sm:px-6">
             <Logo />
             <nav className="flex min-w-0 items-center gap-1 sm:gap-3">
-              <a href="/dashboard" className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:px-3">
+              <a href="/dashboard" className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:px-3">
                 Dashboard
               </a>
-              <a href="/forecast" className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:px-3">
+              <a href="/forecast" className="inline-flex min-h-11 shrink-0 items-center rounded-lg px-2 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:px-3">
                 Forecast
               </a>
-              <a href="/compare" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
+              <a href="/compare" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-flex">
                 Compare
               </a>
-              <a href="/unit-economics" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
+              <a href="/unit-economics" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-flex">
                 Unit Economics
               </a>
-              <a href="/how-it-works" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
+              <a href="/how-it-works" className="hidden min-h-11 shrink-0 items-center rounded-lg px-3 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-flex">
                 How it works
               </a>
-              <a href="/#pricing" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-300 transition hover:text-zinc-50 sm:inline-flex">
+              <a href="/#pricing" className="hidden min-h-11 items-center rounded-lg px-3 text-sm font-medium text-zinc-600 transition hover:text-zinc-900 sm:inline-flex">
                 Pricing
               </a>
-              <a href="/login" className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-3 text-sm font-semibold text-white shadow-[0_0_20px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500 sm:px-4">
+              <a href="/login" className="inline-flex min-h-11 shrink-0 items-center rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-3 text-sm font-semibold text-white shadow-[0_0_20px_-6px] shadow-red-600/30 transition hover:from-red-700 hover:to-rose-700 sm:px-4">
                 Sign in
               </a>
             </nav>
           </div>
         </header>
         <main className="flex-1">{children}</main>
-        <footer className="no-print border-t border-zinc-800/80">
+        <footer className="no-print border-t border-zinc-200">
           <div className="mx-auto flex max-w-6xl flex-col items-start gap-2 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-6 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:px-6">
             <p className="text-xs text-zinc-500">
               AdSignal Pro — metric-focused diagnosis for media buyers.
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
-              <a href="/privacy" className="inline-block py-1 text-zinc-500 transition hover:text-zinc-300">
+              <a href="/privacy" className="inline-block py-1 text-zinc-500 transition hover:text-zinc-600">
                 Privacy Policy
               </a>
-              <a href="/terms" className="inline-block py-1 text-zinc-500 transition hover:text-zinc-300">
+              <a href="/terms" className="inline-block py-1 text-zinc-500 transition hover:text-zinc-600">
                 Terms of Service
               </a>
               <span className="text-zinc-600">

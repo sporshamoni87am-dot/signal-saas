@@ -44,7 +44,7 @@ export default function DeleteButton({
     return (
       <button
         onClick={() => setConfirming(true)}
-        className="inline-flex min-h-11 items-center rounded-lg border border-zinc-700 px-3.5 py-2 text-sm font-medium text-zinc-400 transition hover:border-red-500/60 hover:text-red-300"
+        className="inline-flex min-h-11 items-center rounded-lg border border-zinc-300 px-3.5 py-2 text-sm font-medium text-zinc-600 transition hover:border-red-500/60 hover:text-red-700"
       >
         Delete
       </button>
@@ -53,19 +53,19 @@ export default function DeleteButton({
 
   return (
     <span className="inline-flex flex-wrap items-center gap-2">
-      {error && <span className="text-xs text-red-300">{error}</span>}
-      <span className="break-words text-xs text-zinc-400">Delete “{campaignName}”?</span>
+      {error && <span className="text-xs text-red-700">{error}</span>}
+      <span className="break-words text-xs text-zinc-600">Delete “{campaignName}”?</span>
       <button
         onClick={onDelete}
         disabled={pending}
-        className="inline-flex min-h-11 items-center rounded-lg bg-red-500 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-red-400 disabled:opacity-40"
+        className="inline-flex min-h-11 items-center rounded-lg bg-red-600 px-3.5 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-40"
       >
         {pending ? 'Deleting…' : 'Yes, delete'}
       </button>
       <button
         onClick={() => setConfirming(false)}
         disabled={pending}
-        className="inline-flex min-h-11 items-center rounded-lg border border-zinc-700 px-3.5 py-2 text-sm text-zinc-300 transition hover:border-zinc-500"
+        className="inline-flex min-h-11 items-center rounded-lg border border-zinc-300 px-3.5 py-2 text-sm text-zinc-600 transition hover:border-zinc-400"
       >
         Cancel
       </button>

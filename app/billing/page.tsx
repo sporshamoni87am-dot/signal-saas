@@ -29,8 +29,8 @@ export default async function BillingPage() {
       <Card className="mt-4">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-zinc-400">Current access</p>
-            <p className="mt-1 text-2xl font-bold text-zinc-50">
+            <p className="text-sm text-zinc-600">Current access</p>
+            <p className="mt-1 text-2xl font-bold text-zinc-900">
               {trial.expired ? 'Trial ended' : 'Free trial'}
             </p>
             <p className="mt-1 text-sm text-zinc-500">
@@ -43,8 +43,8 @@ export default async function BillingPage() {
       </Card>
 
       <Card className="mt-4 border-dashed">
-        <h3 className="font-semibold text-zinc-100">Paid plans — coming soon</h3>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+        <h3 className="font-semibold text-zinc-900">Paid plans — coming soon</h3>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           We&apos;re launching with a free trial while we learn what buyers need most.
           When paid plans arrive, your saved diagnoses and history come with you —
           nothing gets locked away or deleted.
@@ -55,14 +55,14 @@ export default async function BillingPage() {
       </Card>
 
       {BILLING_ENABLED && (
-        <p className="mt-4 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+        <p className="mt-4 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           Note: BILLING_ENABLED=true but this page hasn&apos;t been re-wired to Stripe checkout yet.
           See the comment at the top of this file.
         </p>
       )}
 
       <p className="mt-6 text-center text-xs text-zinc-600">
-        <Link href="/dashboard" className="inline-block py-2 underline underline-offset-2 hover:text-zinc-400">
+        <Link href="/dashboard" className="inline-block py-2 underline underline-offset-2 hover:text-zinc-600">
           Back to dashboard
         </Link>
       </p>

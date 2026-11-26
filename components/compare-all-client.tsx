@@ -24,8 +24,8 @@ function DeltaCell({ row }: { row: CompareRow }) {
     <span
       className={cn(
         'font-mono font-semibold',
-        row.good === true && 'text-emerald-300',
-        row.good === false && 'text-red-300',
+        row.good === true && 'text-emerald-700',
+        row.good === false && 'text-red-700',
         row.good === null && 'text-zinc-500',
       )}
     >
@@ -97,7 +97,7 @@ export default function CompareAllClient({
   function picker(which: 'earlier' | 'later', value: string | null, label: string) {
     return (
       <label className="block min-w-0 flex-1">
-        <span className="mb-1.5 block text-sm font-medium text-zinc-300">{label}</span>
+        <span className="mb-1.5 block text-sm font-medium text-zinc-600">{label}</span>
         <select
           value={value ?? ''}
           onChange={(e) => pick(which, e.target.value)}
@@ -131,15 +131,15 @@ export default function CompareAllClient({
           {picker('later', laterId, 'Later diagnosis')}
         </div>
         {suggestion.note && (
-          <p className="mt-4 rounded-xl border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm text-sky-200">
+          <p className="mt-4 rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-800">
             {suggestion.note}
           </p>
         )}
         {rows.length === 1 && (
-          <p className="mt-4 rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-3 text-sm text-zinc-300">
+          <p className="mt-4 rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-600">
             Only one diagnosis saved so far — run this campaign again after your changes and
             come back here to compare.{' '}
-            <Link href="/diagnose" className="font-semibold text-violet-300 underline underline-offset-2">
+            <Link href="/diagnose" className="font-semibold text-red-700 underline underline-offset-2">
               New diagnosis
             </Link>
           </p>
@@ -147,7 +147,7 @@ export default function CompareAllClient({
       </Card>
 
       {sameRow && (
-        <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+        <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           You picked the same diagnosis twice — choose two different ones to compare.
         </p>
       )}
@@ -156,13 +156,13 @@ export default function CompareAllClient({
         <>
           {/* Warnings */}
           {gap > DIRECTIONAL_GAP_DAYS && (
-            <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+            <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               {gap} days apart — the campaign may have changed (new creative, new budget), so
               treat this comparison as directional.
             </p>
           )}
           {differentCampaigns && (
-            <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+            <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               Different campaigns — compare with care, the numbers may not be comparable.
             </p>
           )}
@@ -171,9 +171,9 @@ export default function CompareAllClient({
           <div
             className={cn(
               'rounded-2xl border p-6',
-              status === 'improved' && 'border-violet-500/50 bg-violet-500/5',
-              status === 'declined' && 'border-red-500/50 bg-red-500/5',
-              status === 'stable' && 'border-zinc-700 bg-zinc-900/60',
+              status === 'improved' && 'border-emerald-300 bg-emerald-50',
+              status === 'declined' && 'border-red-500/50 bg-red-50',
+              status === 'stable' && 'border-zinc-300 bg-white',
             )}
           >
             <div className="flex flex-wrap items-center gap-3">
@@ -196,8 +196,8 @@ export default function CompareAllClient({
                 {fmtDate(earlier.createdAt)} → {fmtDate(later.createdAt)} · {gap === 0 ? 'same day' : `${gap} day${gap === 1 ? '' : 's'} apart`}
               </span>
             </div>
-            <p className="mt-3 text-[15px] text-zinc-200">{summary}</p>
-            <p className="mt-2 text-sm text-zinc-400">{later.results.verdictReason}</p>
+            <p className="mt-3 text-[15px] text-zinc-700">{summary}</p>
+            <p className="mt-2 text-sm text-zinc-600">{later.results.verdictReason}</p>
           </div>
 
           {/* Side-by-side deltas */}
@@ -209,7 +209,7 @@ export default function CompareAllClient({
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[560px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                  <tr className="border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500">
                     <th className="pb-2 pr-3 font-medium">Metric</th>
                     <th className="pb-2 pr-3 font-medium">Earlier · {fmtDate(earlier.createdAt)}</th>
                     <th className="pb-2 pr-3 font-medium">Later · {fmtDate(later.createdAt)}</th>
@@ -218,10 +218,10 @@ export default function CompareAllClient({
                 </thead>
                 <tbody>
                   {metricRows.map((row) => (
-                    <tr key={row.key} className="border-b border-zinc-800/60 last:border-0">
-                      <td className="py-2.5 pr-3 font-medium text-zinc-200">{row.label}</td>
-                      <td className="py-2.5 pr-3 font-mono text-zinc-400">{row.oldText}</td>
-                      <td className="py-2.5 pr-3 font-mono text-zinc-100">{row.newText}</td>
+                    <tr key={row.key} className="border-b border-zinc-200 last:border-0">
+                      <td className="py-2.5 pr-3 font-medium text-zinc-700">{row.label}</td>
+                      <td className="py-2.5 pr-3 font-mono text-zinc-600">{row.oldText}</td>
+                      <td className="py-2.5 pr-3 font-mono text-zinc-900">{row.newText}</td>
                       <td className="py-2.5">
                         <DeltaCell row={row} />
                       </td>
@@ -233,19 +233,19 @@ export default function CompareAllClient({
             {/* Mobile: stacked cards, no horizontal scroll */}
             <div className="space-y-3 sm:hidden">
               {metricRows.map((row) => (
-                <div key={row.key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+                <div key={row.key} className="rounded-xl border border-zinc-200 bg-white p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-semibold text-zinc-100">{row.label}</p>
+                    <p className="text-sm font-semibold text-zinc-900">{row.label}</p>
                     <span className="shrink-0 text-sm">
                       <DeltaCell row={row} />
                     </span>
                   </div>
                   <p className="mt-2 font-mono text-sm">
                     <span className="text-zinc-500">Earlier </span>
-                    <span className="text-zinc-400">{row.oldText}</span>
+                    <span className="text-zinc-600">{row.oldText}</span>
                     <span className="mx-2 text-zinc-600">→</span>
                     <span className="text-zinc-500">Later </span>
-                    <span className="text-zinc-100">{row.newText}</span>
+                    <span className="text-zinc-900">{row.newText}</span>
                   </p>
                 </div>
               ))}
@@ -258,21 +258,21 @@ export default function CompareAllClient({
             <ol className="space-y-3">
               {later.results.actionItems.map((a) => (
                 <li key={a.priority} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-xs font-bold text-white">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-r from-red-600 to-rose-600 text-xs font-bold text-white">
                     {a.priority}
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-zinc-100">{a.title}</p>
-                    <p className="mt-0.5 text-[13px] text-zinc-400">{a.detail}</p>
+                    <p className="text-sm font-semibold text-zinc-900">{a.title}</p>
+                    <p className="mt-0.5 text-[13px] text-zinc-600">{a.detail}</p>
                   </div>
                 </li>
               ))}
             </ol>
-            <div className="mt-5 flex flex-wrap gap-2 border-t border-zinc-800 pt-4">
-              <Link href={`/diagnoses/${later.id}`} className="inline-flex min-h-11 items-center rounded-lg bg-zinc-800 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:bg-zinc-700">
+            <div className="mt-5 flex flex-wrap gap-2 border-t border-zinc-200 pt-4">
+              <Link href={`/diagnoses/${later.id}`} className="inline-flex min-h-11 items-center rounded-lg bg-zinc-100 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-200">
                 View later diagnosis
               </Link>
-              <Link href={`/diagnoses/${later.id}/compare`} className="inline-flex min-h-11 items-center rounded-lg border border-zinc-700 px-4 py-2 text-sm font-medium text-zinc-300 transition hover:border-zinc-500">
+              <Link href={`/diagnoses/${later.id}/compare`} className="inline-flex min-h-11 items-center rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-600 transition hover:border-zinc-400">
                 Re-diagnose this campaign
               </Link>
             </div>

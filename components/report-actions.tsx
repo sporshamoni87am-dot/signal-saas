@@ -116,21 +116,21 @@ export default function ReportActions({
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 sm:w-auto"
         >
           {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
         </button>
         <button
           type="button"
           onClick={() => window.print()}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 sm:w-auto"
         >
           ⎙ Print / save PDF
         </button>
         <button
           type="button"
           onClick={onCsv}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 sm:w-auto"
         >
           ↓ Download CSV
         </button>
@@ -138,7 +138,7 @@ export default function ReportActions({
           type="button"
           onClick={onXlsx}
           disabled={xlsxBusy}
-          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 disabled:opacity-60 sm:w-auto"
+          className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 disabled:opacity-60 sm:w-auto"
         >
           {xlsxBusy ? 'Preparing…' : '↓ Download XLSX'}
         </button>

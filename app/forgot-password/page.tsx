@@ -48,12 +48,12 @@ export default function ForgotPasswordPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
       <Card>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Reset your password</h1>
-        <p className="mt-1.5 text-sm text-zinc-400">
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Reset your password</h1>
+        <p className="mt-1.5 text-sm text-zinc-600">
           Enter the email you signed up with and we’ll send you a link to choose a new password.
         </p>
         {done ? (
-          <div className="mt-6 rounded-xl border border-violet-500/40 bg-violet-500/10 px-4 py-4 text-sm leading-relaxed text-violet-200">
+          <div className="mt-6 rounded-xl border border-sky-300 bg-sky-50 px-4 py-4 text-sm leading-relaxed text-sky-800">
             Check your inbox — we sent a password-reset link to <strong>{email}</strong>. Click it
             to choose a new password.
           </div>
@@ -63,16 +63,16 @@ export default function ForgotPasswordPage() {
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className={inputClassName} placeholder="you@agency.com" autoComplete="email" />
             </Field>
             {error && (
-              <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300">{error}</p>
+              <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</p>
             )}
             <PrimaryButton type="submit" disabled={loading} className="w-full">
               {loading ? 'Sending link…' : 'Send reset link'}
             </PrimaryButton>
           </form>
         )}
-        <p className="mt-5 text-center text-sm text-zinc-400">
+        <p className="mt-5 text-center text-sm text-zinc-600">
           Remembered it?{' '}
-          <Link href="/login" className="inline-block py-1.5 font-medium text-violet-300 hover:text-violet-200">
+          <Link href="/login" className="inline-block py-1.5 font-medium text-red-700 hover:text-red-800">
             Sign in
           </Link>
         </p>

@@ -53,10 +53,10 @@ function LoginForm() {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
       <Card>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Welcome back</h1>
-        <p className="mt-1.5 text-sm text-zinc-400">Sign in to your AdSignal Pro account.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Welcome back</h1>
+        <p className="mt-1.5 text-sm text-zinc-600">Sign in to your AdSignal Pro account.</p>
         {nextNote && (
-          <p className="mt-3 rounded-xl border border-sky-400/30 bg-sky-400/5 px-3.5 py-2.5 text-sm text-sky-200">{nextNote}</p>
+          <p className="mt-3 rounded-xl border border-sky-300 bg-sky-50 px-3.5 py-2.5 text-sm text-sky-800">{nextNote}</p>
         )}
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <Field label="Email">
@@ -66,20 +66,20 @@ function LoginForm() {
             <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className={inputClassName} placeholder="••••••••" autoComplete="current-password" />
           </Field>
           <p className="text-right text-sm">
-            <Link href="/forgot-password" className="inline-block py-1 font-medium text-violet-300 hover:text-violet-200">
+            <Link href="/forgot-password" className="inline-block py-1 font-medium text-red-700 hover:text-red-800">
               Forgot password?
             </Link>
           </p>
           {error && (
-            <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300">{error}</p>
+            <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</p>
           )}
           <PrimaryButton type="submit" disabled={loading} className="w-full">
             {loading ? 'Signing in…' : 'Sign in'}
           </PrimaryButton>
         </form>
-        <p className="mt-5 text-center text-sm text-zinc-400">
+        <p className="mt-5 text-center text-sm text-zinc-600">
           No account yet?{' '}
-          <Link href="/signup" className="inline-block py-1.5 font-medium text-violet-300 hover:text-violet-200">
+          <Link href="/signup" className="inline-block py-1.5 font-medium text-red-700 hover:text-red-800">
             Create one free
           </Link>
         </p>

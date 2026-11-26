@@ -13,18 +13,18 @@ export default async function TrialBanner({ compact = false }: { compact?: boole
 
   if (trial.expired) {
     return (
-      <Card className={cn('border-amber-400/40 bg-amber-400/5', !compact && 'mb-6')}>
+      <Card className={cn('border-amber-300 bg-amber-50', !compact && 'mb-6')}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-amber-200">Your free trial has ended</p>
-            <p className="mt-1 text-sm text-zinc-400">
+            <p className="text-sm font-semibold text-amber-800">Your free trial has ended</p>
+            <p className="mt-1 text-sm text-zinc-600">
               You can still view all your past diagnoses below — nothing is locked away.
               Paid plans are coming soon; creating new diagnoses is paused until then.
             </p>
           </div>
           <Link
             href="/billing"
-            className="inline-flex min-h-11 items-center rounded-xl border border-amber-400/40 px-4 py-2 text-sm font-medium text-amber-200 transition hover:bg-amber-400/10"
+            className="inline-flex min-h-11 items-center rounded-xl border border-amber-300 px-4 py-2 text-sm font-medium text-amber-800 transition hover:bg-amber-100"
           >
             See plans
           </Link>
@@ -45,20 +45,20 @@ export default async function TrialBanner({ compact = false }: { compact?: boole
     <Card className={cn('flex flex-wrap items-center justify-between gap-3', !compact && 'mb-6')}>
       <div className="flex items-center gap-3">
         <span className="relative flex h-2.5 w-2.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-violet-600 opacity-60" />
-          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-violet-600" />
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-600 opacity-60" />
+          <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-red-600" />
         </span>
         <div>
-          <p className="text-sm font-semibold text-zinc-100">{label}</p>
+          <p className="text-sm font-semibold text-zinc-900">{label}</p>
           <p className="mt-0.5 text-xs text-zinc-500">
             Full access · unlimited diagnoses · no credit card required
           </p>
         </div>
       </div>
       {!compact && (
-        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-800 sm:w-40" title={`${TRIAL_DAYS}-day trial`}>
+        <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 sm:w-40" title={`${TRIAL_DAYS}-day trial`}>
           <div
-            className="h-full rounded-full bg-violet-600"
+            className="h-full rounded-full bg-red-600"
             style={{ width: `${Math.max(4, Math.min(100, (days / TRIAL_DAYS) * 100))}%` }}
           />
         </div>

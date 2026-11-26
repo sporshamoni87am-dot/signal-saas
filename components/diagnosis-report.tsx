@@ -9,7 +9,7 @@ const VERDICT_RING: Record<string, string> = {
   SCALE: 'border-emerald-400/50',
   RUN: 'border-sky-400/50',
   FIX: 'border-amber-400/50',
-  WAIT: 'border-zinc-600',
+  WAIT: 'border-zinc-300',
   KILL: 'border-red-500/50',
 };
 
@@ -22,11 +22,11 @@ const VERDICT_GLOW: Record<string, string> = {
 };
 
 const VERDICT_TITLE_COLOR: Record<string, string> = {
-  SCALE: 'text-emerald-300',
-  RUN: 'text-sky-300',
-  FIX: 'text-amber-300',
-  WAIT: 'text-zinc-200',
-  KILL: 'text-red-300',
+  SCALE: 'text-emerald-700',
+  RUN: 'text-sky-700',
+  FIX: 'text-amber-700',
+  WAIT: 'text-zinc-700',
+  KILL: 'text-red-700',
 };
 
 function SignalTable({ signals }: { signals: SignalGrade[] }) {
@@ -36,7 +36,7 @@ function SignalTable({ signals }: { signals: SignalGrade[] }) {
       <div className="hidden overflow-x-auto sm:block">
         <table className="w-full min-w-[560px] text-left text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+            <tr className="border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500">
               <th className="pb-2 pr-3 font-medium">Signal</th>
               <th className="pb-2 pr-3 font-medium">Value</th>
               <th className="pb-2 pr-3 font-medium">Status</th>
@@ -45,13 +45,13 @@ function SignalTable({ signals }: { signals: SignalGrade[] }) {
           </thead>
           <tbody>
             {signals.map((s) => (
-              <tr key={s.key} className="border-b border-zinc-800/60 last:border-0">
-                <td className="py-3 pr-3 font-medium text-zinc-200">{s.label}</td>
-                <td className="whitespace-nowrap py-3 pr-3 font-mono text-zinc-100">{s.display}</td>
+              <tr key={s.key} className="border-b border-zinc-200 last:border-0">
+                <td className="py-3 pr-3 font-medium text-zinc-700">{s.label}</td>
+                <td className="whitespace-nowrap py-3 pr-3 font-mono text-zinc-900">{s.display}</td>
                 <td className="py-3 pr-3">
                   <StatusPill status={s.status} />
                 </td>
-                <td className="py-3 text-[13px] leading-relaxed text-zinc-400">
+                <td className="py-3 text-[13px] leading-relaxed text-zinc-600">
                   {s.explanation}
                   <span className="mt-1 block text-xs text-zinc-500">Benchmark: {s.benchmark}</span>
                 </td>
@@ -63,13 +63,13 @@ function SignalTable({ signals }: { signals: SignalGrade[] }) {
       {/* Mobile: stacked cards, no horizontal scroll */}
       <div className="space-y-3 sm:hidden">
         {signals.map((s) => (
-          <div key={s.key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+          <div key={s.key} className="rounded-xl border border-zinc-200 bg-white p-4">
             <div className="flex items-start justify-between gap-3">
-              <p className="text-sm font-semibold text-zinc-100">{s.label}</p>
+              <p className="text-sm font-semibold text-zinc-900">{s.label}</p>
               <StatusPill status={s.status} />
             </div>
-            <p className="mt-1.5 whitespace-nowrap font-mono text-lg text-zinc-100">{s.display}</p>
-            <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-400">{s.explanation}</p>
+            <p className="mt-1.5 whitespace-nowrap font-mono text-lg text-zinc-900">{s.display}</p>
+            <p className="mt-1.5 text-[13px] leading-relaxed text-zinc-600">{s.explanation}</p>
             <p className="mt-1.5 text-xs text-zinc-500">Benchmark: {s.benchmark}</p>
           </div>
         ))}
@@ -104,7 +104,7 @@ export default function DiagnosisReport({
     <div className="space-y-6 print:hidden">
       {/* Verdict hero — the one thing the eye must land on first */}
       <div
-        className={cn('relative overflow-hidden rounded-2xl border bg-zinc-900/60 p-6 sm:p-10', VERDICT_RING[results.verdict])}
+        className={cn('relative overflow-hidden rounded-2xl border bg-white p-6 sm:p-10', VERDICT_RING[results.verdict])}
       >
         <div
           className="pointer-events-none absolute inset-0"
@@ -118,7 +118,7 @@ export default function DiagnosisReport({
             </span>
             <div className="flex flex-wrap items-center gap-2">
               {liveSource && (
-                <span className="inline-flex items-center rounded-full border border-sky-400/40 bg-sky-400/10 px-3 py-1 text-[11px] font-bold tracking-wide text-sky-300">
+                <span className="inline-flex items-center rounded-full border border-sky-300 bg-sky-50 px-3 py-1 text-[11px] font-bold tracking-wide text-sky-700">
                   ⚡ Live data from Meta
                   {liveSource.dateRange ? ` · ${liveSource.dateRange}` : ''}
                 </span>
@@ -129,11 +129,11 @@ export default function DiagnosisReport({
           <h2 className={cn('mt-4 text-4xl font-black tracking-tight sm:text-5xl', VERDICT_TITLE_COLOR[results.verdict])}>
             {VERDICT_META[results.verdict].title}
           </h2>
-          <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-zinc-200 sm:text-base">
+          <p className="mt-4 max-w-3xl text-[15px] leading-relaxed text-zinc-700 sm:text-base">
             {results.verdictReason}
           </p>
           {inputs.problemStatement.trim() !== '' && (
-            <p className="mt-4 border-l-2 border-zinc-700 pl-3 text-sm italic text-zinc-400">
+            <p className="mt-4 border-l-2 border-zinc-300 pl-3 text-sm italic text-zinc-600">
               Your note: “{inputs.problemStatement}”
             </p>
           )}
@@ -144,13 +144,13 @@ export default function DiagnosisReport({
       <Card>
         <SectionTitle hint="A verdict is only trustworthy once the campaign has spent roughly 1× target CPA.">Data sufficiency</SectionTitle>
         <div className="flex items-center gap-4">
-          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-800">
+          <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-zinc-200">
             <div
               className={cn('h-full rounded-full', results.dataSufficiency.sufficient ? 'bg-gradient-to-r from-emerald-400 to-green-400' : 'bg-gradient-to-r from-amber-400 to-orange-400')}
               style={{ width: `${Math.min(100, (progress ?? 0) * 100)}%` }}
             />
           </div>
-          <span className="whitespace-nowrap font-mono text-sm text-zinc-300">
+          <span className="whitespace-nowrap font-mono text-sm text-zinc-600">
             {/* Spend can be many times the minimum — "2919%" reads as a
                 broken number. Show the plain-language multiple instead. */}
             {progress === null
@@ -160,10 +160,10 @@ export default function DiagnosisReport({
                 : `${Math.round(progress * 100)}%`}
           </span>
         </div>
-        <p className="mt-2 text-sm text-zinc-400">
+        <p className="mt-2 text-sm text-zinc-600">
           {results.dataSufficiency.targetCpa !== null ? (
             <>
-              Target CPA <span className="whitespace-nowrap font-mono text-zinc-200">${results.dataSufficiency.targetCpa.toFixed(2)}</span>
+              Target CPA <span className="whitespace-nowrap font-mono text-zinc-700">${results.dataSufficiency.targetCpa.toFixed(2)}</span>
               {' '}(AOV ÷ breakeven ROAS). {results.dataSufficiency.note}
             </>
           ) : (
@@ -181,7 +181,7 @@ export default function DiagnosisReport({
           {results.benchmarkSegmented ? (
             <>
               Graded against{' '}
-              <span className="font-medium text-zinc-300">
+              <span className="font-medium text-zinc-600">
                 {results.benchmarkLabel ?? 'Generic D2C benchmarks'}
               </span>{' '}
               benchmarks. {results.benchmarkSource ?? ''}
@@ -207,28 +207,28 @@ export default function DiagnosisReport({
           Creative analysis
         </SectionTitle>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-zinc-300">Hook rate</p>
+              <p className="text-sm font-medium text-zinc-600">Hook rate</p>
               <StatusPill status={results.creative.hookStatus} />
             </div>
-            <p className="mt-2 font-mono text-2xl text-zinc-100">
+            <p className="mt-2 font-mono text-2xl text-zinc-900">
               {results.creative.hookRate !== null ? `${(results.creative.hookRate * 100).toFixed(1)}%` : '—'}
             </p>
             <p className="mt-1 text-xs text-zinc-500">3-sec views ÷ impressions. Good ≥ 30% · Watch ≥ 20%.</p>
           </div>
-          <div className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+          <div className="rounded-xl border border-zinc-200 bg-white p-4">
             <div className="flex items-center justify-between">
-              <p className="text-sm font-medium text-zinc-300">Hold rate</p>
+              <p className="text-sm font-medium text-zinc-600">Hold rate</p>
               <StatusPill status={results.creative.holdStatus} />
             </div>
-            <p className="mt-2 font-mono text-2xl text-zinc-100">
+            <p className="mt-2 font-mono text-2xl text-zinc-900">
               {results.creative.holdRate !== null ? `${(results.creative.holdRate * 100).toFixed(1)}%` : '—'}
             </p>
             <p className="mt-1 text-xs text-zinc-500">Thruplays ÷ 3-sec views. Good ≥ 20% · Watch ≥ 10%.</p>
           </div>
         </div>
-        <p className={cn('mt-4 rounded-xl border px-4 py-3 text-sm leading-relaxed', results.creative.fatigue ? 'border-red-500/40 bg-red-500/10 text-red-200' : 'border-zinc-800 bg-zinc-950 text-zinc-400')}>
+        <p className={cn('mt-4 rounded-xl border px-4 py-3 text-sm leading-relaxed', results.creative.fatigue ? 'border-red-200 bg-red-50 text-red-800' : 'border-zinc-200 bg-white text-zinc-600')}>
           {results.creative.fatigue ? '⚠ ' : 'ℹ '}{results.creative.fatigueNote}
         </p>
       </Card>
@@ -247,14 +247,14 @@ export default function DiagnosisReport({
             return (
               <div key={f.stage}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span className="font-medium text-zinc-200">{f.stage}</span>
-                  <span className="font-mono text-zinc-400">
+                  <span className="font-medium text-zinc-700">{f.stage}</span>
+                  <span className="font-mono text-zinc-600">
                     {f.count !== null ? f.count.toLocaleString('en-US') : '—'}
                     <span className="ml-2 text-xs text-zinc-500">{f.rateFromPrev}</span>
                   </span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
-                  <div className="h-full rounded-full bg-gradient-to-r from-violet-600 to-indigo-400" style={{ width: `${pct}%` }} />
+                <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
+                  <div className="h-full rounded-full bg-gradient-to-r from-red-600 to-rose-400" style={{ width: `${pct}%` }} />
                 </div>
               </div>
             );
@@ -268,17 +268,17 @@ export default function DiagnosisReport({
           Where your budget is leaking
         </SectionTitle>
         {results.leakRanking === undefined ? (
-          <p className="text-sm leading-relaxed text-zinc-400">
+          <p className="text-sm leading-relaxed text-zinc-600">
             This diagnosis was saved before the leak ranking existed — re-run it to see where
             your budget is leaking.
           </p>
         ) : results.leakRanking === null ? (
-          <p className="text-sm leading-relaxed text-zinc-400">
+          <p className="text-sm leading-relaxed text-zinc-600">
             Add ad spend and link clicks to see which funnel stage wastes the most money.
           </p>
         ) : (
           <>
-            <p className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-200">
+            <p className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
               <strong>#1 focus: fix {results.leakRanking.biggestLeak.fromStage} → {results.leakRanking.biggestLeak.toStage} first</strong>
               {' — '}
               an estimated {fmtMoney(results.leakRanking.biggestLeak.wastedSpend)} of your {fmtMoney(results.leakRanking.totalSpend)} spend
@@ -288,17 +288,17 @@ export default function DiagnosisReport({
               {results.leakRanking.steps.map((s) => (
                 <div key={`${s.fromStage}→${s.toStage}`}>
                   <div className="mb-1 flex items-center justify-between gap-3 text-sm">
-                    <span className="font-medium text-zinc-200">
+                    <span className="font-medium text-zinc-700">
                       {s.fromStage} → {s.toStage}
                     </span>
-                    <span className="shrink-0 whitespace-nowrap font-mono text-zinc-100">
+                    <span className="shrink-0 whitespace-nowrap font-mono text-zinc-900">
                       {fmtMoney(s.wastedSpend)}
                       <span className="ml-2 text-xs text-zinc-500">
                         {fmtInt(s.lost)} lost · {(s.shareOfWaste * 100).toFixed(0)}% of waste
                       </span>
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-zinc-800">
+                  <div className="h-2 overflow-hidden rounded-full bg-zinc-200">
                     <div
                       className="h-full rounded-full bg-gradient-to-r from-red-500 to-amber-400"
                       style={{ width: `${Math.max(2, s.shareOfWaste * 100)}%` }}
@@ -324,13 +324,13 @@ export default function DiagnosisReport({
         </SectionTitle>
         <ul className="space-y-3">
           {results.rulesFired.map((r, idx) => (
-            <li key={idx} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-              <p className="text-sm font-semibold text-zinc-100">{r.rule}</p>
-              <p className="mt-1 text-sm text-zinc-400">{r.detail}</p>
+            <li key={idx} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="text-sm font-semibold text-zinc-900">{r.rule}</p>
+              <p className="mt-1 text-sm text-zinc-600">{r.detail}</p>
               {/* No break-words here: it can split a "$23.64" token across
                   lines on narrow screens. Normal wrapping breaks at the
                   spaces between tokens, so each amount stays one number. */}
-              <p className="mt-2 font-mono text-xs text-violet-300/90">{r.math}</p>
+              <p className="mt-2 font-mono text-xs text-amber-700/90">{r.math}</p>
             </li>
           ))}
         </ul>
@@ -344,14 +344,14 @@ export default function DiagnosisReport({
         <ol className="space-y-4">
           {results.actionItems.map((a) => (
             <li key={a.priority} className="flex gap-4">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-violet-600 text-sm font-bold text-white">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-600 text-sm font-bold text-white">
                 {a.priority}
               </span>
               <div className="min-w-0">
-                <p className="font-semibold text-zinc-100">{a.title}</p>
-                <p className="mt-1 text-sm leading-relaxed text-zinc-400">{a.detail}</p>
-                <p className="mt-2 rounded-lg border border-zinc-800 bg-zinc-950 px-3 py-2 text-[13px] text-zinc-300">
-                  <span className="font-semibold text-violet-300">Do this: </span>
+                <p className="font-semibold text-zinc-900">{a.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-zinc-600">{a.detail}</p>
+                <p className="mt-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-[13px] text-zinc-600">
+                  <span className="font-semibold text-red-700">Do this: </span>
                   {a.adsManagerStep}
                 </p>
               </div>
@@ -367,27 +367,27 @@ export default function DiagnosisReport({
             Screenshot reference
           </SectionTitle>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={screenshotUrl} alt="Uploaded Ads Manager screenshot (reference only)" className="max-h-[480px] w-auto max-w-full rounded-xl border border-zinc-800" />
+          <img src={screenshotUrl} alt="Uploaded Ads Manager screenshot (reference only)" className="max-h-[480px] w-auto max-w-full rounded-xl border border-zinc-200" />
         </Card>
       )}
 
       {/* Plain-language metric guide — beginner-proofing */}
-      <details className="group rounded-2xl border border-zinc-800 bg-zinc-900/60 p-5 sm:p-6">
-        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-zinc-200 transition hover:text-violet-300">
+      <details className="group rounded-2xl border border-zinc-200 bg-white p-5 sm:p-6">
+        <summary className="flex min-h-11 cursor-pointer list-none items-center text-sm font-semibold text-zinc-700 transition hover:text-red-700">
           <span className="mr-2 inline-block transition group-open:rotate-90">▸</span>
           New to these metrics? Read the plain-language guide
         </summary>
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           {GLOSSARY.map((g) => (
-            <div key={g.term} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-              <p className="text-sm font-semibold text-zinc-100">{g.term}</p>
-              <p className="mt-1 text-[13px] leading-relaxed text-zinc-400">
-                <strong className="text-zinc-300">What: </strong>{g.what}
+            <div key={g.term} className="rounded-xl border border-zinc-200 bg-white p-4">
+              <p className="text-sm font-semibold text-zinc-900">{g.term}</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-zinc-600">
+                <strong className="text-zinc-600">What: </strong>{g.what}
               </p>
-              <p className="mt-1 text-[13px] leading-relaxed text-zinc-400">
-                <strong className="text-zinc-300">Why: </strong>{g.why}
+              <p className="mt-1 text-[13px] leading-relaxed text-zinc-600">
+                <strong className="text-zinc-600">Why: </strong>{g.why}
               </p>
-              <p className="mt-1 text-[13px] leading-relaxed text-violet-200/80">
+              <p className="mt-1 text-[13px] leading-relaxed text-red-700/80">
                 <strong>Good: </strong>{g.goodLooksLike}
               </p>
             </div>

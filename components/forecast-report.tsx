@@ -12,10 +12,10 @@ import { fmtDateTime } from '@/lib/format';
 import { cn } from '@/lib/cn';
 
 const STATUS: Record<FunnelStatus, { label: string; dot: string; text: string }> = {
-  good: { label: 'Good', dot: 'bg-emerald-400', text: 'text-emerald-300' },
-  warn: { label: 'Watch', dot: 'bg-amber-400', text: 'text-amber-300' },
-  bad: { label: 'Bad', dot: 'bg-red-500', text: 'text-red-300' },
-  na: { label: 'N/A', dot: 'bg-zinc-600', text: 'text-zinc-400' },
+  good: { label: 'Good', dot: 'bg-emerald-400', text: 'text-emerald-700' },
+  warn: { label: 'Watch', dot: 'bg-amber-400', text: 'text-amber-700' },
+  bad: { label: 'Bad', dot: 'bg-red-500', text: 'text-red-700' },
+  na: { label: 'N/A', dot: 'bg-zinc-600', text: 'text-zinc-600' },
 };
 
 function money(v: number | null): string {
@@ -30,9 +30,9 @@ function int(v: number | null): string {
 
 function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+    <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
       <p className="text-xs text-zinc-500">{label}</p>
-      <p className="mt-0.5 break-words font-mono text-base font-semibold text-zinc-100">{value}</p>
+      <p className="mt-0.5 break-words font-mono text-base font-semibold text-zinc-900">{value}</p>
       {sub && <p className="mt-0.5 text-xs text-zinc-500">{sub}</p>}
     </div>
   );
@@ -159,16 +159,16 @@ export default function ForecastReport({
 
   const learning = results.learning;
   const guidanceStyles = {
-    provisional: 'border-amber-400/40 bg-amber-400/5',
-    ontrack: 'border-emerald-400/40 bg-emerald-400/5',
-    below: 'border-red-500/40 bg-red-500/5',
-    unknown: 'border-zinc-700 bg-zinc-900/60',
+    provisional: 'border-amber-300 bg-amber-50',
+    ontrack: 'border-emerald-300 bg-emerald-50',
+    below: 'border-red-200 bg-red-50',
+    unknown: 'border-zinc-300 bg-white',
   } as const;
   const guidanceText = {
-    provisional: 'text-amber-200',
-    ontrack: 'text-emerald-200',
-    below: 'text-red-300',
-    unknown: 'text-zinc-200',
+    provisional: 'text-amber-800',
+    ontrack: 'text-emerald-800',
+    below: 'text-red-700',
+    unknown: 'text-zinc-700',
   } as const;
 
   return (
@@ -180,21 +180,21 @@ export default function ForecastReport({
         <button
           type="button"
           onClick={onCopy}
-          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400"
         >
           {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
         </button>
         <button
           type="button"
           onClick={onCsv}
-          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400"
         >
           ⭳ Export CSV
         </button>
         <button
           type="button"
           onClick={() => window.print()}
-          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500"
+          className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400"
         >
           ⎙ Print / save PDF
         </button>
@@ -205,27 +205,27 @@ export default function ForecastReport({
         className={cn(
           'rounded-2xl border p-4 sm:p-5',
           learning.status === 'exited'
-            ? 'border-emerald-400/40 bg-emerald-400/5'
+            ? 'border-emerald-300 bg-emerald-50'
             : learning.status === 'unknown'
-              ? 'border-zinc-700 bg-zinc-900/60'
-              : 'border-amber-400/40 bg-amber-400/5',
+              ? 'border-zinc-300 bg-white'
+              : 'border-amber-300 bg-amber-50',
         )}
       >
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-base font-bold text-zinc-50">
+          <p className="text-base font-bold text-zinc-900">
             {learning.status === 'exited' && '✓ Exited learning — numbers are stable enough to judge'}
             {learning.status === 'learning' && '⏳ Still learning — too early to scale or pause'}
             {learning.status === 'limited-risk' && '⚠ Learning Limited risk — unlikely to reach 50 events/week'}
             {learning.status === 'unknown' && 'Learning phase — unknown'}
           </p>
-          <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 text-xs font-semibold text-zinc-300">
+          <span className="rounded-full border border-zinc-300 bg-white px-3 py-1 text-xs font-semibold text-zinc-600">
             {learning.events !== null ? `${learning.events} / 50 events` : 'Events not entered'}
             {learning.weeklyProjected !== null ? ` · ~${Math.round(learning.weeklyProjected)}/week` : ''}
           </span>
         </div>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-400">{learning.note}</p>
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600">{learning.note}</p>
         {learning.minDailyBudget !== null && learning.status !== 'exited' && (
-          <p className="mt-2 text-sm text-zinc-300">
+          <p className="mt-2 text-sm text-zinc-600">
             Minimum daily budget to exit learning: <strong className="font-mono">{money(learning.minDailyBudget)}</strong>
             <span className="text-zinc-500"> (target CPA × 50 ÷ 7)</span>
           </p>
@@ -237,17 +237,17 @@ export default function ForecastReport({
         <p className={cn('text-lg font-bold', guidanceText[results.guidance.kind])}>
           {results.guidance.headline}
         </p>
-        <p className="mt-1.5 text-sm leading-relaxed text-zinc-400">{results.guidance.detail}</p>
+        <p className="mt-1.5 text-sm leading-relaxed text-zinc-600">{results.guidance.detail}</p>
         <div className="mt-3 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 font-semibold text-zinc-300">
+          <span className="rounded-full border border-zinc-300 bg-white px-3 py-1 font-semibold text-zinc-600">
             Confidence: {results.confidence.label}
             {results.confidence.basis ? ` (${results.confidence.basis} ${results.confidence.basisPurchases !== null ? Math.round(results.confidence.basisPurchases) : '—'} purchases)` : ''}
           </span>
-          <span className="rounded-full border border-zinc-700 bg-zinc-950 px-3 py-1 font-semibold text-zinc-300">
+          <span className="rounded-full border border-zinc-300 bg-white px-3 py-1 font-semibold text-zinc-600">
             Attribution: {attributionLabel}
           </span>
           {liveSource && (
-            <span className="rounded-full border border-violet-500/40 bg-violet-500/5 px-3 py-1 font-semibold text-violet-200">
+            <span className="rounded-full border border-sky-300 bg-sky-50 px-3 py-1 font-semibold text-sky-700">
               ⚡ Live data from Meta
             </span>
           )}
@@ -255,7 +255,7 @@ export default function ForecastReport({
       </div>
 
       {/* So far */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">
         So far — ${results.spend.toLocaleString()} spent
       </h2>
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -278,7 +278,7 @@ export default function ForecastReport({
       {/* Full budget */}
       {results.remainingBudget !== null && inputs.totalBudget !== null && (
         <>
-          <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">
+          <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">
             Full budget — ${inputs.totalBudget.toLocaleString()} if today&apos;s rates hold
           </h2>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -295,23 +295,23 @@ export default function ForecastReport({
       )}
 
       {/* Funnel */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Funnel — where does it leak?</h2>
-      <div className="overflow-hidden rounded-2xl border border-zinc-800">
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">Funnel — where does it leak?</h2>
+      <div className="overflow-hidden rounded-2xl border border-zinc-200">
         {results.funnel.map((f, idx) => (
           <div
             key={f.stage}
             className={cn(
-              'flex flex-wrap items-center justify-between gap-2 bg-zinc-900/60 px-4 py-3',
-              idx > 0 && 'border-t border-zinc-800',
+              'flex flex-wrap items-center justify-between gap-2 bg-white px-4 py-3',
+              idx > 0 && 'border-t border-zinc-200',
             )}
           >
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-zinc-100">{f.stage}</p>
+              <p className="text-sm font-semibold text-zinc-900">{f.stage}</p>
               <p className="text-xs text-zinc-500">{f.benchmark}</p>
             </div>
             <div className="flex items-center gap-4">
-              <p className="font-mono text-sm font-semibold text-zinc-100">{int(f.count)}</p>
-              <p className="w-16 text-right font-mono text-sm text-zinc-400">{f.rateDisplay}</p>
+              <p className="font-mono text-sm font-semibold text-zinc-900">{int(f.count)}</p>
+              <p className="w-16 text-right font-mono text-sm text-zinc-600">{f.rateDisplay}</p>
               <span className="w-16 text-right"><StatusDot status={f.status} /></span>
             </div>
           </div>
@@ -325,20 +325,20 @@ export default function ForecastReport({
       </p>
 
       {/* Creative signals */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Creative signals</h2>
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">Creative signals</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+        <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
           <p className="text-xs text-zinc-500">Hook rate (3-sec views ÷ impressions)</p>
-          <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">
+          <p className="mt-0.5 font-mono text-base font-semibold text-zinc-900">
             {results.creative.hookRatePct !== null ? `${results.creative.hookRatePct.toFixed(1)}%` : '—'}
           </p>
           <p className="mt-1 text-xs text-zinc-500">
             <StatusDot status={results.creative.hookStatus} /> · weak below 20% · strong above 30%
           </p>
         </div>
-        <div className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+        <div className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
           <p className="text-xs text-zinc-500">Frequency</p>
-          <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">
+          <p className="mt-0.5 font-mono text-base font-semibold text-zinc-900">
             {results.creative.frequency !== null ? results.creative.frequency.toFixed(1) : '—'}
           </p>
           <p className="mt-1 text-xs text-zinc-500">{results.creative.fatigueNote}</p>
@@ -346,22 +346,22 @@ export default function ForecastReport({
       </div>
 
       {/* Spend pace */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Spend pace</h2>
-      <p className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">Spend pace</h2>
+      <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm leading-relaxed text-zinc-600">
         {results.pace.note}
       </p>
 
       {/* Scenario sensitivity */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Scenario sensitivity (not a promise)</h2>
-      <p className="mb-3 text-sm text-zinc-400">
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">Scenario sensitivity (not a promise)</h2>
+      <p className="mb-3 text-sm text-zinc-600">
         How CPA and ROAS change if website purchase conversion rate changes, while CPM, CTR, LPV rate and AOV stay constant.
         The highlighted row is the CVR this campaign actually needs to break even.
       </p>
       {/* Desktop table */}
-      <div className="hidden overflow-hidden rounded-2xl border border-zinc-800 sm:block">
+      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200 sm:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-left text-zinc-500">
+            <tr className="border-b border-zinc-200 text-left text-zinc-500">
               <th className="px-4 py-3 font-semibold">Website CVR</th>
               <th className="px-4 py-3 font-semibold">Expected purchases</th>
               <th className="px-4 py-3 font-semibold">CPA</th>
@@ -371,19 +371,19 @@ export default function ForecastReport({
           </thead>
           <tbody>
             {results.scenarioRows.map((r) => (
-              <tr key={r.cvrPct} className={r.isRequired ? 'border-t border-violet-500/40 bg-violet-500/10' : 'border-t border-zinc-800/60'}>
-                <td className="px-4 py-3 font-mono text-zinc-100">
+              <tr key={r.cvrPct} className={r.isRequired ? 'border-t border-sky-300 bg-sky-50' : 'border-t border-zinc-200'}>
+                <td className="px-4 py-3 font-mono text-zinc-900">
                   {r.cvrPct.toFixed(1)}%
                   {r.isRequired && (
-                    <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[11px] font-semibold text-violet-200">
+                    <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
                       Required for break-even
                     </span>
                   )}
                 </td>
-                <td className="px-4 py-3 font-mono text-zinc-300">{r.purchases !== null ? r.purchases.toFixed(2) : '—'}</td>
-                <td className="px-4 py-3 font-mono text-zinc-300">{money(r.cpa)}</td>
-                <td className="px-4 py-3 font-mono text-zinc-300">{r.roas !== null ? `${r.roas.toFixed(2)}×` : '—'}</td>
-                <td className={cn('px-4 py-3 font-semibold', r.vsBreakEven === 'above' ? 'text-emerald-300' : r.vsBreakEven === 'below' ? 'text-red-300' : 'text-zinc-500')}>
+                <td className="px-4 py-3 font-mono text-zinc-600">{r.purchases !== null ? r.purchases.toFixed(2) : '—'}</td>
+                <td className="px-4 py-3 font-mono text-zinc-600">{money(r.cpa)}</td>
+                <td className="px-4 py-3 font-mono text-zinc-600">{r.roas !== null ? `${r.roas.toFixed(2)}×` : '—'}</td>
+                <td className={cn('px-4 py-3 font-semibold', r.vsBreakEven === 'above' ? 'text-emerald-700' : r.vsBreakEven === 'below' ? 'text-red-700' : 'text-zinc-500')}>
                   {r.vsBreakEven === 'above' ? 'At/above' : r.vsBreakEven === 'below' ? 'Below' : '—'}
                 </td>
               </tr>
@@ -394,19 +394,19 @@ export default function ForecastReport({
       {/* Mobile stacked cards */}
       <div className="space-y-2 sm:hidden">
         {results.scenarioRows.map((r) => (
-          <div key={r.cvrPct} className={cn('rounded-xl border px-4 py-3', r.isRequired ? 'border-violet-500/40 bg-violet-500/10' : 'border-zinc-800 bg-zinc-900/60')}>
-            <p className="text-sm font-semibold text-zinc-100">
+          <div key={r.cvrPct} className={cn('rounded-xl border px-4 py-3', r.isRequired ? 'border-sky-300 bg-sky-50' : 'border-zinc-200 bg-white')}>
+            <p className="text-sm font-semibold text-zinc-900">
               CVR {r.cvrPct.toFixed(1)}%
               {r.isRequired && (
-                <span className="ml-2 rounded-full bg-violet-500/20 px-2 py-0.5 text-[11px] font-semibold text-violet-200">
+                <span className="ml-2 rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
                   Required for break-even
                 </span>
               )}
             </p>
-            <p className="mt-1 font-mono text-sm text-zinc-300">
+            <p className="mt-1 font-mono text-sm text-zinc-600">
               {r.purchases !== null ? r.purchases.toFixed(2) : '—'} purchases · CPA {money(r.cpa)} · ROAS {r.roas !== null ? `${r.roas.toFixed(2)}×` : '—'}
             </p>
-            <p className={cn('mt-1 text-xs font-semibold', r.vsBreakEven === 'above' ? 'text-emerald-300' : r.vsBreakEven === 'below' ? 'text-red-300' : 'text-zinc-500')}>
+            <p className={cn('mt-1 text-xs font-semibold', r.vsBreakEven === 'above' ? 'text-emerald-700' : r.vsBreakEven === 'below' ? 'text-red-700' : 'text-zinc-500')}>
               {r.vsBreakEven === 'above' ? 'At/above break-even' : r.vsBreakEven === 'below' ? 'Below break-even' : '—'}
             </p>
           </div>
@@ -414,11 +414,11 @@ export default function ForecastReport({
       </div>
 
       {/* Interpretation guide */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">How to interpret the result</h2>
-      <div className="hidden overflow-hidden rounded-2xl border border-zinc-800 sm:block">
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">How to interpret the result</h2>
+      <div className="hidden overflow-hidden rounded-2xl border border-zinc-200 sm:block">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-zinc-800 text-left text-zinc-500">
+            <tr className="border-b border-zinc-200 text-left text-zinc-500">
               <th className="px-4 py-3 font-semibold">Signal</th>
               <th className="px-4 py-3 font-semibold">Investigate</th>
               <th className="px-4 py-3 font-semibold">Do not conclude</th>
@@ -426,10 +426,10 @@ export default function ForecastReport({
           </thead>
           <tbody>
             {INTERPRETATION.map((row) => (
-              <tr key={row.signal} className="border-t border-zinc-800/60 align-top">
-                <td className="px-4 py-3 font-semibold text-zinc-100">{row.signal}</td>
-                <td className="px-4 py-3 text-zinc-400">{row.investigate}</td>
-                <td className="px-4 py-3 text-zinc-400">{row.doNot}</td>
+              <tr key={row.signal} className="border-t border-zinc-200 align-top">
+                <td className="px-4 py-3 font-semibold text-zinc-900">{row.signal}</td>
+                <td className="px-4 py-3 text-zinc-600">{row.investigate}</td>
+                <td className="px-4 py-3 text-zinc-600">{row.doNot}</td>
               </tr>
             ))}
           </tbody>
@@ -437,23 +437,23 @@ export default function ForecastReport({
       </div>
       <div className="space-y-2 sm:hidden">
         {INTERPRETATION.map((row) => (
-          <div key={row.signal} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-            <p className="text-sm font-semibold text-zinc-100">{row.signal}</p>
-            <p className="mt-1 text-sm text-zinc-400"><span className="text-zinc-500">Investigate: </span>{row.investigate}</p>
-            <p className="mt-1 text-sm text-zinc-400"><span className="text-zinc-500">Do not conclude: </span>{row.doNot}</p>
+          <div key={row.signal} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+            <p className="text-sm font-semibold text-zinc-900">{row.signal}</p>
+            <p className="mt-1 text-sm text-zinc-600"><span className="text-zinc-500">Investigate: </span>{row.investigate}</p>
+            <p className="mt-1 text-sm text-zinc-600"><span className="text-zinc-500">Do not conclude: </span>{row.doNot}</p>
           </div>
         ))}
       </div>
 
       {/* Formula reference */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Formula reference</h2>
-      <div className="overflow-hidden rounded-2xl border border-zinc-800">
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">Formula reference</h2>
+      <div className="overflow-hidden rounded-2xl border border-zinc-200">
         <table className="w-full text-sm">
           <tbody>
             {FORMULAS.map((f, idx) => (
-              <tr key={f.metric} className={idx > 0 ? 'border-t border-zinc-800/60' : ''}>
-                <td className="px-4 py-2.5 font-semibold text-zinc-100">{f.metric}</td>
-                <td className="px-4 py-2.5 font-mono text-zinc-400">{f.formula}</td>
+              <tr key={f.metric} className={idx > 0 ? 'border-t border-zinc-200' : ''}>
+                <td className="px-4 py-2.5 font-semibold text-zinc-900">{f.metric}</td>
+                <td className="px-4 py-2.5 font-mono text-zinc-600">{f.formula}</td>
               </tr>
             ))}
           </tbody>
@@ -466,10 +466,10 @@ export default function ForecastReport({
       </p>
 
       {/* Warnings */}
-      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-100">Warnings &amp; caveats</h2>
+      <h2 className="mb-3 mt-8 text-lg font-semibold tracking-tight text-zinc-900">Warnings &amp; caveats</h2>
       <ul className="space-y-2">
         {results.warnings.map((w) => (
-          <li key={w} className="rounded-xl border-l-4 border-amber-400/60 bg-amber-400/5 px-4 py-3 text-sm leading-relaxed text-zinc-300">
+          <li key={w} className="rounded-xl border-l-4 border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-zinc-600">
             • {w}
           </li>
         ))}

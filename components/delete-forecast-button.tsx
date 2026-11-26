@@ -44,11 +44,11 @@ export default function DeleteForecastButton({
         type="button"
         onClick={onDelete}
         disabled={busy}
-        className="rounded-lg border border-red-500/40 px-3 py-1.5 text-xs font-semibold text-red-300 transition hover:bg-red-500/10 disabled:opacity-50"
+        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 transition hover:bg-red-50 disabled:opacity-50"
       >
         {busy ? 'Deleting…' : 'Delete'}
       </button>
-      {err && <span className="text-xs text-red-300">{err}</span>}
+      {err && <span className="text-xs text-red-700">{err}</span>}
     </span>
   );
 }

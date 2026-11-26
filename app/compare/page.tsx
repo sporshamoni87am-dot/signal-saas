@@ -48,7 +48,7 @@ export default async function ComparePage({
         title="Compare diagnoses"
         sub="Pick any two saved diagnoses and see, side by side, what actually improved — verdict, ROAS, CPA, creative and the funnel. The best pair (your latest diagnosis and the previous one for the same campaign) is suggested for you."
         actions={
-          <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+          <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-400">
             ← Dashboard
           </Link>
         }
@@ -59,7 +59,7 @@ export default async function ComparePage({
           title="Nothing to compare yet"
           sub="Run two diagnoses of the same campaign — today, and again after a week or so of changes — and this page will show you exactly what moved."
           action={
-            <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500">
+            <Link href="/diagnose" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-6 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-red-600/30 transition hover:from-red-700 hover:to-rose-700">
               Run your first diagnosis
             </Link>
           }

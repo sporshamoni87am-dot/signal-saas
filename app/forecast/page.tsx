@@ -305,7 +305,7 @@ function NumField({
           <span className="pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2 text-sm text-zinc-500">{def.suffix}</span>
         )}
       </div>
-      {error && errorText && <p className="mt-1.5 text-xs font-medium text-red-300">{errorText}</p>}
+      {error && errorText && <p className="mt-1.5 text-xs font-medium text-red-700">{errorText}</p>}
     </Field>
   );
 }
@@ -685,7 +685,7 @@ function ForecastPage() {
   if (trialState === 'loading') {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-        <div className="animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center text-sm text-zinc-500">
+        <div className="animate-pulse rounded-2xl border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
           Loading…
         </div>
       </div>
@@ -696,17 +696,17 @@ function ForecastPage() {
     return (
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
         <PageHeader title="New forecast" sub="Early-stage campaign forecast" />
-        <Card className="border-amber-400/40 bg-amber-400/5 text-center">
-          <p className="text-lg font-semibold text-amber-200">Your free trial has ended</p>
-          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-400">
+        <Card className="border-amber-300 bg-amber-50 text-center">
+          <p className="text-lg font-semibold text-amber-800">Your free trial has ended</p>
+          <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-zinc-600">
             You can still view all your past forecasts on the dashboard — nothing is locked
             away. Creating new forecasts is paused until paid plans launch.
           </p>
           <div className="mt-5 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:flex-wrap">
-            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-violet-500">
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-red-600 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700">
               View my forecasts
             </Link>
-            <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+            <Link href="/billing" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400">
               See plans
             </Link>
           </div>
@@ -751,14 +751,14 @@ function ForecastPage() {
           }
         />
         {isSample && (
-          <p className="no-print mb-4 rounded-xl border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm text-sky-200">
+          <p className="no-print mb-4 rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-800">
             {SAMPLE_FORECAST_NOTE}
           </p>
         )}
         {isGuest && (
-          <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3">
-            <p className="text-sm text-zinc-300">
-              <strong className="text-violet-200">Keep this forecast.</strong>{' '}
+          <div className="no-print mb-4 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-300 bg-sky-50 px-4 py-3">
+            <p className="text-sm text-zinc-600">
+              <strong className="text-sky-800">Keep this forecast.</strong>{' '}
               A free account saves it to your dashboard — your inputs are preserved, nothing to retype.
             </p>
             <PrimaryLink href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="w-full shrink-0 px-4 py-2 sm:w-auto">
@@ -767,7 +767,7 @@ function ForecastPage() {
           </div>
         )}
         {saveError && (
-          <p className="no-print mb-4 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{saveError}</p>
+          <p className="no-print mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</p>
         )}
         <ForecastReport
           inputs={results.inputs}
@@ -793,13 +793,13 @@ function ForecastPage() {
           explains every step. */}
       <div className="no-print mb-6 flex flex-wrap items-center gap-2">
         <GhostButton onClick={startFresh}>↺ Start fresh</GhostButton>
-        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-violet-300 transition hover:text-violet-200">
+        <Link href="/how-it-works" className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-red-700 transition hover:text-red-800">
           How it works →
         </Link>
       </div>
 
       {isGuest && (
-        <div className="no-print mb-6 rounded-xl border border-sky-400/30 bg-sky-400/5 px-4 py-3 text-sm leading-relaxed text-sky-200">
+        <div className="no-print mb-6 rounded-xl border border-sky-300 bg-sky-50 px-4 py-3 text-sm leading-relaxed text-sky-800">
           <strong>Trying it out — no account needed.</strong> The full forecast runs right
           here. Saving it to your dashboard needs a free account (30-day trial, no credit card) —
           and your inputs are kept, so nothing is lost if you sign up after.
@@ -808,28 +808,28 @@ function ForecastPage() {
 
       {/* Live data from Meta — pull real numbers instead of typing them.
           Guests can't connect (needs a free account, same as saving). */}
-      <div className="no-print mb-6 rounded-2xl border border-zinc-800 bg-zinc-900/60 p-4 sm:p-5">
-        <p className="text-sm font-semibold text-zinc-100">⚡ Live data from Meta</p>
-        <p className="mt-1 text-[13px] leading-relaxed text-zinc-400">
+      <div className="no-print mb-6 rounded-2xl border border-zinc-200 bg-white p-4 sm:p-5">
+        <p className="text-sm font-semibold text-zinc-900">⚡ Live data from Meta</p>
+        <p className="mt-1 text-[13px] leading-relaxed text-zinc-600">
           Pull spend, clicks, purchases and revenue straight from your ad account — no typing,
           no stale numbers. Read-only: it can never change anything in Ads Manager.
         </p>
 
         {connectDone && (
-          <p className="mt-3 rounded-xl border border-violet-500/40 bg-violet-500/5 px-3.5 py-2.5 text-sm text-violet-200">
+          <p className="mt-3 rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
             ✓ Meta account connected — pick an ad account and campaign below.
           </p>
         )}
         {connectError && (
-          <p className="mt-3 rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300" role="alert">
+          <p className="mt-3 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700" role="alert">
             {META_ERROR_TEXT[connectError] ?? 'The Meta connection did not complete. Try again.'}
           </p>
         )}
 
         {isGuest && (
-          <p className="mt-3 text-sm text-zinc-300">
+          <p className="mt-3 text-sm text-zinc-600">
             Live data needs a free account.{' '}
-            <Link href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="font-semibold text-violet-300 underline underline-offset-2">
+            <Link href="/signup?next=/forecast" onClick={() => markRestore('forecast')} className="font-semibold text-red-700 underline underline-offset-2">
               Create one
             </Link>{' '}
             to connect your Meta ad account — manual entry works right now.
@@ -837,7 +837,7 @@ function ForecastPage() {
         )}
 
         {!isGuest && metaStatus && !metaStatus.configured && (
-          <p className="mt-3 text-sm text-zinc-400">
+          <p className="mt-3 text-sm text-zinc-600">
             Meta connection is not set up on this site yet — the app keys are missing. Manual
             entry works for every forecast.
           </p>
@@ -858,7 +858,7 @@ function ForecastPage() {
           <div className="mt-4 space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Ad account</span>
+                <span className="mb-1.5 block text-sm font-medium text-zinc-600">Ad account</span>
                 <select
                   value={selectedAccount}
                   onChange={(e) => {
@@ -876,7 +876,7 @@ function ForecastPage() {
                 </select>
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Campaign</span>
+                <span className="mb-1.5 block text-sm font-medium text-zinc-600">Campaign</span>
                 <select
                   value={selectedCampaign}
                   onChange={(e) => setSelectedCampaign(e.target.value)}
@@ -896,7 +896,7 @@ function ForecastPage() {
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="block">
-                <span className="mb-1.5 block text-sm font-medium text-zinc-300">Date range</span>
+                <span className="mb-1.5 block text-sm font-medium text-zinc-600">Date range</span>
                 <select
                   value={datePreset}
                   onChange={(e) => setDatePreset(e.target.value as '7' | '14' | '30' | 'custom')}
@@ -911,11 +911,11 @@ function ForecastPage() {
               {datePreset === 'custom' && (
                 <div className="grid grid-cols-2 gap-3">
                   <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium text-zinc-300">From</span>
+                    <span className="mb-1.5 block text-sm font-medium text-zinc-600">From</span>
                     <input type="date" value={customSince} onChange={(e) => setCustomSince(e.target.value)} className={inputClassName} />
                   </label>
                   <label className="block">
-                    <span className="mb-1.5 block text-sm font-medium text-zinc-300">To</span>
+                    <span className="mb-1.5 block text-sm font-medium text-zinc-600">To</span>
                     <input type="date" value={customUntil} onChange={(e) => setCustomUntil(e.target.value)} className={inputClassName} />
                   </label>
                 </div>
@@ -931,21 +931,21 @@ function ForecastPage() {
               </p>
             </div>
             {liveError && (
-              <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300" role="alert">
+              <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700" role="alert">
                 {liveError}
               </p>
             )}
             {liveSource && (
-              <div className="rounded-xl border border-violet-500/40 bg-violet-500/5 px-4 py-3">
-                <p className="text-sm font-semibold text-violet-200">
+              <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-3">
+                <p className="text-sm font-semibold text-emerald-800">
                   ✓ Live data loaded — {liveSource.objectName ?? 'campaign'} · {liveSource.since} → {liveSource.until}
                 </p>
-                <p className="mt-1 text-[13px] text-zinc-400">
+                <p className="mt-1 text-[13px] text-zinc-600">
                   Ad numbers are filled from Meta. Still needed from you: AOV and margin (Meta
                   doesn&apos;t know your business numbers) and the funnel rates.
                 </p>
                 {liveFlags.length > 0 && (
-                  <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] text-amber-200/90">
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-[13px] text-amber-800/90">
                     {liveFlags.map((f) => (
                       <li key={f}>{f}</li>
                     ))}
@@ -958,9 +958,9 @@ function ForecastPage() {
       </div>
 
       {errors.length > 0 && (
-        <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3" role="alert">
-          <p className="text-sm font-semibold text-red-200">A few fields need your attention:</p>
-          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-red-300">
+        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3" role="alert">
+          <p className="text-sm font-semibold text-red-800">A few fields need your attention:</p>
+          <ul className="mt-1.5 list-disc space-y-1 pl-5 text-sm text-red-700">
             {errors.map((e) => (
               <li key={e}>{REQUIRED_MESSAGES[e] ?? e}</li>
             ))}
@@ -975,8 +975,8 @@ function ForecastPage() {
         </SectionTitle>
         {/* Benchmark context — the same market/category the diagnosis uses,
             so the CTR grade agrees across the two tools. Optional. */}
-        <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-4">
-          <p className="text-sm font-medium text-zinc-200">
+        <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+          <p className="text-sm font-medium text-zinc-700">
             Market &amp; category <span className="font-normal text-zinc-500">(optional)</span>
           </p>
           <p className="mt-1 text-[13px] leading-relaxed text-zinc-500">
@@ -1104,7 +1104,7 @@ function ForecastPage() {
       </Card>
 
       {/* Sticky action bar on phones */}
-      <div className="sticky bottom-0 z-10 -mx-4 border-t border-zinc-800 bg-zinc-950/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
+      <div className="sticky bottom-0 z-10 -mx-4 border-t border-zinc-200 bg-white/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0">
         <div className="flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-col gap-2 sm:flex-row">
             <PrimaryButton onClick={runForecast} className="w-full sm:w-auto">
@@ -1137,7 +1137,7 @@ export default function ForecastPageWrapper() {
     <Suspense
       fallback={
         <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6">
-          <div className="animate-pulse rounded-2xl border border-zinc-800 bg-zinc-900/60 p-10 text-center text-sm text-zinc-500">
+          <div className="animate-pulse rounded-2xl border border-zinc-200 bg-white p-10 text-center text-sm text-zinc-500">
             Loading…
           </div>
         </div>

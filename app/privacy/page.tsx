@@ -14,37 +14,37 @@ export default function PrivacyPage() {
         sub="How we collect, use, and protect your data."
       />
 
-      <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-200">
+      <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
         <strong>Template notice:</strong> this is a starting-point template, not legal advice.
         Have a qualified lawyer review and adapt it before your public launch —
         especially once you collect payments.
       </div>
 
-      <Card className="prose-sm space-y-5 text-sm leading-relaxed text-zinc-300">
+      <Card className="prose-sm space-y-5 text-sm leading-relaxed text-zinc-600">
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">1. What we collect</h2>
+          <h2 className="text-base font-semibold text-zinc-900">1. What we collect</h2>
           <p className="mt-1.5">
-            <strong className="text-zinc-100">Account data:</strong> your email address and
+            <strong className="text-zinc-900">Account data:</strong> your email address and
             password (stored securely via our authentication provider) when you create an account.
           </p>
           <p className="mt-1.5">
-            <strong className="text-zinc-100">Diagnosis data:</strong> the campaign numbers you
+            <strong className="text-zinc-900">Diagnosis data:</strong> the campaign numbers you
             type in (spend, clicks, revenue, and similar metrics), your campaign names, problem
             statements, and the diagnoses we generate from them.
           </p>
           <p className="mt-1.5">
-            <strong className="text-zinc-100">Screenshots:</strong> images you upload are stored
+            <strong className="text-zinc-900">Screenshots:</strong> images you upload are stored
             privately in your account and are shown to you only as a visual reference. They are
             never analyzed automatically in the current version and never shared.
           </p>
           <p className="mt-1.5">
-            <strong className="text-zinc-100">Billing data (future):</strong> when paid plans
+            <strong className="text-zinc-900">Billing data (future):</strong> when paid plans
             launch, payments are processed by Stripe. We never see or store your card details.
           </p>
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">2. How we use it</h2>
+          <h2 className="text-base font-semibold text-zinc-900">2. How we use it</h2>
           <ul className="mt-1.5 list-disc space-y-1 pl-5">
             <li>To run the diagnosis engine on the numbers you provide.</li>
             <li>To save your diagnosis history so you can track improvement over time.</li>
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">3. What we don&apos;t do</h2>
+          <h2 className="text-base font-semibold text-zinc-900">3. What we don&apos;t do</h2>
           <ul className="mt-1.5 list-disc space-y-1 pl-5">
             <li>We don&apos;t sell your data. Ever.</li>
             <li>We don&apos;t share your campaign data with advertisers or third parties.</li>
@@ -63,7 +63,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">4. Data security &amp; your rights</h2>
+          <h2 className="text-base font-semibold text-zinc-900">4. Data security &amp; your rights</h2>
           <p className="mt-1.5">
             Your data is stored with row-level access controls: you can only ever see your own
             diagnoses. You can delete any diagnosis (including its screenshot) at any time from
@@ -72,10 +72,10 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">5. Contact</h2>
+          <h2 className="text-base font-semibold text-zinc-900">5. Contact</h2>
           <p className="mt-1.5">
             For privacy questions or deletion requests, contact:{' '}
-            <a href="mailto:radichowdhury2017@gmail.com" className="font-mono text-zinc-100 underline underline-offset-2">
+            <a href="mailto:radichowdhury2017@gmail.com" className="font-mono text-zinc-900 underline underline-offset-2">
               radichowdhury2017@gmail.com
             </a>
             .

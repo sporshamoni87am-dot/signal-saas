@@ -5,7 +5,7 @@ import { cn } from '@/lib/cn';
 
 export function Card({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={cn('rounded-2xl border border-zinc-800/80 bg-zinc-900/60 p-4 shadow-[0_1px_2px_rgb(0_0_0/0.4)] sm:p-6', className)}>
+    <div className={cn('rounded-2xl border border-zinc-200 bg-white p-4 shadow-[0_1px_2px_rgb(0_0_0/0.06)] sm:p-6', className)}>
       {children}
     </div>
   );
@@ -14,8 +14,8 @@ export function Card({ children, className }: { children: ReactNode; className?:
 export function SectionTitle({ children, hint }: { children: ReactNode; hint?: string }) {
   return (
     <div className="mb-4">
-      <h2 className="text-lg font-semibold tracking-tight text-zinc-100">{children}</h2>
-      {hint && <p className="mt-1 text-sm text-zinc-400">{hint}</p>}
+      <h2 className="text-lg font-semibold tracking-tight text-zinc-900">{children}</h2>
+      {hint && <p className="mt-1 text-sm text-zinc-600">{hint}</p>}
     </div>
   );
 }
@@ -31,7 +31,7 @@ export function Field({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-sm font-medium text-zinc-300">{label}</span>
+      <span className="mb-1.5 block text-sm font-medium text-zinc-600">{label}</span>
       {children}
       {hint && <span className="mt-1 block text-xs text-zinc-500">{hint}</span>}
     </label>
@@ -41,7 +41,7 @@ export function Field({
 /* Mobile: text-base (16px) so iOS Safari does not zoom on focus, and
    py-3 so inputs are at least 44px tall. Desktop keeps the compact look. */
 export const inputClassName =
-  'w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3.5 py-3 text-base text-zinc-100 placeholder:text-zinc-600 outline-none transition focus:border-violet-500/70 focus:ring-2 focus:ring-violet-500/20 sm:py-2.5 sm:text-sm';
+  'w-full rounded-xl border border-zinc-300 bg-white px-3.5 py-3 text-base text-zinc-900 placeholder:text-zinc-600 outline-none transition focus:border-red-500/70 focus:ring-2 focus:ring-red-500/20 sm:py-2.5 sm:text-sm';
 
 export function PrimaryButton({
   children,
@@ -51,7 +51,7 @@ export function PrimaryButton({
   return (
     <button
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-red-600/30 transition hover:from-red-700 hover:to-rose-700 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -70,7 +70,7 @@ export function PrimaryLink({
   return (
     <a
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-violet-600 to-indigo-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-violet-600/40 transition hover:from-violet-500 hover:to-indigo-500 active:scale-[0.98]',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-[0_0_24px_-6px] shadow-red-600/30 transition hover:from-red-700 hover:to-rose-700 active:scale-[0.98]',
         className,
       )}
       {...rest}
@@ -88,7 +88,7 @@ export function GhostButton({
   return (
     <button
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-zinc-700/70 bg-zinc-900 px-5 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500 hover:bg-zinc-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-zinc-300 bg-white px-5 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400 hover:bg-zinc-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40',
         className,
       )}
       {...rest}
@@ -123,10 +123,10 @@ export function VerdictBadge({ verdict, size = 'md' }: { verdict: Verdict; size?
 }
 
 const STATUS_STYLES: Record<SignalStatus, { dot: string; label: string; text: string }> = {
-  good: { dot: 'bg-emerald-400', label: 'Good', text: 'text-emerald-300' },
-  warn: { dot: 'bg-amber-400', label: 'Watch', text: 'text-amber-300' },
-  bad: { dot: 'bg-red-500', label: 'Bad', text: 'text-red-300' },
-  na: { dot: 'bg-zinc-600', label: 'N/A', text: 'text-zinc-400' },
+  good: { dot: 'bg-emerald-400', label: 'Good', text: 'text-emerald-700' },
+  warn: { dot: 'bg-amber-400', label: 'Watch', text: 'text-amber-700' },
+  bad: { dot: 'bg-red-500', label: 'Bad', text: 'text-red-700' },
+  na: { dot: 'bg-zinc-600', label: 'N/A', text: 'text-zinc-600' },
 };
 
 export function StatusPill({ status }: { status: SignalStatus }) {
@@ -150,18 +150,18 @@ export function PageHeader({
 }) {
   return (
     <div className="relative mb-6">
-      {/* Subtle radial lime glow behind the headline — a background layer
+      {/* Subtle radial red glow behind the headline — a background layer
           only. The content below is `relative`, so it paints above the glow
           and the text is never tinted. */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute -left-8 -top-12 h-44 w-80"
-        style={{ background: 'radial-gradient(closest-side, rgb(124 58 237 / 0.07), transparent)' }}
+        style={{ background: 'radial-gradient(closest-side, rgb(220 38 38 / 0.05), transparent)' }}
       />
       <div className="relative flex flex-wrap items-start justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="break-words text-2xl font-bold tracking-tight text-zinc-50 sm:text-3xl">{title}</h1>
-          {sub && <p className="mt-1.5 max-w-2xl text-sm text-zinc-400">{sub}</p>}
+          <h1 className="break-words text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">{title}</h1>
+          {sub && <p className="mt-1.5 max-w-2xl text-sm text-zinc-600">{sub}</p>}
         </div>
         {/* Mobile: actions stack full-width so buttons are thumb-sized and
             never squeezed side-by-side; desktop keeps the inline row. */}
@@ -173,9 +173,9 @@ export function PageHeader({
 
 export function EmptyState({ title, sub, action }: { title: string; sub: string; action?: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-dashed border-zinc-700 bg-zinc-900/40 px-4 py-10 text-center sm:px-6 sm:py-14">
-      <p className="text-base font-semibold text-zinc-200">{title}</p>
-      <p className="mx-auto mt-2 max-w-md text-sm text-zinc-400">{sub}</p>
+    <div className="rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-10 text-center sm:px-6 sm:py-14">
+      <p className="text-base font-semibold text-zinc-700">{title}</p>
+      <p className="mx-auto mt-2 max-w-md text-sm text-zinc-600">{sub}</p>
       {action && <div className="mt-5">{action}</div>}
     </div>
   );

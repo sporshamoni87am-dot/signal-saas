@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
         <Card>
-          <p className="text-sm text-zinc-400">Checking your reset link…</p>
+          <p className="text-sm text-zinc-600">Checking your reset link…</p>
         </Card>
       </div>
     );
@@ -67,8 +67,8 @@ export default function ResetPasswordPage() {
   return (
     <div className="mx-auto max-w-md px-4 py-10 sm:px-6 sm:py-16">
       <Card>
-        <h1 className="text-2xl font-bold tracking-tight text-zinc-50">Choose a new password</h1>
-        <p className="mt-1.5 text-sm text-zinc-400">Enter your new password below.</p>
+        <h1 className="text-2xl font-bold tracking-tight text-zinc-900">Choose a new password</h1>
+        <p className="mt-1.5 text-sm text-zinc-600">Enter your new password below.</p>
         <form onSubmit={onSubmit} className="mt-6 space-y-4">
           <Field label="New password" hint="Minimum 6 characters.">
             <input type="password" required minLength={6} value={password} onChange={(e) => setPassword(e.target.value)} className={inputClassName} placeholder="••••••••" autoComplete="new-password" />
@@ -77,7 +77,7 @@ export default function ResetPasswordPage() {
             <input type="password" required minLength={6} value={confirm} onChange={(e) => setConfirm(e.target.value)} className={inputClassName} placeholder="••••••••" autoComplete="new-password" />
           </Field>
           {error && (
-            <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-3.5 py-2.5 text-sm text-red-300">{error}</p>
+            <p className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700">{error}</p>
           )}
           <PrimaryButton type="submit" disabled={loading} className="w-full">
             {loading ? 'Saving…' : 'Save new password'}

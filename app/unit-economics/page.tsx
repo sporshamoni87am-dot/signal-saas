@@ -43,12 +43,12 @@ function plainNumber(v: number | null): string {
 
 function ResultRow({ label, value, plain }: { label: string; value: string; plain: string }) {
   return (
-    <div className="border-t border-zinc-800/60 px-1 py-4 first:border-t-0 sm:flex sm:items-baseline sm:justify-between sm:gap-6 sm:px-2">
+    <div className="border-t border-zinc-200 px-1 py-4 first:border-t-0 sm:flex sm:items-baseline sm:justify-between sm:gap-6 sm:px-2">
       <div>
-        <p className="text-sm font-semibold text-zinc-100">{label}</p>
-        <p className="mt-0.5 text-sm leading-relaxed text-zinc-400">{plain}</p>
+        <p className="text-sm font-semibold text-zinc-900">{label}</p>
+        <p className="mt-0.5 text-sm leading-relaxed text-zinc-600">{plain}</p>
       </div>
-      <p className="mt-1 shrink-0 font-mono text-xl font-bold text-violet-300 sm:mt-0">{value}</p>
+      <p className="mt-1 shrink-0 font-mono text-xl font-bold text-red-700 sm:mt-0">{value}</p>
     </div>
   );
 }
@@ -218,7 +218,7 @@ export default function UnitEconomicsPage() {
         title="Unit Economics Calculator"
         sub="What is one customer worth to your business — and what is the most you can afford to pay to win one?"
       />
-      <p className="mb-6 text-sm leading-relaxed text-zinc-400">
+      <p className="mb-6 text-sm leading-relaxed text-zinc-600">
         Type your numbers below — the answers appear as you type. Example numbers are already filled in so you can see
         how it works; replace them with yours. Free, no sign-up, nothing is uploaded.
       </p>
@@ -230,8 +230,8 @@ export default function UnitEconomicsPage() {
           ['2', 'See what a customer is worth', 'Lifetime value, profit and cost per customer.'],
           ['3', 'See the most you can pay', 'Your break-even cost per purchase and per lead.'],
         ].map(([n, title, desc]) => (
-          <li key={n} className="rounded-xl border border-zinc-800 bg-zinc-900/60 px-4 py-3">
-            <p className="text-sm font-bold text-violet-300">{n}. {title}</p>
+          <li key={n} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+            <p className="text-sm font-bold text-red-700">{n}. {title}</p>
             <p className="mt-0.5 text-xs leading-relaxed text-zinc-500">{desc}</p>
           </li>
         ))}
@@ -260,12 +260,12 @@ export default function UnitEconomicsPage() {
 
         {/* E-commerce or lead-gen: same maths, different last boxes. */}
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <div className="flex rounded-xl border border-zinc-700 bg-zinc-900 p-1" role="group" aria-label="Business model">
+          <div className="flex rounded-xl border border-zinc-300 bg-white p-1" role="group" aria-label="Business model">
             <button
               type="button"
               onClick={() => setCalc1Mode('ecommerce')}
               aria-pressed={calc1Mode === 'ecommerce'}
-              className={cn('min-h-9 rounded-lg px-3 text-sm font-medium transition', calc1Mode === 'ecommerce' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-100')}
+              className={cn('min-h-9 rounded-lg px-3 text-sm font-medium transition', calc1Mode === 'ecommerce' ? 'bg-red-600 text-white' : 'text-zinc-600 hover:text-zinc-900')}
             >
               E-commerce
             </button>
@@ -273,7 +273,7 @@ export default function UnitEconomicsPage() {
               type="button"
               onClick={() => setCalc1Mode('leadgen')}
               aria-pressed={calc1Mode === 'leadgen'}
-              className={cn('min-h-9 rounded-lg px-3 text-sm font-medium transition', calc1Mode === 'leadgen' ? 'bg-violet-600 text-white' : 'text-zinc-400 hover:text-zinc-100')}
+              className={cn('min-h-9 rounded-lg px-3 text-sm font-medium transition', calc1Mode === 'leadgen' ? 'bg-red-600 text-white' : 'text-zinc-600 hover:text-zinc-900')}
             >
               Lead-gen
             </button>
@@ -332,15 +332,15 @@ export default function UnitEconomicsPage() {
           <button
             type="button"
             onClick={() => setTotalsOpen((v) => !v)}
-            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-violet-300 transition hover:text-violet-200"
+            className="inline-flex min-h-11 items-center rounded-xl px-3 text-sm font-medium text-red-700 transition hover:text-red-800"
           >
             Don’t know your averages? Work them out from your totals {totalsOpen ? '▴' : '▾'}
           </button>
         </div>
 
         {totalsOpen && (
-          <div className="mt-4 rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-            <p className="text-sm font-semibold text-zinc-100">Work out your averages from totals</p>
+          <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-4">
+            <p className="text-sm font-semibold text-zinc-900">Work out your averages from totals</p>
             <p className="mt-1 text-xs leading-relaxed text-zinc-500">
               Average order value = total revenue ÷ total purchases. Purchases per customer = total purchases ÷ total customers.
             </p>
@@ -357,12 +357,12 @@ export default function UnitEconomicsPage() {
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <GhostButton onClick={useTotals}>Use these totals</GhostButton>
-              {totalsNote && <p className="text-xs text-emerald-300">{totalsNote}</p>}
+              {totalsNote && <p className="text-xs text-emerald-700">{totalsNote}</p>}
             </div>
           </div>
         )}
 
-        <h3 className="mb-1 mt-6 text-base font-semibold text-zinc-100">Your answers</h3>
+        <h3 className="mb-1 mt-6 text-base font-semibold text-zinc-900">Your answers</h3>
         {calc1Valid ? (
           <div>
             <ResultRow label="Lifetime value — what one customer spends with you" value={money(sym, r.lifetimeRevenuePerCustomer)} plain="Average order value × how many times they buy." />
@@ -376,13 +376,13 @@ export default function UnitEconomicsPage() {
               </p>
             )}
             <ResultRow label="Value vs. cost" value={plainNumber(r.ltgpCacRatio)} plain={ratioSentence} />
-            <div className="mt-4 rounded-xl border border-violet-500/30 bg-violet-500/5 px-4 py-3">
-              <p className="text-sm font-bold text-violet-200">{r.verdictHeadline}</p>
-              <p className="mt-1 text-sm leading-relaxed text-zinc-400">{r.verdictDetail}</p>
+            <div className="mt-4 rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+              <p className="text-sm font-bold text-zinc-900">{r.verdictHeadline}</p>
+              <p className="mt-1 text-sm leading-relaxed text-zinc-600">{r.verdictDetail}</p>
             </div>
           </div>
         ) : (
-          <p className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3 text-sm text-zinc-400">
+          <p className="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-600">
             Fill in all {calc1BoxCount} boxes above to see your answers.
           </p>
         )}
@@ -393,11 +393,11 @@ export default function UnitEconomicsPage() {
         <SectionTitle hint="The safe rule: break even on the first sale, before counting repeat purchases.">
           Calculator 2 — The most you can pay
         </SectionTitle>
-        <p className="mt-2 text-sm leading-relaxed text-zinc-400">
+        <p className="mt-2 text-sm leading-relaxed text-zinc-600">
           These two boxes work on their own — changing them does not change Calculator 1.
         </p>
 
-        <h3 className="mb-3 mt-6 text-sm font-semibold tracking-wide text-zinc-200">If you sell a product</h3>
+        <h3 className="mb-3 mt-6 text-sm font-semibold tracking-wide text-zinc-700">If you sell a product</h3>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Average order value *" hint="What a customer spends on a typical first order.">
             <div className="relative">
@@ -417,7 +417,7 @@ export default function UnitEconomicsPage() {
           <ResultRow label="Most you can pay per purchase" value={money(sym, beEcom.acceptableCpp)} plain="Pay more than this per purchase and the first order loses money." />
         </div>
 
-        <h3 className="mb-3 mt-6 text-sm font-semibold tracking-wide text-zinc-200">If you sell a service and buy leads</h3>
+        <h3 className="mb-3 mt-6 text-sm font-semibold tracking-wide text-zinc-700">If you sell a service and buy leads</h3>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field label="First sale value *" hint="What one new client pays you the first time.">
             <div className="relative">
@@ -453,23 +453,23 @@ export default function UnitEconomicsPage() {
           aria-expanded={advancedOpen}
         >
           <span>
-            <span className="text-base font-semibold text-zinc-100">Advanced — what moves the number most</span>
+            <span className="text-base font-semibold text-zinc-900">Advanced — what moves the number most</span>
             <span className="mt-0.5 block text-sm text-zinc-500">Levers, ROAS and export. Optional — the two calculators above are the whole tool.</span>
           </span>
-          <span className="shrink-0 text-lg text-zinc-400">{advancedOpen ? '▴' : '▾'}</span>
+          <span className="shrink-0 text-lg text-zinc-600">{advancedOpen ? '▴' : '▾'}</span>
         </button>
 
         {advancedOpen && r.ready && (
           <div className="mt-5">
-            <h3 className="mb-3 text-sm font-semibold text-zinc-100">What moves lifetime profit most?</h3>
-            <p className="mb-3 text-sm text-zinc-400">
+            <h3 className="mb-3 text-sm font-semibold text-zinc-900">What moves lifetime profit most?</h3>
+            <p className="mb-3 text-sm text-zinc-600">
               Each row changes one thing only, keeping your cost per customer the same. Improving the customer is
               usually a bigger lever than cheaper ads.
             </p>
-            <div className="overflow-x-auto rounded-2xl border border-zinc-800">
+            <div className="overflow-x-auto rounded-2xl border border-zinc-200">
               <table className="w-full min-w-[480px] text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-left text-zinc-500">
+                  <tr className="border-b border-zinc-200 text-left text-zinc-500">
                     <th className="px-4 py-3 font-semibold">Change</th>
                     <th className="px-4 py-3 font-semibold">New lifetime profit</th>
                     <th className="px-4 py-3 font-semibold">Gain</th>
@@ -478,18 +478,18 @@ export default function UnitEconomicsPage() {
                 </thead>
                 <tbody>
                   {r.levers.map((l) => (
-                    <tr key={l.label} className="border-t border-zinc-800/60 align-top">
-                      <td className="px-4 py-3"><span className="font-semibold text-zinc-100">{l.label}</span><br /><span className="text-xs text-zinc-500">{l.change}</span></td>
-                      <td className="px-4 py-3 font-mono text-zinc-100">{money(sym, l.newLtgp)}</td>
-                      <td className="px-4 py-3 font-mono text-emerald-300">{l.deltaLtgp !== null ? `+${money(sym, l.deltaLtgp)}` : '—'}</td>
-                      <td className="px-4 py-3 font-mono text-zinc-300">{l.newRatio !== null ? plainNumber(l.newRatio) : '—'}</td>
+                    <tr key={l.label} className="border-t border-zinc-200 align-top">
+                      <td className="px-4 py-3"><span className="font-semibold text-zinc-900">{l.label}</span><br /><span className="text-xs text-zinc-500">{l.change}</span></td>
+                      <td className="px-4 py-3 font-mono text-zinc-900">{money(sym, l.newLtgp)}</td>
+                      <td className="px-4 py-3 font-mono text-emerald-700">{l.deltaLtgp !== null ? `+${money(sym, l.deltaLtgp)}` : '—'}</td>
+                      <td className="px-4 py-3 font-mono text-zinc-600">{l.newRatio !== null ? plainNumber(l.newRatio) : '—'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <h3 className="mb-3 mt-6 text-sm font-semibold text-zinc-100">Extra numbers</h3>
+            <h3 className="mb-3 mt-6 text-sm font-semibold text-zinc-900">Extra numbers</h3>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
               {[
                 ['Profit per customer after ads', money(sym, r.profitPerCustomerAfterAds)],
@@ -497,9 +497,9 @@ export default function UnitEconomicsPage() {
                 ['Break-even ROAS', r.breakEvenRoas !== null ? `${r.breakEvenRoas.toFixed(2)}×` : '—'],
                 ['Total profit after ads', money(sym, r.totalProfitAfterAds)],
               ].map(([label, value]) => (
-                <div key={label} className="rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3">
+                <div key={label} className="rounded-xl border border-zinc-200 bg-white px-4 py-3">
                   <p className="text-xs text-zinc-500">{label}</p>
-                  <p className="mt-0.5 font-mono text-base font-semibold text-zinc-100">{value}</p>
+                  <p className="mt-0.5 font-mono text-base font-semibold text-zinc-900">{value}</p>
                 </div>
               ))}
             </div>
@@ -511,20 +511,20 @@ export default function UnitEconomicsPage() {
             </p>
 
             <div className="no-print mt-5 flex flex-wrap gap-2">
-              <button type="button" onClick={onCopy} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+              <button type="button" onClick={onCopy} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400">
                 {copied ? '✓ Copied to clipboard' : '⧉ Copy summary'}
               </button>
-              <button type="button" onClick={onCsv} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+              <button type="button" onClick={onCsv} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400">
                 ⭳ Export CSV
               </button>
-              <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2.5 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+              <button type="button" onClick={() => window.print()} className="inline-flex min-h-11 items-center rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium text-zinc-700 transition hover:border-zinc-400">
                 ⎙ Print / save PDF
               </button>
             </div>
           </div>
         )}
         {advancedOpen && !r.ready && (
-          <p className="mt-4 text-sm text-zinc-400">Fill in all {calc1BoxCount} boxes in Calculator 1 to see the advanced numbers.</p>
+          <p className="mt-4 text-sm text-zinc-600">Fill in all {calc1BoxCount} boxes in Calculator 1 to see the advanced numbers.</p>
         )}
       </Card>
 

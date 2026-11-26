@@ -169,11 +169,11 @@ export default function CompareClient({
   function deltaRow(key: string) {
     const { meta, label, o, n, good, bad, deltaText } = deltaData(key);
     return (
-      <tr key={key} className="border-b border-zinc-800/60 last:border-0">
-        <td className="py-2.5 pr-3 font-medium text-zinc-200">{label}</td>
-        <td className="py-2.5 pr-3 font-mono text-zinc-400">{fmtVal(o, meta)}</td>
-        <td className="py-2.5 pr-3 font-mono text-zinc-100">{fmtVal(n, meta)}</td>
-        <td className={cn('py-2.5 font-mono font-semibold', good && 'text-emerald-300', bad && 'text-red-300', !good && !bad && 'text-zinc-500')}>
+      <tr key={key} className="border-b border-zinc-200 last:border-0">
+        <td className="py-2.5 pr-3 font-medium text-zinc-700">{label}</td>
+        <td className="py-2.5 pr-3 font-mono text-zinc-600">{fmtVal(o, meta)}</td>
+        <td className="py-2.5 pr-3 font-mono text-zinc-900">{fmtVal(n, meta)}</td>
+        <td className={cn('py-2.5 font-mono font-semibold', good && 'text-emerald-700', bad && 'text-red-700', !good && !bad && 'text-zinc-500')}>
           {deltaText}
         </td>
       </tr>
@@ -183,19 +183,19 @@ export default function CompareClient({
   function deltaCard(key: string) {
     const { meta, label, o, n, good, bad, deltaText } = deltaData(key);
     return (
-      <div key={key} className="rounded-xl border border-zinc-800 bg-zinc-950 p-4">
+      <div key={key} className="rounded-xl border border-zinc-200 bg-white p-4">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-sm font-semibold text-zinc-100">{label}</p>
-          <span className={cn('shrink-0 font-mono text-sm font-semibold', good && 'text-emerald-300', bad && 'text-red-300', !good && !bad && 'text-zinc-500')}>
+          <p className="text-sm font-semibold text-zinc-900">{label}</p>
+          <span className={cn('shrink-0 font-mono text-sm font-semibold', good && 'text-emerald-700', bad && 'text-red-700', !good && !bad && 'text-zinc-500')}>
             {deltaText}
           </span>
         </div>
         <p className="mt-2 font-mono text-sm">
           <span className="text-zinc-500">Old </span>
-          <span className="text-zinc-400">{fmtVal(o, meta)}</span>
+          <span className="text-zinc-600">{fmtVal(o, meta)}</span>
           <span className="mx-2 text-zinc-600">→</span>
           <span className="text-zinc-500">New </span>
-          <span className="text-zinc-100">{fmtVal(n, meta)}</span>
+          <span className="text-zinc-900">{fmtVal(n, meta)}</span>
         </p>
       </div>
     );
@@ -235,7 +235,7 @@ export default function CompareClient({
 
       {fresh && comparison && (
         <>
-          <div className={cn('rounded-2xl border p-6', comparison.improved ? 'border-violet-500/50 bg-violet-500/5' : 'border-red-500/50 bg-red-500/5')}>
+          <div className={cn('rounded-2xl border p-6', comparison.improved ? 'border-emerald-300 bg-emerald-50' : 'border-red-500/50 bg-red-50')}>
             <div className="flex flex-wrap items-center gap-3">
               <span className={cn('rounded-full px-4 py-1.5 text-sm font-bold', comparison.improved ? 'bg-gradient-to-r from-emerald-500 to-green-500 text-white' : 'bg-gradient-to-r from-red-500 to-rose-500 text-white')}>
                 {comparison.improved ? '✓ IMPROVED' : '✗ NOT IMPROVED'}
@@ -246,8 +246,8 @@ export default function CompareClient({
                 <VerdictBadge verdict={fresh.results.verdict} size="sm" />
               </div>
             </div>
-            <p className="mt-3 text-[15px] text-zinc-200">{comparison.summary}</p>
-            <p className="mt-2 text-sm text-zinc-400">{fresh.results.verdictReason}</p>
+            <p className="mt-3 text-[15px] text-zinc-700">{comparison.summary}</p>
+            <p className="mt-2 text-sm text-zinc-600">{fresh.results.verdictReason}</p>
           </div>
 
           <Card>
@@ -258,7 +258,7 @@ export default function CompareClient({
             <div className="hidden overflow-x-auto sm:block">
               <table className="w-full min-w-[520px] text-left text-sm">
                 <thead>
-                  <tr className="border-b border-zinc-800 text-xs uppercase tracking-wider text-zinc-500">
+                  <tr className="border-b border-zinc-200 text-xs uppercase tracking-wider text-zinc-500">
                     <th className="pb-2 pr-3 font-medium">Metric</th>
                     <th className="pb-2 pr-3 font-medium">Old</th>
                     <th className="pb-2 pr-3 font-medium">New</th>
@@ -279,19 +279,19 @@ export default function CompareClient({
             <ol className="space-y-3">
               {fresh.results.actionItems.map((a) => (
                 <li key={a.priority} className="flex gap-3">
-                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-violet-600 text-xs font-bold text-white">{a.priority}</span>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-600 text-xs font-bold text-white">{a.priority}</span>
                   <div>
-                    <p className="text-sm font-semibold text-zinc-100">{a.title}</p>
-                    <p className="mt-0.5 text-[13px] text-zinc-400">{a.detail}</p>
+                    <p className="text-sm font-semibold text-zinc-900">{a.title}</p>
+                    <p className="mt-0.5 text-[13px] text-zinc-600">{a.detail}</p>
                   </div>
                 </li>
               ))}
             </ol>
           </Card>
 
-          {saveError && <p className="rounded-xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-sm text-red-300">{saveError}</p>}
+          {saveError && <p className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{saveError}</p>}
           {limitHit && (
-            <div className="rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm text-amber-200">
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
               Plan limit reached.{' '}
               <Link href="/billing" className="inline-block py-1 font-semibold underline underline-offset-2">See plans</Link> for options.
             </div>

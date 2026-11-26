@@ -112,13 +112,13 @@ export default function MetaConnect({ next = '/dashboard' }: { next?: string }) 
       </SectionTitle>
 
       {notice && (
-        <p className="mb-4 rounded-xl border border-zinc-700 bg-zinc-950 px-4 py-3 text-sm text-zinc-200" role="status">
+        <p className="mb-4 rounded-xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-700" role="status">
           {notice}
         </p>
       )}
 
       {!status?.configured && (
-        <p className="text-sm leading-relaxed text-zinc-400">
+        <p className="text-sm leading-relaxed text-zinc-600">
           Meta connection is not set up on this site yet — the app keys are missing. Manual entry
           still works for every diagnosis; the site owner needs to add the Meta app credentials to
           enable live data.
@@ -127,7 +127,7 @@ export default function MetaConnect({ next = '/dashboard' }: { next?: string }) 
 
       {status?.configured && !status.connected && (
         <div>
-          <p className="text-sm leading-relaxed text-zinc-400">
+          <p className="text-sm leading-relaxed text-zinc-600">
             Connect your Meta ad account once, and the wizard can pull live spend, clicks,
             purchases and revenue straight from Ads Manager — no typing, no stale numbers.
           </p>
@@ -151,17 +151,17 @@ export default function MetaConnect({ next = '/dashboard' }: { next?: string }) 
               return (
                 <li
                   key={a.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950 px-4 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-200 bg-white px-4 py-3"
                 >
                   <div className="min-w-0">
-                    <p className="break-words text-sm font-semibold text-zinc-100">{a.name}</p>
+                    <p className="break-words text-sm font-semibold text-zinc-900">{a.name}</p>
                     <p className="mt-0.5 text-xs text-zinc-500">
                       Ad account {a.adAccountId}
                       {a.currency ? ` · ${a.currency}` : ''}
                       {a.metaUserName ? ` · via ${a.metaUserName}` : ''}
                     </p>
                     {days !== null && (
-                      <p className={days < 7 ? 'mt-0.5 text-xs text-amber-300' : 'mt-0.5 text-xs text-zinc-500'}>
+                      <p className={days < 7 ? 'mt-0.5 text-xs text-amber-700' : 'mt-0.5 text-xs text-zinc-500'}>
                         {days < 0
                           ? 'Connection expired — reconnect to use live data.'
                           : `Connection valid for about ${days} more day${days === 1 ? '' : 's'} — reconnect when it expires.`}

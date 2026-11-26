@@ -46,7 +46,7 @@ export default async function ForecastDetailPage({
         sub={`Forecasted ${fmtDateTime(row.created_at as string)}`}
         actions={
           <>
-            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-700 bg-zinc-900 px-4 py-2 text-sm font-medium text-zinc-200 transition hover:border-zinc-500">
+            <Link href="/dashboard" className="inline-flex min-h-11 items-center justify-center rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition hover:border-zinc-400">
               ← Dashboard
             </Link>
             <DeleteForecastButton id={id} redirectTo="/dashboard?deleted=forecast" />
@@ -60,7 +60,7 @@ export default async function ForecastDetailPage({
         generatedAt={row.created_at as string}
       />
       <div className="no-print mt-6 flex justify-end">
-        <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-violet-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-violet-500">
+        <Link href="/forecast" className="inline-flex min-h-11 items-center justify-center rounded-xl bg-red-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-700">
           Run a new forecast →
         </Link>
       </div>

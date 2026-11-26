@@ -29,7 +29,7 @@ export function UpgradeButton() {
             decided from beta feedback when paid plans launch. */}
         {loading ? 'Redirecting to Stripe…' : 'Upgrade to Pro'}
       </PrimaryButton>
-      {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
       <p className="mt-2 text-xs text-zinc-500">Test mode — use card 4242 4242 4242 4242.</p>
     </div>
   );
@@ -43,7 +43,7 @@ export function PortalButton() {
       <GhostButton onClick={() => postAndRedirect('/api/stripe/portal', setLoading, setError)} disabled={loading}>
         {loading ? 'Opening…' : 'Manage billing'}
       </GhostButton>
-      {error && <p className="mt-2 text-sm text-red-300">{error}</p>}
+      {error && <p className="mt-2 text-sm text-red-700">{error}</p>}
     </div>
   );
 }

@@ -14,15 +14,15 @@ export default function TermsPage() {
         sub="The rules for using AdSignal Pro."
       />
 
-      <div className="mb-6 rounded-xl border border-amber-400/40 bg-amber-400/10 px-4 py-3 text-sm leading-relaxed text-amber-200">
+      <div className="mb-6 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
         <strong>Template notice:</strong> this is a starting-point template, not legal advice.
         Have a qualified lawyer review and adapt it before your public launch —
         especially once you collect payments.
       </div>
 
-      <Card className="space-y-5 text-sm leading-relaxed text-zinc-300">
+      <Card className="space-y-5 text-sm leading-relaxed text-zinc-600">
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">1. What this tool is</h2>
+          <h2 className="text-base font-semibold text-zinc-900">1. What this tool is</h2>
           <p className="mt-1.5">
             AdSignal Pro provides rule-based, metric-focused campaign diagnoses
             for education and decision support. It is not financial advice, and its outputs are
@@ -32,7 +32,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">2. Free trial</h2>
+          <h2 className="text-base font-semibold text-zinc-900">2. Free trial</h2>
           <p className="mt-1.5">
             New accounts receive a 30-day free trial with full access and no payment method
             required. When the trial ends, you can still view your past diagnoses, but creating
@@ -42,7 +42,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">3. Acceptable use</h2>
+          <h2 className="text-base font-semibold text-zinc-900">3. Acceptable use</h2>
           <ul className="mt-1.5 list-disc space-y-1 pl-5">
             <li>Use the service only for campaigns and accounts you are authorized to manage.</li>
             <li>Don&apos;t attempt to access other users&apos; data or disrupt the service.</li>
@@ -51,10 +51,10 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">4. Your data</h2>
+          <h2 className="text-base font-semibold text-zinc-900">4. Your data</h2>
           <p className="mt-1.5">
             You own the campaign data you enter. We store it to provide the service (see the{' '}
-            <a href="/privacy" className="text-violet-300 underline underline-offset-2">
+            <a href="/privacy" className="text-red-700 underline underline-offset-2">
               Privacy Policy
             </a>
             ). Deleting a diagnosis permanently removes it and its screenshot.
@@ -62,7 +62,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">5. No warranties; limitation of liability</h2>
+          <h2 className="text-base font-semibold text-zinc-900">5. No warranties; limitation of liability</h2>
           <p className="mt-1.5">
             The service is provided &quot;as is&quot;. Ad decisions (killing, scaling, or
             changing campaigns) remain your responsibility. To the maximum extent permitted by
@@ -72,7 +72,7 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">6. Changes</h2>
+          <h2 className="text-base font-semibold text-zinc-900">6. Changes</h2>
           <p className="mt-1.5">
             We may update these terms as the product evolves (for example, when paid plans
             launch). Material changes will be announced inside the app.
@@ -80,10 +80,10 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="text-base font-semibold text-zinc-100">7. Contact</h2>
+          <h2 className="text-base font-semibold text-zinc-900">7. Contact</h2>
           <p className="mt-1.5">
             Questions about these terms:{' '}
-            <a href="mailto:radichowdhury2017@gmail.com" className="font-mono text-zinc-100 underline underline-offset-2">
+            <a href="mailto:radichowdhury2017@gmail.com" className="font-mono text-zinc-900 underline underline-offset-2">
               radichowdhury2017@gmail.com
             </a>
             .
