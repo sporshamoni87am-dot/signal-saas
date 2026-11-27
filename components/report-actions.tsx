@@ -170,6 +170,28 @@ export default function ReportActions({
           <p style={{ fontSize: 14, lineHeight: 1.6 }}>{results.verdictReason}</p>
         </div>
 
+        {(results.warnings ?? []).length > 0 && (
+          <div style={{ border: '2px solid #b45309', borderRadius: 12, padding: 14, marginBottom: 20 }}>
+            <p style={{ fontSize: 12, letterSpacing: 2, color: '#92400e' }}>⚠ CHECK YOUR INPUTS</p>
+            <ul style={{ fontSize: 13, lineHeight: 1.6, paddingLeft: 20, marginTop: 6 }}>
+              {(results.warnings ?? []).map((w, i) => (
+                <li key={i} style={{ marginBottom: 4 }}>{w}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {(results.notes ?? []).length > 0 && (
+          <div style={{ border: '1px solid #94a3b8', borderRadius: 12, padding: 14, marginBottom: 20 }}>
+            <p style={{ fontSize: 12, letterSpacing: 2, color: '#475569' }}>NOTES — READ BEFORE YOU ACT</p>
+            <ul style={{ fontSize: 13, lineHeight: 1.6, paddingLeft: 20, marginTop: 6 }}>
+              {(results.notes ?? []).map((n, i) => (
+                <li key={i} style={{ marginBottom: 4 }}>{n}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <PrintSignalTable title="Ad signals" signals={results.adSignals} />
         <PrintSignalTable title="Business metrics" signals={results.businessMetrics} />
 

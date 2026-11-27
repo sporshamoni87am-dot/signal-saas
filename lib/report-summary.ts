@@ -29,6 +29,31 @@ export function buildSummaryText(
   lines.push(results.verdictReason);
   lines.push('');
 
+  const warnings = results.warnings ?? [];
+  if (warnings.length) {
+    lines.push('WARNINGS — CHECK YOUR INPUTS');
+    for (const w of warnings) lines.push(`- ${w}`);
+    lines.push('');
+  }
+
+  const notes = results.notes ?? [];
+  if (notes.length) {
+    lines.push('NOTES — READ BEFORE YOU ACT');
+    for (const n of notes) lines.push(`- ${n}`);
+    lines.push('');
+  }
+
+  if (inputs.daysRunning !== null && inputs.daysRunning > 0) {
+    const ppw =
+      inputs.purchases !== null && inputs.purchases > 0
+        ? Math.round((inputs.purchases / inputs.daysRunning) * 7)
+        : null;
+    lines.push(
+      `Based on ${inputs.daysRunning} days of data${ppw !== null ? ` · about ${ppw} purchases a week` : ''}.`,
+    );
+    lines.push('');
+  }
+
   const section = (title: string, signals: DiagnosisResults['adSignals']) => {
     if (!signals.length) return;
     lines.push(title.toUpperCase());

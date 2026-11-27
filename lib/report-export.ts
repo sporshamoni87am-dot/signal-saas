@@ -57,6 +57,15 @@ export function buildDiagnosisSections(
   const meta = VERDICT_META[results.verdict];
   const ds = results.dataSufficiency;
   const c = results.creative;
+  const warnings = results.warnings ?? [];
+  const notes = results.notes ?? [];
+  const purchasesPerWeek =
+    inputs.daysRunning !== null &&
+    inputs.daysRunning > 0 &&
+    inputs.purchases !== null &&
+    inputs.purchases > 0
+      ? (inputs.purchases / inputs.daysRunning) * 7
+      : null;
 
   const summary: DiagnosisExportSection = {
     title: 'Summary',
@@ -77,6 +86,8 @@ export function buildDiagnosisSections(
       ['Spend vs target CPA', pct(ds.spendProgress)],
       ['Daily budget', money(inputs.dailyBudget)],
       ['Days running', plain(inputs.daysRunning)],
+      ['Purchases per week', purchasesPerWeek === null ? '—' : `~${purchasesPerWeek.toFixed(1)}`],
+      ['Early scale (under 20 purchases)', results.earlyScale ? 'Yes' : 'No'],
       ['AOV', money(inputs.aov)],
       ['Gross margin', pct(inputs.grossMarginPct === null ? null : inputs.grossMarginPct / 100)],
       ['Break-even ROAS', inputs.breakevenRoas === null ? '—' : `${inputs.breakevenRoas.toFixed(2)}x`],
@@ -164,6 +175,12 @@ export function buildDiagnosisSections(
 
   return [
     summary,
+    ...(warnings.length > 0
+      ? [{ title: 'Warnings', header: ['Warning'], rows: warnings.map((w) => [w]) }]
+      : []),
+    ...(notes.length > 0
+      ? [{ title: 'Notes', header: ['Note'], rows: notes.map((n) => [n]) }]
+      : []),
     { title: 'Ad signals', header: ['Signal', 'Value', 'Status', 'Benchmark', 'Why it matters'], rows: signalRows(results.adSignals) },
     { title: 'Business metrics', header: ['Signal', 'Value', 'Status', 'Benchmark', 'Why it matters'], rows: signalRows(results.businessMetrics) },
     funnel,

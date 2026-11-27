@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { diagnose, type DiagnosisInputs, type DiagnosisResults } from '@/lib/engine';
+import { diagnose, checkInputWarnings, type DiagnosisInputs, type DiagnosisResults } from '@/lib/engine';
 import {
   MARKET_REGIONS,
   PRODUCT_CATEGORIES,
@@ -99,11 +99,11 @@ const EMPTY: FormState = {
 
 const SETUP_FIELDS: NumFieldDef[] = [
   { name: 'campaignName', label: 'Campaign name', required: true },
-  { name: 'breakevenRoas', label: 'Breakeven / target ROAS', required: true, suffix: '×', hint: 'The ROAS at which you break even. E.g. 2.0.', helpTerm: 'Breakeven ROAS' },
+  { name: 'breakevenRoas', label: 'Breakeven / target ROAS', required: true, suffix: '×', hint: 'Auto-filled from your gross margin (breakeven = 1 ÷ margin). Edit it only if your breakeven also covers shipping, fees or overhead.', helpTerm: 'Breakeven ROAS' },
   { name: 'dailyBudget', label: 'Daily budget', prefix: '$' },
-  { name: 'aov', label: 'Average order value (AOV)', prefix: '$', hint: 'Needed to compute your target CPA.', helpTerm: 'AOV' },
-  { name: 'grossMarginPct', label: 'Gross margin %', suffix: '%', hint: 'After product + shipping costs. Powers POAS.', helpTerm: 'Gross margin' },
-  { name: 'daysRunning', label: 'Days running' },
+  { name: 'aov', label: 'Average order value (AOV)', prefix: '$', hint: 'Auto-filled from revenue ÷ purchases once both are entered. Needed to compute your target CPA.', helpTerm: 'AOV' },
+  { name: 'grossMarginPct', label: 'Gross margin %', suffix: '%', hint: 'After product + shipping costs. Powers POAS — and fills in your breakeven ROAS above.', helpTerm: 'Gross margin' },
+  { name: 'daysRunning', label: 'Days running', hint: 'How many days has this campaign been running? Powers the purchases-per-week read on your report.' },
   { name: 'totalBusinessRevenue', label: 'Total business revenue (same period)', prefix: '$', hint: 'All revenue, all channels — for blended MER.', helpTerm: 'MER' },
 ];
 
@@ -318,6 +318,14 @@ function DiagnoseWizard() {
 
   const [trialState, setTrialState] = useState<'loading' | 'active' | 'expired'>('loading');
 
+  // Single source of truth: breakeven is derived from gross margin
+  // (breakeven = 1 ÷ margin) and AOV from revenue ÷ purchases. These
+  // refs remember a manual override — once the buyer edits a derived
+  // field by hand, later edits to its source stop overwriting it, and
+  // the cross-check warning (below) flags any disagreement instead.
+  const breakevenManualRef = useRef(false);
+  const aovManualRef = useRef(false);
+
   // ---------------- Meta live data ----------------
   const [metaStatus, setMetaStatus] = useState<{ configured: boolean; connected: boolean; accounts: MetaAccountOption[] } | null>(null);
   const [selectedAccount, setSelectedAccount] = useState('');
@@ -463,7 +471,23 @@ function DiagnoseWizard() {
   }, [shotPreview]);
 
   function set(name: keyof FormState, v: string) {
-    setForm((f) => ({ ...f, [name]: v }));
+    setForm((f) => {
+      const next = { ...f, [name]: v };
+      // Breakeven follows the margin unless the buyer overrode it by hand.
+      if (name === 'grossMarginPct' && !breakevenManualRef.current) {
+        const m = parseNum(v);
+        if (m !== null && m > 0) next.breakevenRoas = (100 / m).toFixed(2);
+      }
+      if (name === 'breakevenRoas') breakevenManualRef.current = true;
+      // AOV follows revenue ÷ purchases unless overridden by hand.
+      if ((name === 'attributedRevenue' || name === 'purchases') && !aovManualRef.current) {
+        const rev = parseNum(name === 'attributedRevenue' ? v : next.attributedRevenue);
+        const pur = parseNum(name === 'purchases' ? v : next.purchases);
+        if (rev !== null && pur !== null && pur > 0) next.aov = (rev / pur).toFixed(2);
+      }
+      if (name === 'aov') aovManualRef.current = true;
+      return next;
+    });
     // Clear the error for this field as the user fixes it.
     setErrors((e) => e.filter((n) => n !== name));
   }
@@ -580,6 +604,8 @@ function DiagnoseWizard() {
 
   /** One-click sample campaign: fills the form and runs the full diagnosis. */
   function loadSample() {
+    breakevenManualRef.current = false;
+    aovManualRef.current = false;
     setForm(sampleToForm());
     setIsSample(true);
     setLiveSource(null);
@@ -644,6 +670,12 @@ function DiagnoseWizard() {
         const v = m[f];
         if (v !== null && v !== undefined && v !== '') next[f] = String(v);
       }
+      // Live revenue + purchases also re-derive AOV (unless overridden).
+      if (!aovManualRef.current) {
+        const rev = parseNum(next.attributedRevenue);
+        const pur = parseNum(next.purchases);
+        if (rev !== null && pur !== null && pur > 0) next.aov = (rev / pur).toFixed(2);
+      }
       setForm(next);
       if (json.source) setLiveSource(json.source);
       setLiveFlags(Array.isArray(json.flags) ? json.flags : []);
@@ -679,6 +711,8 @@ function DiagnoseWizard() {
       results !== null ||
       shotFile !== null;
     if (dirty && !window.confirm('Start fresh? This clears your inputs and results.')) return;
+    breakevenManualRef.current = false;
+    aovManualRef.current = false;
     // An uploaded-but-unsaved screenshot is deleted so it can't orphan.
     if (shotPath) {
       fetch('/api/screenshots/cleanup', {
@@ -797,6 +831,29 @@ function DiagnoseWizard() {
   // Result of a Meta connect attempt while on this page (?meta=connected / ?meta_error=…).
   const connectError = searchParams.get('meta_error');
   const connectDone = searchParams.get('meta') === 'connected';
+
+  // Live cross-checks (same rules as the engine): warn the moment the
+  // numbers disagree, instead of after the verdict is already printed.
+  // Warnings never block running the diagnosis — they ask a question.
+  const formWarnings = checkInputWarnings(buildInputs());
+  const breakevenWarnings = formWarnings.filter((w) => w.key === 'breakeven');
+  const aovWarnings = formWarnings.filter((w) => w.key === 'aov');
+
+  // Dynamic hints: show the derived value the field was filled from.
+  const marginVal = parseNum(form.grossMarginPct);
+  const beVal = parseNum(form.breakevenRoas);
+  const derivedBe = marginVal !== null && marginVal > 0 ? 100 / marginVal : null;
+  const breakevenHint =
+    derivedBe !== null && beVal !== null && Math.abs(beVal - derivedBe) < 0.02
+      ? `Auto-filled from your ${marginVal}% margin — breakeven = 1 ÷ margin = ${derivedBe.toFixed(2)}×. Edit it only if your breakeven also covers shipping, fees or overhead.`
+      : 'Auto-filled from your gross margin (breakeven = 1 ÷ margin). Edit it only if your breakeven also covers shipping, fees or overhead.';
+  const revVal = parseNum(form.attributedRevenue);
+  const purVal = parseNum(form.purchases);
+  const derivedAov = revVal !== null && purVal !== null && purVal > 0 ? revVal / purVal : null;
+  const aovHint =
+    derivedAov !== null
+      ? `Revenue ÷ purchases works out to $${derivedAov.toFixed(2)} — auto-filled here. Needed to compute your target CPA.`
+      : 'Auto-filled from revenue ÷ purchases once both are entered. Needed to compute your target CPA.';
 
   // ---------------- results view ----------------
   if (results) {
@@ -1073,18 +1130,35 @@ function DiagnoseWizard() {
               {STEP_META[0].title}
             </SectionTitle>
             <div className="grid gap-4 sm:grid-cols-2">
-              {SETUP_FIELDS.map((def) => (
-                <div key={def.name} className={def.name === 'campaignName' || def.name === 'totalBusinessRevenue' ? 'sm:col-span-2' : ''}>
-                  <NumField
-                    def={def}
-                    value={form[def.name]}
-                    onChange={(v) => set(def.name, v)}
-                    error={errors.includes(def.name)}
-                    errorText={errors.includes(def.name) ? REQUIRED_MESSAGES[def.name] : undefined}
-                  />
-                </div>
-              ))}
+              {SETUP_FIELDS.map((def) => {
+                const d =
+                  def.name === 'breakevenRoas'
+                    ? { ...def, hint: breakevenHint }
+                    : def.name === 'aov'
+                      ? { ...def, hint: aovHint }
+                      : def;
+                return (
+                  <div key={def.name} className={def.name === 'campaignName' || def.name === 'totalBusinessRevenue' ? 'sm:col-span-2' : ''}>
+                    <NumField
+                      def={d}
+                      value={form[def.name]}
+                      onChange={(v) => set(def.name, v)}
+                      error={errors.includes(def.name)}
+                      errorText={errors.includes(def.name) ? REQUIRED_MESSAGES[def.name] : undefined}
+                    />
+                  </div>
+                );
+              })}
             </div>
+            {breakevenWarnings.length > 0 && (
+              <div className="mt-4 space-y-2" role="alert">
+                {breakevenWarnings.map((w) => (
+                  <p key={w.key} className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+                    ⚠ {w.text}
+                  </p>
+                ))}
+              </div>
+            )}
             <div className="mt-4">
               <Field label="One-line problem statement" hint="What’s worrying you about this campaign? Shown on your report.">
                 <textarea
@@ -1161,6 +1235,15 @@ function DiagnoseWizard() {
                 />
               ))}
             </div>
+            {aovWarnings.length > 0 && (
+              <div className="mt-4 space-y-2" role="alert">
+                {aovWarnings.map((w) => (
+                  <p key={w.key} className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+                    ⚠ {w.text}
+                  </p>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -1232,6 +1315,19 @@ function DiagnoseWizard() {
             </dl>
             {form.problemStatement.trim() !== '' && (
               <p className="mt-4 border-l-2 border-zinc-300 pl-3 text-sm italic text-zinc-600">“{form.problemStatement}”</p>
+            )}
+            {formWarnings.length > 0 && (
+              <div className="mt-4 space-y-2" role="alert">
+                <p className="text-sm font-semibold text-amber-800">Check your numbers before you run this:</p>
+                {formWarnings.map((w) => (
+                  <p key={w.key} className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm leading-relaxed text-amber-800">
+                    ⚠ {w.text}
+                  </p>
+                ))}
+                <p className="text-xs leading-relaxed text-zinc-500">
+                  These are warnings, not blockers — the diagnosis will still run. But the grades that depend on the disputed numbers (POAS, target CPA, CPA) may be wrong.
+                </p>
+              </div>
             )}
           </div>
         )}

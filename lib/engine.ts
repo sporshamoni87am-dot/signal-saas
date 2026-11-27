@@ -147,6 +147,20 @@ export interface DiagnosisResults {
   benchmarkSegmented: boolean;
   /** Rank used for old-vs-new improvement comparison (higher = better). */
   verdictRank: number;
+  /**
+   * Input-consistency warnings, in plain language. Empty when the
+   * numbers agree. They never change the verdict — the engine still
+   * computes — but the report shows them first, because every grade
+   * that depends on a disputed input is suspect. Older saves predate
+   * this field (render as no warnings).
+   */
+  warnings: string[];
+  /** Reconciliations and cautions that aren't rules (e.g. CPM vs CPC). */
+  notes: string[];
+  /** SCALE verdict on fewer than 20 purchases — an early read, not a proven winner. */
+  earlyScale: boolean;
+  /** Purchases per week, when days running was entered. */
+  purchasesPerWeek: number | null;
 }
 
 export const VERDICT_META: Record<
@@ -228,6 +242,50 @@ function gradeLow(
 
 const ADJUSTABLE = 'Adjustable starting benchmark — tune it to your account history.';
 
+export interface InputWarning {
+  key: 'breakeven' | 'aov';
+  text: string;
+}
+
+/**
+ * Cross-check the business numbers against each other — the same fact
+ * typed two ways must agree. More than 10% relative disagreement = a
+ * warning, worded as a question rather than an accusation: a breakeven
+ * can legitimately sit above 1 ÷ product margin when it also covers
+ * shipping, fees or overhead. Used by the engine (safety net for any
+ * path, including saved data) and by the wizard (live, as you type).
+ */
+export function checkInputWarnings(
+  i: Pick<
+    DiagnosisInputs,
+    'breakevenRoas' | 'grossMarginPct' | 'aov' | 'attributedRevenue' | 'purchases'
+  >,
+): InputWarning[] {
+  const out: InputWarning[] = [];
+  const be = num(i.breakevenRoas);
+  const margin = num(i.grossMarginPct);
+  if (be !== null && be > 0 && margin !== null && margin > 0) {
+    const impliedMargin = 100 / be;
+    if (Math.abs(impliedMargin - margin) / margin > 0.1) {
+      out.push({
+        key: 'breakeven',
+        text: `Check your numbers: a ${be.toFixed(2)}× breakeven ROAS implies a ${impliedMargin.toFixed(0)}% margin, but you entered ${margin}% gross margin. One of the two is wrong — which is right? (If your breakeven also covers shipping, fees or overhead, it can sit above 1 ÷ margin — in that case enter your contribution margin here instead of product margin.)`,
+      });
+    }
+  }
+  const aov = num(i.aov);
+  const actualAov = div(num(i.attributedRevenue), num(i.purchases));
+  if (aov !== null && actualAov !== null && actualAov > 0) {
+    if (Math.abs(aov - actualAov) / actualAov > 0.1) {
+      out.push({
+        key: 'aov',
+        text: `Check your AOV: you entered $${aov.toFixed(2)}, but revenue ÷ purchases works out to $${actualAov.toFixed(2)}. One of them is wrong — your target CPA (and the CPA grade) is calculated from the AOV you typed.`,
+      });
+    }
+  }
+  return out;
+}
+
 export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
   const i: DiagnosisInputs = { ...raw, campaignType: 'D2C' };
 
@@ -276,6 +334,16 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
       : null;
   const hookRate = div(videoViews3s, impressions);
   const holdRate = div(videoThruplays, videoViews3s);
+
+  // ---------------- input cross-checks ----------------
+  // The same fact typed two ways must agree. Disagreement doesn't
+  // change the verdict — it warns loudly, because every grade that
+  // depends on the disputed input is suspect.
+  const inputWarnings = checkInputWarnings(i);
+  const warnings = inputWarnings.map((w) => w.text);
+  const daysRunning = num(i.daysRunning);
+  const purchasesPerWeek =
+    daysRunning !== null && daysRunning > 0 ? (purchases / daysRunning) * 7 : null;
 
   const rulesFired: RuleFired[] = [];
   const actionItems: ActionItem[] = [];
@@ -347,7 +415,13 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     }
   } else if (roas !== null && breakevenRoas !== null && roas >= breakevenRoas * 1.15) {
     verdict = 'SCALE';
-    verdictReason = `ROAS of ${roas.toFixed(2)}× beats your ${breakevenRoas.toFixed(2)}× breakeven by a healthy margin across ${purchases} purchases. This is a winner — feed it budget methodically.`;
+    // Under 20 purchases this is an early read, not a proven winner —
+    // the verdict stays SCALE (rank unchanged, compare logic untouched),
+    // but the wording says so plainly.
+    verdictReason =
+      purchases < 20
+        ? `ROAS of ${roas.toFixed(2)}× beats your ${breakevenRoas.toFixed(2)}× breakeven across only ${purchases} purchases. Early winner — still in Meta's learning phase, so a few big orders could be flattering the average. Scale in small steps and re-diagnose after 25–30 purchases before raising the budget again.`
+        : `ROAS of ${roas.toFixed(2)}× beats your ${breakevenRoas.toFixed(2)}× breakeven by a healthy margin across ${purchases} purchases. This is a winner — feed it budget methodically.`;
     rulesFired.push({
       rule: 'Scale rule: ROAS ≥ 1.15× breakeven with sufficient data',
       detail: 'Comfortable margin above breakeven = scale candidate.',
@@ -368,6 +442,13 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
         'Bank new hooks now, while it wins',
         `Hook rate of ${(hookRate * 100).toFixed(1)}% is soft — winners die when creative fatigues. Prepare replacements before performance dips.`,
         'Creative → cut 3 new first-3-second variants of the winning ad this week; keep them in drafts.',
+      );
+    }
+    if (purchases < 20) {
+      addAction(
+        'Re-diagnose after 25–30 purchases before the next budget increase',
+        'A verdict on under 20 purchases is an early read, not a proven winner. Let the campaign collect more orders, then run the numbers again — if ROAS holds, keep scaling; if it fades, you caught it before the budget grew.',
+        'Ads Manager → leave the budget alone until purchases pass 25 → re-run this diagnosis with fresh numbers.',
       );
     }
   } else if (roas !== null && breakevenRoas !== null && roas >= breakevenRoas * 0.85) {
@@ -392,6 +473,15 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
           : 'ROAS below target with fixable signals',
     });
   }
+
+  // The verdict still stands, but a buyer acting on it must see the
+  // disagreement first — the grades that depend on the disputed inputs
+  // (POAS, target CPA, CPA) may be wrong.
+  if (warnings.length > 0) {
+    verdictReason +=
+      ' Check the input warnings at the top of this report — some of your numbers disagree, so treat the grades that depend on them with care.';
+  }
+  const earlyScale = verdict === 'SCALE' && purchases < 20;
 
   // ---------------- ad signal grading ----------------
   const adSignals: SignalGrade[] = [];
@@ -427,22 +517,24 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     explanation: 'Measures creative + audience fit. Low CTR = the scroll didn’t stop. This is almost always creative, not budget.',
   });
 
+  const cpcStatus = gradeLow(cpc, bench.cpcGood, bench.cpcWarn);
   adSignals.push({
     key: 'cpc',
     label: 'CPC (link)',
     value: cpc,
     display: cpc !== null ? `$${cpc.toFixed(2)}` : '—',
-    status: gradeLow(cpc, bench.cpcGood, bench.cpcWarn),
+    status: cpcStatus,
     benchmark: `Good ≤ $${bench.cpcGood.toFixed(2)} · Watch ≤ $${bench.cpcWarn.toFixed(2)}. ${ADJUSTABLE}`,
     explanation: 'Price of each visitor. High CPC with low CTR = weak creative in a competitive auction.',
   });
 
+  const cpmStatus = gradeLow(cpm, bench.cpmGood, bench.cpmWarn);
   adSignals.push({
     key: 'cpm',
     label: 'CPM',
     value: cpm,
     display: cpm !== null ? `$${cpm.toFixed(2)}` : '—',
-    status: gradeLow(cpm, bench.cpmGood, bench.cpmWarn),
+    status: cpmStatus,
     benchmark: `Good ≤ $${bench.cpmGood.toFixed(0)} · Watch ≤ $${bench.cpmWarn.toFixed(0)}. ${ADJUSTABLE}`,
     explanation: 'Auction price for your audience. High CPM = narrow or contested audience; fix with broader targeting, not higher bids.',
   });
@@ -512,6 +604,44 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     explanation: '(Attributed revenue × gross margin) ÷ ad spend. A 3× ROAS at 20% margin is a 0.6× POAS — you’re losing money. This is the metric that keeps you honest.',
   });
 
+  // ---------------- reconciliation notes ----------------
+  // A BAD signal must never sit unexplained next to a verdict that says
+  // the opposite. CPM is the classic case: a high CPM is affordable when
+  // CTR earns it back, and a real problem when CPC is high too. Scoped
+  // to SCALE / RUN / FIX — WAIT says "don't touch it yet" and KILL is a
+  // post-mortem, so no new guidance belongs there.
+  const notes: string[] = [];
+  if (verdict === 'SCALE' || verdict === 'RUN' || verdict === 'FIX') {
+    if (cpm !== null && cpmStatus === 'bad') {
+      if (cpcStatus === 'good' && cpc !== null && ctr !== null) {
+        notes.push(
+          `CPM is high ($${cpm.toFixed(2)}), but your CTR (${(ctr * 100).toFixed(2)}%) earns it back — CPC is only $${cpc.toFixed(2)}. Don't fix the CPM; protect the CTR.`,
+        );
+      } else if (cpcStatus === 'warn' || cpcStatus === 'bad') {
+        rulesFired.push({
+          rule: 'Expensive traffic: high CPM and high CPC',
+          detail: 'You pay a lot for every 1,000 impressions and a lot for every click — the audience is narrow, contested, or both.',
+          math: `CPM $${cpm.toFixed(2)} > $${bench.cpmWarn.toFixed(0)} · CPC $${cpc !== null ? cpc.toFixed(2) : 'n/a'} > $${bench.cpcGood.toFixed(2)}`,
+        });
+        addAction(
+          'Broaden the audience before raising the budget',
+          'High CPM and high CPC together mean a narrow or contested audience. Broaden targeting — or test a fresh creative angle — before spending more. Raising the budget on an expensive audience just buys the same expensive clicks faster.',
+          'Ads Manager → Ad Set → broaden the audience (wider interests or a lookalike) or add 2–3 fresh creatives. Don’t raise bids to win the same auction.',
+        );
+      }
+    }
+    if (verdict === 'SCALE' && ctrStatus === 'bad' && ctr !== null) {
+      notes.push(
+        `Link CTR is below the floor (${(ctr * 100).toFixed(2)}% vs ${(bench.ctrGood * 100).toFixed(1)}% good) even though ROAS is strong — the few who click convert well. Don't rebuild a winning ad; bank new hooks in the background so you have replacements when CTR slips.`,
+      );
+    }
+    if (verdict === 'SCALE' && mer === null) {
+      notes.push(
+        'This verdict uses attributed ROAS only — total business revenue wasn’t entered, so there’s no blended MER check. Add it to confirm the business as a whole is winning before big budget increases.',
+      );
+    }
+  }
+
   // ---------------- creative analysis ----------------
   const hookStatus = grade(hookRate, BENCH.hookGood, BENCH.hookWarn);
   const holdStatus = grade(holdRate, BENCH.holdGood, BENCH.holdWarn);
@@ -522,9 +652,14 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     hookStatus,
     holdStatus,
     fatigue,
+    // Never state a clean bill of health without data: with no frequency
+    // entered there is no fatigue test at all, so say so — and say the
+    // same about hook/hold when the video numbers are missing.
     fatigueNote: fatigue
       ? `Fatigue pattern detected: frequency ${frequency!.toFixed(1)} with CTR ${(ctr! * 100).toFixed(2)}%. Same people, tired creative. True confirmation needs a second diagnosis in 7+ days — save this one and compare.`
-      : 'No clear fatigue pattern right now. If frequency keeps climbing while CTR falls, fatigue is setting in — compare against a future diagnosis to confirm.',
+      : frequency === null
+        ? `Fatigue can't be assessed — frequency wasn't entered. Add it before scaling: scaling raises frequency, and frequency is what drives fatigue.${hookRate === null || holdRate === null ? ' Hook and hold rates are missing too — add 3-sec video views and thruplays to check whether the creative still stops the scroll.' : ''}`
+        : `No clear fatigue pattern right now. If frequency keeps climbing while CTR falls, fatigue is setting in — compare against a future diagnosis to confirm.${hookRate === null || holdRate === null ? ' Hook and hold rates weren’t entered — add video metrics to check creative health.' : ''}`,
   };
 
   // ---------------- funnel ----------------
@@ -598,7 +733,7 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
 
   // ---------------- signal-driven action items (RUN / FIX) ----------------
   if (verdict === 'RUN' || verdict === 'FIX') {
-    if (ctrStatus === 'bad' || hookStatus === 'bad') {
+    if (ctrStatus === 'bad' || hookStatus === 'bad' || holdStatus === 'bad') {
       // Print ONLY the conditions that actually failed — the guard is an
       // OR, so printing both would state false maths (e.g. "CTR 1.22% <
       // 0.7%" when CTR is graded Good and only the hook failed).
@@ -609,9 +744,18 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
       if (hookStatus === 'bad' && hookRate !== null) {
         failedParts.push(`hook ${(hookRate * 100).toFixed(1)}% < ${(BENCH.hookWarn * 100).toFixed(0)}%`);
       }
+      if (holdStatus === 'bad' && holdRate !== null) {
+        failedParts.push(`hold ${(holdRate * 100).toFixed(1)}% < ${(BENCH.holdWarn * 100).toFixed(0)}%`);
+      }
       rulesFired.push({
         rule: 'Creative weakness detected',
-        detail: 'CTR and/or hook rate below floor — the ad isn’t earning attention.',
+        // Keep the original wording when only CTR/hook failed (the sample
+        // campaign's rule must stay byte-identical); mention hold only
+        // when hold actually failed.
+        detail:
+          holdStatus === 'bad'
+            ? 'CTR, hook and/or hold rate below floor — the ad isn’t earning or keeping attention.'
+            : 'CTR and/or hook rate below floor — the ad isn’t earning attention.',
         math: failedParts.join(' · ') || 'creative signal below floor',
       });
       addAction(
@@ -701,6 +845,10 @@ export function diagnose(raw: DiagnosisInputs): DiagnosisResults {
     benchmarkSegmented: bench.segmented,
     rulesFired,
     actionItems: actionItems.sort((a, b) => a.priority - b.priority),
+    warnings,
+    notes,
+    earlyScale,
+    purchasesPerWeek,
   };
 }
 

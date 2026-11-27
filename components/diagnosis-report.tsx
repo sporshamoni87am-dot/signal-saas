@@ -99,6 +99,21 @@ export default function DiagnosisReport({
   liveSource?: LiveSourceBadge | null;
 }) {
   const progress = results.dataSufficiency.spendProgress;
+  // Older saves predate the warnings/notes fields — render as empty.
+  const warnings = results.warnings ?? [];
+  const notes = results.notes ?? [];
+  const purchasesPerWeek =
+    inputs.daysRunning !== null &&
+    inputs.daysRunning > 0 &&
+    inputs.purchases !== null &&
+    inputs.purchases > 0
+      ? (inputs.purchases / inputs.daysRunning) * 7
+      : null;
+  const fatigueTone = results.creative.fatigue
+    ? 'border-red-200 bg-red-50 text-red-800'
+    : inputs.frequency === null
+      ? 'border-amber-300 bg-amber-50 text-amber-800'
+      : 'border-zinc-200 bg-white text-zinc-600';
   return (
     // Hidden in print: report-actions.tsx renders a light print-only document.
     <div className="space-y-6 print:hidden">
@@ -123,6 +138,11 @@ export default function DiagnosisReport({
                   {liveSource.dateRange ? ` · ${liveSource.dateRange}` : ''}
                 </span>
               )}
+              {results.earlyScale && (
+                <span className="inline-flex items-center rounded-full border border-amber-300 bg-amber-50 px-3 py-1 text-[11px] font-bold tracking-wide text-amber-800">
+                  Early winner — low data
+                </span>
+              )}
               <VerdictBadge verdict={results.verdict} size="sm" />
             </div>
           </div>
@@ -139,6 +159,34 @@ export default function DiagnosisReport({
           )}
         </div>
       </div>
+
+      {/* Input warnings — first, before any grade, because a disputed
+          input makes the grades that depend on it suspect. */}
+      {warnings.length > 0 && (
+        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 sm:p-6" role="alert">
+          <p className="text-sm font-bold text-amber-800">⚠ Check your inputs — some numbers disagree</p>
+          <ul className="mt-2 space-y-2">
+            {warnings.map((w, idx) => (
+              <li key={idx} className="text-sm leading-relaxed text-amber-800">{w}</li>
+            ))}
+          </ul>
+          <p className="mt-2 text-xs leading-relaxed text-amber-700/80">
+            The verdict below was still calculated, but the grades that depend on the disputed numbers (POAS, target CPA, CPA) may be wrong until you fix them.
+          </p>
+        </div>
+      )}
+
+      {/* Reconciliation notes — read before acting on the verdict. */}
+      {notes.length > 0 && (
+        <div className="rounded-2xl border border-sky-300 bg-sky-50 p-5 sm:p-6">
+          <p className="text-sm font-bold text-sky-800">Notes — read before you act</p>
+          <ul className="mt-2 space-y-2">
+            {notes.map((n, idx) => (
+              <li key={idx} className="text-sm leading-relaxed text-sky-800">{n}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Data sufficiency */}
       <Card>
@@ -170,6 +218,13 @@ export default function DiagnosisReport({
             'Add AOV + breakeven ROAS so we can compute your target CPA spend gate.'
           )}
         </p>
+        {inputs.daysRunning !== null && inputs.daysRunning > 0 && (
+          <p className="mt-2 text-sm text-zinc-600">
+            Based on {inputs.daysRunning} day{inputs.daysRunning === 1 ? '' : 's'} of data
+            {purchasesPerWeek !== null ? ` · about ${Math.round(purchasesPerWeek)} purchase${Math.round(purchasesPerWeek) === 1 ? '' : 's'} a week` : ''}
+            {results.earlyScale ? ' — still early; see the scale caution above.' : '.'}
+          </p>
+        )}
       </Card>
 
       {/* Ad signals */}
@@ -228,8 +283,8 @@ export default function DiagnosisReport({
             <p className="mt-1 text-xs text-zinc-500">Thruplays ÷ 3-sec views. Good ≥ 20% · Watch ≥ 10%.</p>
           </div>
         </div>
-        <p className={cn('mt-4 rounded-xl border px-4 py-3 text-sm leading-relaxed', results.creative.fatigue ? 'border-red-200 bg-red-50 text-red-800' : 'border-zinc-200 bg-white text-zinc-600')}>
-          {results.creative.fatigue ? '⚠ ' : 'ℹ '}{results.creative.fatigueNote}
+        <p className={cn('mt-4 rounded-xl border px-4 py-3 text-sm leading-relaxed', fatigueTone)}>
+          {results.creative.fatigue || inputs.frequency === null ? '⚠ ' : 'ℹ '}{results.creative.fatigueNote}
         </p>
       </Card>
 
